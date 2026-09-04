@@ -28,8 +28,9 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **LAB-05:** PostgreSQL + Transactional Outbox + NATS JetStream com garantias at-least-once, consumer idempotente e controles de falhas simuladas.
 - [LAB] **LAB-06:** Distributed Failure & Recovery Pack com Toxiproxy, controles de degradação e recuperação, consistência final e evidências diagnósticas em JSON.
 - [LAB] **AI-01:** QE Intelligence Layer consultiva com provider OpenAI substituível, saída estruturada e fallback não bloqueante.
+- [LAB] **AI-02:** Failure Intelligence consultivo correlacionando métricas determinísticas e evidências de resiliência distribuída do LAB-06.
 
-[LAB] LAB-07 e posteriores — segurança avançada, performance/stress testing, cluster multi-nó, AI-02, dashboards executivos e descoberta de onboarding — permanecem fora desta entrega.
+[LAB] LAB-07 e posteriores — segurança avançada, performance/stress testing, cluster multi-nó, dashboards executivos e descoberta de onboarding — permanecem fora desta entrega.
 
 ## Estrutura
 
@@ -158,8 +159,11 @@ curl http://127.0.0.1:8474/proxies
 # Gerar contexto determinístico de impacto
 npm run impact:context
 
-# Executar AI advisory consultivo (usa OPENAI_API_KEY se disponível)
+# Executar AI advisory consultivo (análise de impacto de PR)
 npm run ai:advisory
+
+# Executar AI failure advisory consultivo (Failure Intelligence LAB-06)
+npm run ai:failure-advisory
 ```
 
 ## Comece por aqui

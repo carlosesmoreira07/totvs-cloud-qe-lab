@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 
-import { AiProviderUnavailableError, UnavailableAiProvider, type AiProvider } from './provider.js';
+import { AiProviderUnavailableError, UnavailableAiProvider, type AiProvider, type AnalyzeOptions } from './provider.js';
 import { aiAdvisorySchema } from './schema.js';
 
 export const DEFAULT_QE_AI_MODEL = 'gpt-5.4-mini';
@@ -56,14 +56,19 @@ export class OpenAiProvider implements AiProvider {
     this.parseResponse = async (input) => client.responses.parse(input);
   }
 
-  async analyze(context: unknown): Promise<unknown> {
+  async analyze(context: unknown, options?: AnalyzeOptions): Promise<unknown> {
+    const targetSchema = options?.schema ?? aiAdvisorySchema;
+    const schemaName = options?.schemaName ?? 'qe_quality_advisory';
+    const instructions = options?.instructions ?? SYSTEM_INSTRUCTIONS;
+    const maxTokens = options?.maxOutputTokens ?? 1_800;
+
     const response = await this.parseResponse({
       model: this.model,
-      instructions: SYSTEM_INSTRUCTIONS,
+      instructions,
       input: JSON.stringify(context),
-      max_output_tokens: 1_800,
+      max_output_tokens: maxTokens,
       store: false,
-      text: { format: zodTextFormat(aiAdvisorySchema, 'qe_quality_advisory') },
+      text: { format: zodTextFormat(targetSchema, schemaName) },
     });
 
     if (response.output_parsed === null || response.output_parsed === undefined) {

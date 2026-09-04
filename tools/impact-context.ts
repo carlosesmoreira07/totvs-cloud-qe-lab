@@ -75,6 +75,12 @@ const rules: ImpactRule[] = [
     question: 'A fronteira transacional, at-least-once, retries, idempotência e recuperação sob partição de rede foram verificados?',
   },
   {
+    pattern: /^tools\/ai\//,
+    risk: 'regressão na QE Intelligence Layer ou violação dos guardrails de IA assistiva',
+    tests: ['npm run test:unit', 'npm test'],
+    question: 'A IA permanece estritamente consultiva, sem autoridade de gate e com schemas validados?',
+  },
+  {
     pattern: /^(docs\/|README\.md$|AGENTS\.md$)/,
     risk: 'hipótese apresentada como fato ou orientação divergente',
     tests: [],

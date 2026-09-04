@@ -14,6 +14,7 @@
 - [LAB] LAB-04 aprofunda retry, conflitos de chave, concorrência e prevenção de provisionamento duplicado, preservando estado em memória.
 - [LAB] LAB-05 introduz persistência PostgreSQL, Transactional Outbox e NATS JetStream para estudar consistência transacional e mensageria distribuída.
 - [LAB] LAB-06 adiciona um pacote de resiliência e recuperação distribuída (Distributed Failure & Recovery Pack) cobrindo falhas de broker, parada de consumer, redeliveries, crashes de publisher, timeouts de API e erros transacionais antes de ACK.
+- [LAB] AI-01 e AI-02 introduzem a QE Intelligence Layer consultiva (análise de impacto de PR e Failure Intelligence baseada em evidências reais de resiliência), com guardrails estritos e autoridade humana preservada.
 
 ## Não objetivos
 

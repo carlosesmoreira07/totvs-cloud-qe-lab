@@ -1,7 +1,16 @@
+import type { z } from 'zod';
+
+export interface AnalyzeOptions {
+  schema?: z.ZodType;
+  schemaName?: string;
+  instructions?: string;
+  maxOutputTokens?: number;
+}
+
 export interface AiProvider {
   readonly name: string;
   readonly model: string;
-  analyze(context: unknown): Promise<unknown>;
+  analyze(context: unknown, options?: AnalyzeOptions): Promise<unknown>;
 }
 
 export type AiAdvisoryUnavailableReason =

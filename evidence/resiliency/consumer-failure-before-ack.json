@@ -2,9 +2,9 @@
   "scenario": "consumer-failure-before-ack",
   "riskId": "RISK-RES-006",
   "controlId": "CTRL-RES-CONSUMER-FAIL-BEFORE-ACK-001",
-  "startedAt": "2026-09-04T05:09:46.982Z",
-  "recoveredAt": "2026-09-04T05:09:47.035Z",
-  "durationMs": 53,
+  "startedAt": "2026-09-04T05:27:41.952Z",
+  "recoveredAt": "2026-09-04T05:27:42.105Z",
+  "durationMs": 152,
   "observedFailure": "SIMULATED_CONSUMER_PROCESSING_FAILURE",
   "finalState": {
     "rollbackVerified": true,

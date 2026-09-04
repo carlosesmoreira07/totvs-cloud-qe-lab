@@ -96,6 +96,7 @@ Sem chave, o comando exercita o fallback seguro:
 
 ```bash
 npm run ai:advisory
+npm run ai:failure-advisory
 ```
 
 Com uma chave fornecida apenas pelo ambiente:
@@ -103,6 +104,7 @@ Com uma chave fornecida apenas pelo ambiente:
 ```bash
 export OPENAI_API_KEY
 QE_AI_MODEL=gpt-5.4-mini npm run ai:advisory
+QE_AI_MODEL=gpt-5.4-mini npm run ai:failure-advisory
 ```
 
 O contexto determinístico continua disponível separadamente:
@@ -110,6 +112,89 @@ O contexto determinístico continua disponível separadamente:
 ```bash
 npm run impact:context
 npm run impact:context -- --format json
+```
+
+## AI-02 — Failure Intelligence
+
+### Objetivo
+
+[LAB] Evoluir a QE Intelligence Layer para analisar evidências reais de resiliência e recuperação distribuída geradas pelo LAB-06 (`evidence/resiliency/*.json`), auxiliando o Quality Engineer a avaliar a degradação, gaps de cobertura e riscos residuais.
+
+### Dados ingeridos
+
+1. **Evidências de resiliência normalizadas:** `evidence/resiliency/*.json` com `scenario`, `riskId`, `controlId`, `observedFailure`, `startedAt`, `recoveredAt`, `durationMs`, `finalState` e `result`.
+2. **Métricas determinísticas locais:** calculadas antes da invocação do modelo (totais, taxa de sucesso, duração mín/máx/média, riscos e falhas observadas).
+3. **Contexto de PR:** diff relevante, riscos mapeados e resumo de execução dos testes.
+
+### Métricas determinísticas locais
+
+[LAB] A LLM não é solicitada a realizar cálculos aritméticos. O carregador (`tools/ai/evidence-loader.ts`) calcula deterministicamente:
+- total de cenários e status (`passed` / `failed`);
+- tempo de recuperação (`min`, `max`, `avg`);
+- conjunto consolidado de riscos e controles exercitados;
+- catálogo de falhas observadas durante a degradação.
+
+### Papel da LLM
+
+- sintetizar o comportamento do sistema durante a falha (`failureSummary`);
+- avaliar a consistência da recuperação (`recoveryAssessment`: `RECOVERED_CONSISTENT`, `RECOVERED_DEGRADED`, `RECOVERY_FAILED`, `INCONCLUSIVE`);
+- apontar preocupações de consistência e integridade (`consistencyConcerns`);
+- identificar padrões recorrentes entre execuções (`recurringPatterns`);
+- sinalizar gaps de cobertura de teste (`coverageGaps`);
+- sugerir novos experimentos de resiliência e caos (`recommendedExperiments`);
+- elaborar perguntas orientadas à revisão humana (`humanQuestions`).
+
+### Regras e guardrails estritos
+
+- **Diferenciação obrigatória:** a IA deve distinguir explicitamente evidência observada, inferência e ausência de cobertura.
+- **Vedação de afirmações categóricas sem evidência:** a IA está proibida de afirmar que o sistema é "resiliente" de forma ampla; qualquer qualificação é estritamente limitada aos cenários e invariantes executados.
+- **Exigência de citação de evidência:** todo finding deve conter `subject`, `rationale` e lista de `evidence` (identificadores de risco, arquivo ou cenário).
+- **Sem autoridade de release:** a saída é puramente consultiva e não bloqueia o Quality Gate (`AI_FAILURE_ADVISORY_UNAVAILABLE` em caso de indisponibilidade).
+
+### Exemplo de advisory gerado
+
+```json
+{
+  "failureSummary": "Os 6 cenários de falha recuperaram o estado final esperado de forma consistente sob partição NATS, falha de worker e redelivery.",
+  "affectedRisks": [
+    {
+      "subject": "RISK-RES-001",
+      "rationale": "Broker indisponível reteve mensagem no Outbox e concluiu após restabelecimento",
+      "evidence": ["nats-outage-during-publish.json"]
+    }
+  ],
+  "recoveryAssessment": "RECOVERED_CONSISTENT",
+  "consistencyConcerns": [],
+  "recurringPatterns": [
+    {
+      "subject": "Recuperação célere com Toxiproxy",
+      "rationale": "A reconexão e republicação ocorreram em menos de 100ms em todos os testes",
+      "evidence": ["durationMs < 100"]
+    }
+  ],
+  "coverageGaps": [
+    {
+      "subject": "Partição prolongada superior à janela de deduplicação",
+      "rationale": "Não há teste com partição de rede que exceda os 2 minutos da janela nativa do JetStream",
+      "evidence": ["docs/05-outbox-nats.md"]
+    }
+  ],
+  "recommendedExperiments": [
+    {
+      "subject": "Injeção de latência com jitter",
+      "rationale": "Testar latência intermediária de 500ms antes de corte abrupto da conexão",
+      "evidence": ["CTRL-RES-NATS-OUTAGE-001"]
+    }
+  ],
+  "humanQuestions": [
+    {
+      "subject": "Qual a política de retenção para eventos PENDING com retryCount elevado?",
+      "rationale": "Definir se deve existir alerta ou descarte seguro após N tentativas",
+      "evidence": ["apps/control-plane-mock/src/outbox-publisher.ts"]
+    }
+  ],
+  "confidence": "HIGH"
+}
 ```
 
 ## Governança
