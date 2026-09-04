@@ -1,16 +1,16 @@
 {
   "schemaVersion": "1.0.0",
   "rulesVersion": "security-rules-v1",
-  "generatedAt": "2026-09-04T23:03:31.219Z",
+  "generatedAt": "2026-09-04T23:20:28.231Z",
   "scope": "[LAB] Cloud Control Plane fictício e dependências deste repositório",
   "decisionAuthority": "HUMAN",
   "status": "YELLOW",
   "metrics": {
-    "total": 4,
+    "total": 1,
     "severities": {
       "INFO": 0,
       "LOW": 0,
-      "MEDIUM": 4,
+      "MEDIUM": 1,
       "HIGH": 0,
       "CRITICAL": 0
     },
@@ -23,7 +23,7 @@
     },
     "open": 0,
     "fixed": 0,
-    "accepted": 4
+    "accepted": 1
   },
   "scannersExecuted": [
     "SECRET",

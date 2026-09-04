@@ -74,7 +74,7 @@ Risco -> Controle executável -> Evidência normalizada -> Regra determinística
 
 - [LAB] `Security Status = YELLOW`.
 - [LAB] Quatro scanners executados; zero findings `HIGH`/`CRITICAL` abertos e zero controles críticos falhos.
-- [LAB] Quatro ocorrências `MEDIUM` do ZAP, regra `10049` (`Non-Storable Content`), estão `ACCEPTED_LAB`: `Cache-Control: no-store` é deliberado para respostas operacionais e evita cache de estado.
+- [LAB] Um finding `MEDIUM` do ZAP, regra `10049` (`Non-Storable Content`), está `ACCEPTED_LAB`: o alerta é normalizado por regra/origem, e `Cache-Control: no-store` é deliberado para respostas operacionais.
 - [LAB] `SECURITY_GAP_IAM_NOT_IMPLEMENTED` permanece aberto e impede status verde.
 
 ## Execução

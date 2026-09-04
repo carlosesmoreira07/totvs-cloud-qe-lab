@@ -4,8 +4,8 @@
 
 - **Status geral:** AMARELO - Requer atenção
 - **Tendência:** Em melhoria
-- **Gerado em:** 04/09/2026, 20:07
-- **Commit analisado:** `5455ac61269b`
+- **Gerado em:** 04/09/2026, 20:20
+- **Commit analisado:** `2f952096db4e`
 - **Contexto:** Personal & Non-Official [LAB]
 
 ## Resumo Executivo
@@ -48,7 +48,7 @@
 
 ### Segurança - AMARELO
 
-**4 findings.** Scanners locais ativos; o gap IAM mantém revisão humana obrigatória. Direção: Sem histórico.
+**1 findings.** Scanners locais ativos; o gap IAM mantém revisão humana obrigatória. Direção: Sem histórico.
 
 ### Lacunas Conhecidas - AMARELO
 

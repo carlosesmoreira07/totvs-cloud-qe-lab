@@ -145,6 +145,7 @@ async function scanDast(root: string): Promise<ScannerEvidence> {
     }
 
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'qe-zap-'));
+    if (process.platform !== 'win32') fs.chmodSync(tempDir, 0o777);
     const reportPath = path.join(tempDir, 'zap-report.json');
     const containerTarget = process.platform === 'win32'
       ? `http://host.docker.internal:${API_PORT}/health`
@@ -158,8 +159,14 @@ async function scanDast(root: string): Promise<ScannerEvidence> {
     ], root);
     const raw = fs.existsSync(reportPath) ? fs.readFileSync(reportPath, 'utf8') : '';
     fs.rmSync(tempDir, { recursive: true, force: true });
-    if (![0, 1, 2].includes(result.status ?? -1) || !raw) {
+    if (![0, 1, 2].includes(result.status ?? -1)) {
       return unavailable('DAST', 'OWASP ZAP 2.17.0 baseline', localTarget, result);
+    }
+    if (!raw) {
+      return scannerEvidence({
+        scanner: 'OWASP ZAP 2.17.0 baseline', source: 'DAST', status: 'UNAVAILABLE',
+        target: localTarget, diagnostic: 'ZAP encerrou sem produzir o relatório JSON esperado.',
+      });
     }
     const findings = parseZapOutput(raw).map((item) => ({
       ...item,

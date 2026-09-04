@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-09-04T23:03:31.212Z",
+  "generatedAt": "2026-09-04T23:20:28.218Z",
   "scanner": "OWASP ZAP 2.17.0 baseline",
   "source": "DAST",
   "status": "EXECUTED",
@@ -11,37 +11,7 @@
       "ruleId": "10049",
       "severity": "MEDIUM",
       "subject": "Non-Storable Content",
-      "location": "http://127.0.0.1:4011/",
-      "description": "The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance.",
-      "remediation": "Aceito no LAB: respostas do control plane usam no-store deliberadamente para evitar cache de estado operacional.",
-      "status": "ACCEPTED_LAB"
-    },
-    {
-      "source": "DAST",
-      "ruleId": "10049",
-      "severity": "MEDIUM",
-      "subject": "Non-Storable Content",
-      "location": "http://127.0.0.1:4011/health",
-      "description": "The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance.",
-      "remediation": "Aceito no LAB: respostas do control plane usam no-store deliberadamente para evitar cache de estado operacional.",
-      "status": "ACCEPTED_LAB"
-    },
-    {
-      "source": "DAST",
-      "ruleId": "10049",
-      "severity": "MEDIUM",
-      "subject": "Non-Storable Content",
-      "location": "http://127.0.0.1:4011/robots.txt",
-      "description": "The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance.",
-      "remediation": "Aceito no LAB: respostas do control plane usam no-store deliberadamente para evitar cache de estado operacional.",
-      "status": "ACCEPTED_LAB"
-    },
-    {
-      "source": "DAST",
-      "ruleId": "10049",
-      "severity": "MEDIUM",
-      "subject": "Non-Storable Content",
-      "location": "http://127.0.0.1:4011/sitemap.xml",
+      "location": "http://127.0.0.1:4011",
       "description": "The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance.",
       "remediation": "Aceito no LAB: respostas do control plane usam no-store deliberadamente para evitar cache de estado operacional.",
       "status": "ACCEPTED_LAB"

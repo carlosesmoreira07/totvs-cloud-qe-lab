@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0.0",
   "rulesVersion": "scorecard-rules-v1",
-  "generatedAt": "2026-09-04T23:07:59.757Z",
-  "commit": "5455ac61269b",
+  "generatedAt": "2026-09-04T23:20:37.153Z",
+  "commit": "2f952096db4e",
   "scope": "[LAB] Cloud Control Plane fictício",
   "decisionAuthority": "HUMAN",
   "overallStatus": "YELLOW",
@@ -395,7 +395,7 @@
         {
           "key": "security-findings",
           "label": "Findings",
-          "value": 4,
+          "value": 1,
           "status": "YELLOW"
         },
         {

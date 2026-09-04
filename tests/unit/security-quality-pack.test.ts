@@ -99,10 +99,15 @@ test('parsers Semgrep e ZAP produzem o formato comum sem trechos de código ou t
   }] }));
   const zap = parseZapOutput(JSON.stringify({ site: [{ '@name': 'http://127.0.0.1', alerts: [{
     pluginid: '10021', riskdesc: 'Low (Medium)', name: 'Header ausente', desc: 'Header defensivo ausente',
-    solution: 'Adicionar header', instances: [{ uri: 'http://127.0.0.1:4010/health', requestHeader: 'não serializar' }],
+    solution: 'Adicionar header', instances: [
+      { uri: 'http://127.0.0.1:4010/health', requestHeader: 'não serializar' },
+      { uri: 'http://127.0.0.1:4010/robots.txt', requestHeader: 'não serializar' },
+    ],
   }] }] }));
   assert.equal(semgrep[0]?.severity, 'MEDIUM');
   assert.equal(zap[0]?.source, 'DAST');
+  assert.equal(zap.length, 1);
+  assert.equal(zap[0]?.location, 'http://127.0.0.1');
   assert.doesNotMatch(JSON.stringify([...semgrep, ...zap]), /segredo não deve sair|não serializar/);
 });
 

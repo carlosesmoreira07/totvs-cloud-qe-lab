@@ -139,24 +139,19 @@ export function parseZapOutput(raw: string): SecurityFinding[] {
     const alerts = Array.isArray(site.alerts) ? site.alerts : [];
     for (const rawAlert of alerts) {
       const alert = record(rawAlert);
-      const instances = Array.isArray(alert.instances) && alert.instances.length > 0
-        ? alert.instances.map(record)
-        : [{}];
-      for (const instance of instances) {
-        const ruleId = text(alert.pluginid, text(alert.alertRef, 'ZAP_ALERT'));
-        findings.push(finding({
-          source: 'DAST',
-          ruleId,
-          severity: normalizeSeverity(alert.riskdesc ?? alert.riskcode),
-          subject: text(alert.name ?? alert.alert, 'Alerta passivo ZAP'),
-          location: text(instance.uri ?? instance.url, text(site['@name'], 'local mock')),
-          description: compactScannerText(alert.desc, 'O baseline passivo identificou um sinal que requer revisão.'),
-          remediation: ruleId === '10049'
-            ? 'Aceito no LAB: respostas do control plane usam no-store deliberadamente para evitar cache de estado operacional.'
-            : compactScannerText(alert.solution, 'Revisar a configuração e repetir o baseline passivo.'),
-          status: ruleId === '10049' ? 'ACCEPTED_LAB' : 'OPEN',
-        }));
-      }
+      const ruleId = text(alert.pluginid, text(alert.alertRef, 'ZAP_ALERT'));
+      findings.push(finding({
+        source: 'DAST',
+        ruleId,
+        severity: normalizeSeverity(alert.riskdesc ?? alert.riskcode),
+        subject: text(alert.name ?? alert.alert, 'Alerta passivo ZAP'),
+        location: text(site['@name'], 'local mock'),
+        description: compactScannerText(alert.desc, 'O baseline passivo identificou um sinal que requer revisão.'),
+        remediation: ruleId === '10049'
+          ? 'Aceito no LAB: respostas do control plane usam no-store deliberadamente para evitar cache de estado operacional.'
+          : compactScannerText(alert.solution, 'Revisar a configuração e repetir o baseline passivo.'),
+        status: ruleId === '10049' ? 'ACCEPTED_LAB' : 'OPEN',
+      }));
     }
   }
   return deduplicateFindings(findings);
