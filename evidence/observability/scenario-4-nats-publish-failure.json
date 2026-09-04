@@ -1,0 +1,68 @@
+{
+  "scenario": "scenario-4-nats-publish-failure",
+  "riskId": "RISK-OBS-004",
+  "controlId": "CTRL-OBS-NATS-ERROR-VISIBILITY-001",
+  "traceId": "5b93d6e089a0c536e90db67627cf1e8e",
+  "correlationId": "corr-437365c6-de05-4809-8a90-499e12981c9a",
+  "spansObserved": [
+    {
+      "name": "outbox.create_event",
+      "spanId": "09fa97fe2ccb8d49",
+      "parentSpanId": "777c597381fb01a2",
+      "status": "OK",
+      "attributes": {
+        "event.type": "instance.provisioning.requested",
+        "event.id": "4b9312ea-f76f-46ee-8530-29b61d5bc9f4",
+        "correlation_id": "corr-437365c6-de05-4809-8a90-499e12981c9a"
+      }
+    },
+    {
+      "name": "db.transaction.create_instance",
+      "spanId": "777c597381fb01a2",
+      "parentSpanId": "c8bf061e81a1b816",
+      "status": "OK",
+      "attributes": {
+        "db.system": "postgresql",
+        "db.operation": "create_instance",
+        "correlation_id": "corr-437365c6-de05-4809-8a90-499e12981c9a",
+        "idempotency_key": "idemp-ac404581-c99d-4f5b-8168-63fa79e9f9e2"
+      }
+    },
+    {
+      "name": "http.request",
+      "spanId": "c8bf061e81a1b816",
+      "status": "OK",
+      "attributes": {
+        "http.method": "POST",
+        "http.route": "/v1/instances",
+        "correlation_id": "corr-437365c6-de05-4809-8a90-499e12981c9a",
+        "x_request_id": "508c9491-c3c0-45f3-a3d6-c600bb51c213",
+        "http.status_code": 202
+      }
+    },
+    {
+      "name": "nats.publish",
+      "spanId": "d5289be0b39c6e94",
+      "parentSpanId": "09fa97fe2ccb8d49",
+      "status": "ERROR",
+      "attributes": {
+        "messaging.system": "nats",
+        "messaging.destination": "instance.provisioning.requested",
+        "event.id": "4b9312ea-f76f-46ee-8530-29b61d5bc9f4",
+        "correlation_id": "corr-437365c6-de05-4809-8a90-499e12981c9a"
+      }
+    }
+  ],
+  "metricsObserved": {
+    "http_requests_total": 4,
+    "outbox_pending_count": 1,
+    "outbox_publish_failures_total": 1,
+    "messages_processed_total": 3
+  },
+  "observedIssue": "SIMULATED_PUBLISH_FAILURE",
+  "finalState": {
+    "outboxStatus": "PENDING",
+    "publishFailures": 1
+  },
+  "result": "PASSED"
+}

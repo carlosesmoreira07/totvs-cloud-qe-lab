@@ -1,0 +1,93 @@
+{
+  "scenario": "scenario-5-consumer-processing-failure",
+  "riskId": "RISK-OBS-005",
+  "controlId": "CTRL-OBS-CONSUMER-ERROR-VISIBILITY-001",
+  "traceId": "488b78561d2fdcde20e2eaeaf737af95",
+  "correlationId": "corr-9000590a-c808-4d4c-a400-26c2be00a8f0",
+  "spansObserved": [
+    {
+      "name": "outbox.create_event",
+      "spanId": "cd7c5fe117e864cb",
+      "parentSpanId": "82e212aabf028395",
+      "status": "OK",
+      "attributes": {
+        "event.type": "instance.provisioning.requested",
+        "event.id": "4fefd58c-1b0e-4f76-9310-014421f238a2",
+        "correlation_id": "corr-9000590a-c808-4d4c-a400-26c2be00a8f0"
+      }
+    },
+    {
+      "name": "db.transaction.create_instance",
+      "spanId": "82e212aabf028395",
+      "parentSpanId": "595f5c7f3ae855a0",
+      "status": "OK",
+      "attributes": {
+        "db.system": "postgresql",
+        "db.operation": "create_instance",
+        "correlation_id": "corr-9000590a-c808-4d4c-a400-26c2be00a8f0",
+        "idempotency_key": "idemp-f72db53c-809a-4497-82b7-70ed4c282e5b"
+      }
+    },
+    {
+      "name": "http.request",
+      "spanId": "595f5c7f3ae855a0",
+      "status": "OK",
+      "attributes": {
+        "http.method": "POST",
+        "http.route": "/v1/instances",
+        "correlation_id": "corr-9000590a-c808-4d4c-a400-26c2be00a8f0",
+        "x_request_id": "949eb87e-b43e-46f6-9bb5-293c7b25279b",
+        "http.status_code": 202
+      }
+    },
+    {
+      "name": "nats.publish",
+      "spanId": "c501923fec45c47d",
+      "parentSpanId": "cd7c5fe117e864cb",
+      "status": "OK",
+      "attributes": {
+        "messaging.system": "nats",
+        "messaging.destination": "instance.provisioning.requested",
+        "event.id": "4fefd58c-1b0e-4f76-9310-014421f238a2",
+        "correlation_id": "corr-9000590a-c808-4d4c-a400-26c2be00a8f0"
+      }
+    },
+    {
+      "name": "db.transaction.update_state",
+      "spanId": "9086f1cd76219c61",
+      "parentSpanId": "a04bd312d677d134",
+      "status": "ERROR",
+      "attributes": {
+        "db.system": "postgresql",
+        "db.operation": "update_state",
+        "event.id": "4fefd58c-1b0e-4f76-9310-014421f238a2",
+        "instance_id": "8996dcb9-7702-458e-8568-8d7010fa8d57",
+        "operation_id": "e8250cbd-36d6-4bdd-9aab-60e07da20af0"
+      }
+    },
+    {
+      "name": "nats.consume",
+      "spanId": "a04bd312d677d134",
+      "parentSpanId": "cd7c5fe117e864cb",
+      "status": "ERROR",
+      "attributes": {
+        "messaging.system": "nats",
+        "messaging.operation": "process",
+        "event.id": "4fefd58c-1b0e-4f76-9310-014421f238a2",
+        "correlation_id": "corr-9000590a-c808-4d4c-a400-26c2be00a8f0"
+      }
+    }
+  ],
+  "metricsObserved": {
+    "http_requests_total": 5,
+    "outbox_pending_count": 1,
+    "outbox_publish_failures_total": 1,
+    "messages_processed_total": 3,
+    "consumer_failures_total": 1
+  },
+  "observedIssue": "SIMULATED_CONSUMER_PROCESSING_FAILURE",
+  "finalState": {
+    "consumerFailures": 1
+  },
+  "result": "PASSED"
+}

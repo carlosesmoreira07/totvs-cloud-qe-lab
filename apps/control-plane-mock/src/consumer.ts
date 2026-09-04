@@ -5,8 +5,18 @@ import {
   type JetStreamSubscription,
   type NatsConnection,
 } from 'nats';
+import { trace } from '@opentelemetry/api';
 import { sc } from './nats-jetstream.js';
 import type { InstanceProvisioningRequestedPayload } from './domain.js';
+import {
+  getTracer,
+  extractContextFromTraceparent,
+  recordMessageProcessed,
+  recordMessageRedelivery,
+  recordConsumerFailure,
+  SpanKind,
+  SpanStatusCode,
+} from './telemetry.js';
 
 export type ConsumerProcessResult =
   | {
@@ -48,7 +58,40 @@ export class EventConsumer {
     options?: ProcessOptions,
   ): Promise<ConsumerProcessResult> {
     const shouldFail = options?.simulateFailureDuringProcessing ?? this.simulateFailure;
+    const parentContext = extractContextFromTraceparent(payload.traceparent);
+    const tracer = getTracer();
+
+    const consumeSpan = tracer.startSpan(
+      'nats.consume',
+      {
+        kind: SpanKind.CONSUMER,
+        attributes: {
+          'messaging.system': 'nats',
+          'messaging.operation': 'process',
+          'event.id': payload.eventId,
+          correlation_id: payload.correlationId,
+        },
+      },
+      parentContext,
+    );
+    const consumeContext = trace.setSpan(parentContext, consumeSpan);
+
     const client = await this.pool.connect();
+    const dbSpan = tracer.startSpan(
+      'db.transaction.update_state',
+      {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          'db.system': 'postgresql',
+          'db.operation': 'update_state',
+          'event.id': payload.eventId,
+          instance_id: payload.instanceId,
+          operation_id: payload.operationId,
+        },
+      },
+      consumeContext,
+    );
+
     try {
       await client.query('BEGIN');
 
@@ -65,6 +108,12 @@ export class EventConsumer {
 
       if (insertResult.rows.length === 0) {
         await client.query('COMMIT');
+        dbSpan.setStatus({ code: SpanStatusCode.OK });
+        dbSpan.end();
+        consumeSpan.setStatus({ code: SpanStatusCode.OK });
+        consumeSpan.end();
+        recordMessageRedelivery('instance.provisioning.requested');
+        recordMessageProcessed('instance.provisioning.requested', 'already_processed');
         return {
           kind: 'already_processed',
           eventId: payload.eventId,
@@ -94,6 +143,11 @@ export class EventConsumer {
       );
 
       await client.query('COMMIT');
+      dbSpan.setStatus({ code: SpanStatusCode.OK });
+      dbSpan.end();
+      consumeSpan.setStatus({ code: SpanStatusCode.OK });
+      consumeSpan.end();
+      recordMessageProcessed('instance.provisioning.requested', 'processed');
 
       return {
         kind: 'processed',
@@ -103,6 +157,12 @@ export class EventConsumer {
       };
     } catch (error) {
       await client.query('ROLLBACK');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      dbSpan.setStatus({ code: SpanStatusCode.ERROR, message: errorMessage });
+      dbSpan.end();
+      consumeSpan.setStatus({ code: SpanStatusCode.ERROR, message: errorMessage });
+      consumeSpan.end();
+      recordConsumerFailure(errorMessage);
       throw error;
     } finally {
       client.release();

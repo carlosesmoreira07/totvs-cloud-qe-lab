@@ -75,6 +75,12 @@ const rules: ImpactRule[] = [
     question: 'A fronteira transacional, at-least-once, retries, idempotência e recuperação sob partição de rede foram verificados?',
   },
   {
+    pattern: /^(apps\/control-plane-mock\/src\/telemetry\.ts|tests\/observability\/|infra\/otel-collector)/,
+    risk: 'perda de rastreabilidade distribuída, quebra de contexto W3C traceId, métricas divergentes ou indisponibilidade da telemetria',
+    tests: ['npm run test:observability', 'npm test'],
+    question: 'Os spans cobrem as 6 etapas do ciclo assíncrono, traceId propaga sem cortes e métricas refletem com precisão o comportamento?',
+  },
+  {
     pattern: /^tools\/ai\//,
     risk: 'regressão na QE Intelligence Layer ou violação dos guardrails de IA assistiva',
     tests: ['npm run test:unit', 'npm test'],

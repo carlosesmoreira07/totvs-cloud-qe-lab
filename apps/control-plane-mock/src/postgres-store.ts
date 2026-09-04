@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import pg from 'pg';
+import { trace } from '@opentelemetry/api';
 import type {
   ControlPlaneStoreInterface,
   CreateInstanceRequest,
@@ -9,6 +10,14 @@ import type {
   Operation,
   OutboxEvent,
 } from './domain.js';
+import {
+  getTracer,
+  extractContextFromTraceparent,
+  createTraceparent,
+  recordOutboxPending,
+  SpanKind,
+  SpanStatusCode,
+} from './telemetry.js';
 
 const { Pool } = pg;
 
@@ -114,7 +123,26 @@ export class PostgresControlPlaneStore implements ControlPlaneStoreInterface {
     payload: CreateInstanceRequest,
     idempotencyKey: string,
     correlationId: string,
+    traceparent?: string,
   ): Promise<CreateResult> {
+    const parentContext = extractContextFromTraceparent(traceparent);
+    const tracer = getTracer();
+
+    const txSpan = tracer.startSpan(
+      'db.transaction.create_instance',
+      {
+        kind: SpanKind.CLIENT,
+        attributes: {
+          'db.system': 'postgresql',
+          'db.operation': 'create_instance',
+          correlation_id: correlationId,
+          idempotency_key: idempotencyKey,
+        },
+      },
+      parentContext,
+    );
+    const txContext = trace.setSpan(parentContext, txSpan);
+
     const fingerprint = createHash('sha256')
       .update(JSON.stringify({
         name: payload.name,
@@ -140,6 +168,8 @@ export class PostgresControlPlaneStore implements ControlPlaneStoreInterface {
         const existing = existingCheck.rows[0]!;
         if (existing.fingerprint !== fingerprint) {
           await client.query('ROLLBACK');
+          txSpan.setStatus({ code: SpanStatusCode.ERROR, message: 'IDEMPOTENCY_CONFLICT' });
+          txSpan.end();
           return { kind: 'conflict' };
         }
 
@@ -158,6 +188,8 @@ export class PostgresControlPlaneStore implements ControlPlaneStoreInterface {
         );
 
         await client.query('COMMIT');
+        txSpan.setStatus({ code: SpanStatusCode.OK });
+        txSpan.end();
 
         const op = opResult.rows[0]!;
         return {
@@ -198,12 +230,29 @@ export class PostgresControlPlaneStore implements ControlPlaneStoreInterface {
         [idempotencyKey, fingerprint, operationId, nowIso],
       );
 
+      // Instrumenta a criacao do evento no outbox como span filho da transacao
+      const outboxSpan = tracer.startSpan(
+        'outbox.create_event',
+        {
+          kind: SpanKind.PRODUCER,
+          attributes: {
+            'event.type': 'instance.provisioning.requested',
+            'event.id': outboxEventId,
+            correlation_id: correlationId,
+          },
+        },
+        txContext,
+      );
+      const outboxSpanContext = outboxSpan.spanContext();
+      const outboxTraceparent = createTraceparent(outboxSpanContext.traceId, outboxSpanContext.spanId);
+
       const eventPayload: InstanceProvisioningRequestedPayload = {
         eventId: outboxEventId,
         instanceId,
         operationId,
         correlationId,
         occurredAt: nowIso,
+        traceparent: outboxTraceparent,
       };
 
       await client.query(
@@ -213,7 +262,13 @@ export class PostgresControlPlaneStore implements ControlPlaneStoreInterface {
         [outboxEventId, instanceId, correlationId, JSON.stringify(eventPayload), nowIso],
       );
 
+      outboxSpan.setStatus({ code: SpanStatusCode.OK });
+      outboxSpan.end();
+      recordOutboxPending(1);
+
       await client.query('COMMIT');
+      txSpan.setStatus({ code: SpanStatusCode.OK });
+      txSpan.end();
 
       const operation: Operation = {
         id: operationId,
@@ -228,6 +283,11 @@ export class PostgresControlPlaneStore implements ControlPlaneStoreInterface {
       return { kind: 'created', operation };
     } catch (error) {
       await client.query('ROLLBACK');
+      txSpan.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      txSpan.end();
       throw error;
     } finally {
       client.release();

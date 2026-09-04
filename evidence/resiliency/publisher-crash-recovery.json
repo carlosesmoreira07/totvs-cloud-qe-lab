@@ -2,9 +2,9 @@
   "scenario": "publisher-crash-recovery",
   "riskId": "RISK-RES-004",
   "controlId": "CTRL-RES-PUBLISHER-CRASH-001",
-  "startedAt": "2026-09-04T05:27:41.647Z",
-  "recoveredAt": "2026-09-04T05:27:41.722Z",
-  "durationMs": 75,
+  "startedAt": "2026-09-04T06:02:09.234Z",
+  "recoveredAt": "2026-09-04T06:02:09.328Z",
+  "durationMs": 94,
   "observedFailure": "PUBLISHER_PROCESS_CRASH",
   "finalState": {
     "outboxStatus": "PUBLISHED",

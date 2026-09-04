@@ -2,6 +2,15 @@ import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { ApiError, ControlPlaneStoreInterface, CreateInstanceRequest } from './domain.js';
 import { ControlPlaneStore } from './store.js';
+import {
+  getTracer,
+  extractContextFromTraceparent,
+  createTraceparent,
+  recordHttpRequest,
+  recordHttpError,
+  SpanKind,
+  SpanStatusCode,
+} from './telemetry.js';
 
 const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
 
@@ -44,7 +53,10 @@ function sendError(
   message: string,
   context: RequestContext,
   details?: ApiError['details'],
+  method = 'UNKNOWN',
+  route = 'UNKNOWN',
 ): void {
+  recordHttpError(method, route, status, code);
   const body: ApiError = {
     code,
     message,
@@ -114,8 +126,43 @@ export function createRequestHandler(store: ControlPlaneStoreInterface = new Con
   return async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
     const context = contextFor(request);
     const url = new URL(request.url ?? '/', 'http://localhost');
+    const method = request.method ?? 'GET';
+    const route = url.pathname;
 
-    if (request.method === 'GET' && url.pathname === '/health') {
+    const rawTraceparent = request.headers['traceparent'];
+    const traceparentHeader = Array.isArray(rawTraceparent) ? rawTraceparent[0] : rawTraceparent;
+    const parentContext = extractContextFromTraceparent(traceparentHeader);
+
+    const tracer = getTracer();
+    const span = tracer.startSpan(
+      'http.request',
+      {
+        kind: SpanKind.SERVER,
+        attributes: {
+          'http.method': method,
+          'http.route': route,
+          correlation_id: context.correlationId,
+          x_request_id: context.requestId,
+        },
+      },
+      parentContext,
+    );
+
+    const spanContext = span.spanContext();
+    const currentTraceparent = createTraceparent(spanContext.traceId, spanContext.spanId);
+
+    response.on('finish', () => {
+      span.setAttribute('http.status_code', response.statusCode);
+      recordHttpRequest(method, route, response.statusCode);
+      if (response.statusCode >= 400) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: `HTTP ${response.statusCode}` });
+      } else {
+        span.setStatus({ code: SpanStatusCode.OK });
+      }
+      span.end();
+    });
+
+    if (method === 'GET' && route === '/health') {
       sendJson(
         response,
         200,
@@ -126,19 +173,27 @@ export function createRequestHandler(store: ControlPlaneStoreInterface = new Con
           timestamp: new Date().toISOString(),
         },
         context,
+        { traceparent: currentTraceparent },
       );
       return;
     }
 
-    if (request.method === 'POST' && url.pathname === '/v1/instances') {
+    if (method === 'POST' && route === '/v1/instances') {
       const rawIdempotencyKey = request.headers['idempotency-key'];
       const idempotencyKey = Array.isArray(rawIdempotencyKey)
         ? rawIdempotencyKey[0]
         : rawIdempotencyKey;
       if (!idempotencyKey || idempotencyKey.length < 8 || idempotencyKey.length > 128) {
-        sendError(response, 400, 'INVALID_REQUEST', 'Request validation failed', context, [
-          { field: 'Idempotency-Key', issue: 'must contain between 8 and 128 characters' },
-        ]);
+        sendError(
+          response,
+          400,
+          'INVALID_REQUEST',
+          'Request validation failed',
+          context,
+          [{ field: 'Idempotency-Key', issue: 'must contain between 8 and 128 characters' }],
+          method,
+          route,
+        );
         return;
       }
 
@@ -149,7 +204,7 @@ export function createRequestHandler(store: ControlPlaneStoreInterface = new Con
         const code = error instanceof Error && error.message === 'PAYLOAD_TOO_LARGE'
           ? 'PAYLOAD_TOO_LARGE'
           : 'INVALID_JSON';
-        sendError(response, 400, code, 'Request body is not valid JSON', context);
+        sendError(response, 400, code, 'Request body is not valid JSON', context, undefined, method, route);
         return;
       }
 
@@ -162,11 +217,18 @@ export function createRequestHandler(store: ControlPlaneStoreInterface = new Con
           'Request validation failed',
           context,
           validation.details,
+          method,
+          route,
         );
         return;
       }
 
-      const result = await store.createInstance(validation.payload, idempotencyKey, context.correlationId);
+      const result = await store.createInstance(
+        validation.payload,
+        idempotencyKey,
+        context.correlationId,
+        currentTraceparent,
+      );
       if (result.kind === 'conflict') {
         sendError(
           response,
@@ -174,6 +236,9 @@ export function createRequestHandler(store: ControlPlaneStoreInterface = new Con
           'IDEMPOTENCY_CONFLICT',
           'Idempotency-Key was already used with a different payload',
           context,
+          undefined,
+          method,
+          route,
         );
         return;
       }
@@ -181,32 +246,33 @@ export function createRequestHandler(store: ControlPlaneStoreInterface = new Con
       sendJson(response, 202, result.operation, context, {
         location: `/v1/operations/${result.operation.id}`,
         'idempotency-replayed': result.kind === 'replayed' ? 'true' : 'false',
+        traceparent: currentTraceparent,
       });
       return;
     }
 
-    const instanceMatch = url.pathname.match(/^\/v1\/instances\/([^/]+)$/);
-    if (request.method === 'GET' && instanceMatch) {
+    const instanceMatch = route.match(/^\/v1\/instances\/([^/]+)$/);
+    if (method === 'GET' && instanceMatch) {
       const instance = await store.getInstance(decodeURIComponent(instanceMatch[1]!));
       if (!instance) {
-        sendError(response, 404, 'INSTANCE_NOT_FOUND', 'Instance was not found', context);
+        sendError(response, 404, 'INSTANCE_NOT_FOUND', 'Instance was not found', context, undefined, method, route);
         return;
       }
-      sendJson(response, 200, instance, context);
+      sendJson(response, 200, instance, context, { traceparent: currentTraceparent });
       return;
     }
 
-    const operationMatch = url.pathname.match(/^\/v1\/operations\/([^/]+)$/);
-    if (request.method === 'GET' && operationMatch) {
+    const operationMatch = route.match(/^\/v1\/operations\/([^/]+)$/);
+    if (method === 'GET' && operationMatch) {
       const operation = await store.getOperation(decodeURIComponent(operationMatch[1]!));
       if (!operation) {
-        sendError(response, 404, 'OPERATION_NOT_FOUND', 'Operation was not found', context);
+        sendError(response, 404, 'OPERATION_NOT_FOUND', 'Operation was not found', context, undefined, method, route);
         return;
       }
-      sendJson(response, 200, operation, context);
+      sendJson(response, 200, operation, context, { traceparent: currentTraceparent });
       return;
     }
 
-    sendError(response, 404, 'ROUTE_NOT_FOUND', 'Route was not found', context);
+    sendError(response, 404, 'ROUTE_NOT_FOUND', 'Route was not found', context, undefined, method, route);
   };
 }

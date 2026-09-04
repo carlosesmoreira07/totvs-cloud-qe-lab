@@ -1,0 +1,133 @@
+{
+  "scenario": "scenario-6-metrics-accuracy",
+  "riskId": "RISK-OBS-006",
+  "controlId": "CTRL-OBS-METRICS-ACCURACY-001",
+  "traceId": "e44aa7e2537ed3884f4a85f0e956b1ea",
+  "correlationId": "corr-b033e177-4597-4aa0-a04b-c1fd08934ca8",
+  "spansObserved": [
+    {
+      "name": "outbox.create_event",
+      "spanId": "0ae2fd92507a1575",
+      "parentSpanId": "23aeb90be07da855",
+      "status": "OK",
+      "attributes": {
+        "event.type": "instance.provisioning.requested",
+        "event.id": "cfe3124c-576f-4495-9db8-79b371030874",
+        "correlation_id": "corr-b033e177-4597-4aa0-a04b-c1fd08934ca8"
+      }
+    },
+    {
+      "name": "db.transaction.create_instance",
+      "spanId": "23aeb90be07da855",
+      "parentSpanId": "66339be07366f09d",
+      "status": "OK",
+      "attributes": {
+        "db.system": "postgresql",
+        "db.operation": "create_instance",
+        "correlation_id": "corr-b033e177-4597-4aa0-a04b-c1fd08934ca8",
+        "idempotency_key": "idemp-1c76c75f-4425-48b1-97d8-bde8183968bf"
+      }
+    },
+    {
+      "name": "http.request",
+      "spanId": "66339be07366f09d",
+      "status": "OK",
+      "attributes": {
+        "http.method": "POST",
+        "http.route": "/v1/instances",
+        "correlation_id": "corr-b033e177-4597-4aa0-a04b-c1fd08934ca8",
+        "x_request_id": "90225dfa-d75d-4560-b331-549c715cf89f",
+        "http.status_code": 202
+      }
+    },
+    {
+      "name": "http.request",
+      "spanId": "599b90064d45b689",
+      "status": "ERROR",
+      "attributes": {
+        "http.method": "POST",
+        "http.route": "/v1/instances",
+        "correlation_id": "corr-b033e177-4597-4aa0-a04b-c1fd08934ca8",
+        "x_request_id": "d6d4c9b5-1dd1-4b04-bbac-98cb0deed7f9",
+        "http.status_code": 400
+      }
+    },
+    {
+      "name": "nats.publish",
+      "spanId": "46997a2212b8837c",
+      "parentSpanId": "0ae2fd92507a1575",
+      "status": "OK",
+      "attributes": {
+        "messaging.system": "nats",
+        "messaging.destination": "instance.provisioning.requested",
+        "event.id": "cfe3124c-576f-4495-9db8-79b371030874",
+        "correlation_id": "corr-b033e177-4597-4aa0-a04b-c1fd08934ca8"
+      }
+    },
+    {
+      "name": "db.transaction.update_state",
+      "spanId": "9178f4fe109c8d1b",
+      "parentSpanId": "e231136c0c28f3f9",
+      "status": "OK",
+      "attributes": {
+        "db.system": "postgresql",
+        "db.operation": "update_state",
+        "event.id": "cfe3124c-576f-4495-9db8-79b371030874",
+        "instance_id": "8de852ab-5821-4d61-b971-aad897193c79",
+        "operation_id": "3449e1f7-faf8-4be6-bf6b-68cfc824bb23"
+      }
+    },
+    {
+      "name": "nats.consume",
+      "spanId": "e231136c0c28f3f9",
+      "parentSpanId": "0ae2fd92507a1575",
+      "status": "OK",
+      "attributes": {
+        "messaging.system": "nats",
+        "messaging.operation": "process",
+        "event.id": "cfe3124c-576f-4495-9db8-79b371030874",
+        "correlation_id": "corr-b033e177-4597-4aa0-a04b-c1fd08934ca8"
+      }
+    },
+    {
+      "name": "db.transaction.update_state",
+      "spanId": "7ef7600ccf46950d",
+      "parentSpanId": "4ff0cb9c371e0ed0",
+      "status": "OK",
+      "attributes": {
+        "db.system": "postgresql",
+        "db.operation": "update_state",
+        "event.id": "cfe3124c-576f-4495-9db8-79b371030874",
+        "instance_id": "8de852ab-5821-4d61-b971-aad897193c79",
+        "operation_id": "3449e1f7-faf8-4be6-bf6b-68cfc824bb23"
+      }
+    },
+    {
+      "name": "nats.consume",
+      "spanId": "4ff0cb9c371e0ed0",
+      "parentSpanId": "0ae2fd92507a1575",
+      "status": "OK",
+      "attributes": {
+        "messaging.system": "nats",
+        "messaging.operation": "process",
+        "event.id": "cfe3124c-576f-4495-9db8-79b371030874",
+        "correlation_id": "corr-b033e177-4597-4aa0-a04b-c1fd08934ca8"
+      }
+    }
+  ],
+  "metricsObserved": {
+    "http_requests_total": 2,
+    "http_errors_total": 1,
+    "messages_processed_total": 2,
+    "message_redeliveries_total": 1
+  },
+  "finalState": {
+    "metricsMap": {
+      "http_requests_total": 2,
+      "http_errors_total": 1,
+      "messages_processed_total": 2,
+      "message_redeliveries_total": 1
+    }
+  },
+  "result": "PASSED"
+}

@@ -18,6 +18,7 @@
     "test:contract": "playwright test tests/contract",
     "test:integration": "playwright test tests/integration",
     "test:resiliency": "playwright test tests/resiliency",
+    "test:observability": "playwright test tests/observability",
     "test:playwright": "playwright test",
     "test:unit": "tsx --test tests/unit/*.test.ts",
     "verify": "npm run typecheck && npm run build && npm run validate:openapi && npm test",
@@ -36,6 +37,11 @@
     "typescript": "7.0.2"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.222.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.222.0",
+    "@opentelemetry/sdk-metrics": "^2.11.0",
+    "@opentelemetry/sdk-trace-base": "^2.11.0",
     "nats": "^2.29.3",
     "openai": "7.10.0",
     "pg": "^8.23.0",

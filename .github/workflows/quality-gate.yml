@@ -20,10 +20,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --fund=false
-      - name: Start LAB-05/LAB-06 infrastructure (PostgreSQL + NATS JetStream + Toxiproxy)
+      - name: Start LAB-05/LAB-06/LAB-07 infrastructure (PostgreSQL + NATS JetStream + Toxiproxy + OTel Collector + Jaeger)
         run: docker compose -f infra/docker-compose.yml up -d --wait
       - run: npm run verify
-      - name: Teardown LAB-05/LAB-06 infrastructure
+      - name: Teardown LAB-05/LAB-06/LAB-07 infrastructure
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v
 
@@ -39,7 +39,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --fund=false
-      - name: Start LAB-05/LAB-06 infrastructure (PostgreSQL + NATS JetStream + Toxiproxy)
+      - name: Start LAB-05/LAB-06/LAB-07 infrastructure
         run: docker compose -f infra/docker-compose.yml up -d --wait
       - name: Collect summarized control results
         continue-on-error: true
@@ -48,7 +48,7 @@ jobs:
         run: |
           mkdir -p evidence/generated
           npm run test:playwright -- --reporter=json
-      - name: Teardown LAB-05/LAB-06 infrastructure
+      - name: Teardown LAB-05/LAB-06/LAB-07 infrastructure
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v
       - name: Upload control results for the advisory
@@ -67,6 +67,15 @@ jobs:
         with:
           name: qe-resiliency-evidence
           path: evidence/resiliency/*.json
+          if-no-files-found: warn
+          retention-days: 1
+      - name: Upload observability evidence
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: qe-observability-evidence
+          path: evidence/observability/*.json
           if-no-files-found: warn
           retention-days: 1
 

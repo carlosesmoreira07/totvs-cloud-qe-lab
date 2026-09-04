@@ -40,6 +40,7 @@ export interface InstanceProvisioningRequestedPayload {
   operationId: string;
   correlationId: string;
   occurredAt: string;
+  traceparent?: string;
 }
 
 export interface OutboxEvent {
@@ -66,6 +67,7 @@ export interface ControlPlaneStoreInterface {
     payload: CreateInstanceRequest,
     idempotencyKey: string,
     correlationId: string,
+    traceparent?: string,
   ): Promise<CreateResult> | CreateResult;
   getOperation(id: string): Promise<Operation | undefined> | Operation | undefined;
   getInstance(id: string): Promise<Instance | undefined> | Instance | undefined;

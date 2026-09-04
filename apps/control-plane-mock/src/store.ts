@@ -30,6 +30,7 @@ export class ControlPlaneStore implements ControlPlaneStoreInterface {
     payload: CreateInstanceRequest,
     idempotencyKey: string,
     correlationId: string,
+    _traceparent?: string,
   ): CreateResult {
     const fingerprint = createHash('sha256')
       .update(JSON.stringify({
