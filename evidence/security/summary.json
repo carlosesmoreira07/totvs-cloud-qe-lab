@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "1.0.0",
+  "rulesVersion": "security-rules-v1",
+  "generatedAt": "2026-09-04T23:03:31.219Z",
+  "scope": "[LAB] Cloud Control Plane fictício e dependências deste repositório",
+  "decisionAuthority": "HUMAN",
+  "status": "YELLOW",
+  "metrics": {
+    "total": 4,
+    "severities": {
+      "INFO": 0,
+      "LOW": 0,
+      "MEDIUM": 4,
+      "HIGH": 0,
+      "CRITICAL": 0
+    },
+    "openSeverities": {
+      "INFO": 0,
+      "LOW": 0,
+      "MEDIUM": 0,
+      "HIGH": 0,
+      "CRITICAL": 0
+    },
+    "open": 0,
+    "fixed": 0,
+    "accepted": 4
+  },
+  "scannersExecuted": [
+    "SECRET",
+    "DEPENDENCY",
+    "SAST",
+    "DAST"
+  ],
+  "controlsPassed": 4,
+  "controlsFailed": 0,
+  "controlsUnknown": 0,
+  "controls": [
+    {
+      "riskId": "RISK-SEC-001",
+      "controlId": "CTRL-SEC-SECRET-001",
+      "result": "PASSED",
+      "evidence": "evidence/security/secret-scan.json",
+      "critical": true
+    },
+    {
+      "riskId": "RISK-SEC-002",
+      "controlId": "CTRL-SEC-DEPENDENCY-001",
+      "result": "PASSED",
+      "evidence": "evidence/security/dependency-scan.json",
+      "critical": true
+    },
+    {
+      "riskId": "RISK-SEC-003",
+      "controlId": "CTRL-SEC-SAST-001",
+      "result": "PASSED",
+      "evidence": "evidence/security/sast.json",
+      "critical": true
+    },
+    {
+      "riskId": "RISK-SEC-004",
+      "controlId": "CTRL-SEC-DAST-001",
+      "result": "PASSED",
+      "evidence": "evidence/security/dast.json",
+      "critical": true
+    }
+  ],
+  "knownGaps": [
+    "SECURITY_GAP_IAM_NOT_IMPLEMENTED"
+  ],
+  "blockingReasons": []
+}

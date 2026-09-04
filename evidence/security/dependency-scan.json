@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-09-04T23:00:35.324Z",
+  "scanner": "npm audit",
+  "source": "DEPENDENCY",
+  "status": "EXECUTED",
+  "target": "package-lock.json",
+  "findings": []
+}

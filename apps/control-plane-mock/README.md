@@ -13,6 +13,12 @@
 - [LAB] Cada tentativa recebe um `X-Request-Id` único e ecoa seu `X-Correlation-Id`. O campo `Operation.correlationId` preserva a correlação da primeira tentativa aceita.
 - [LAB] O escopo da chave é o processo atual. Reiniciar o mock apaga todos os registros; não há garantia distribuída ou persistente.
 
+## Controles HTTP do LAB-10
+
+- [LAB] `POST /v1/instances` aceita somente `application/json` e limita o corpo a 16 KiB, retornando `415` ou `413` de forma controlada.
+- [LAB] Respostas incluem `Cache-Control: no-store`, `Content-Security-Policy`, `Cross-Origin-Resource-Policy`, `Referrer-Policy`, `X-Content-Type-Options` e `X-Frame-Options` aplicáveis ao mock HTTP local.
+- [LAB] Erros não incluem stack, configuração, caminho interno ou valor de secret. O mock continua sem IAM, registrado como `SECURITY_GAP_IAM_NOT_IMPLEMENTED`.
+
 ```bash
 npm run dev
 ```

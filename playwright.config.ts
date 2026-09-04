@@ -13,6 +13,7 @@ export default defineConfig({
     'observability/**/*.spec.ts',
     'journeys/**/*.spec.ts',
     'performance/**/*.spec.ts',
+    'security/**/*.spec.ts',
   ],
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),

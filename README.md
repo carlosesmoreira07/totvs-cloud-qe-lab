@@ -30,13 +30,14 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **LAB-07:** Observability & Telemetry distribuída mínima com OpenTelemetry (spans nas 6 etapas do ciclo assíncrono, métricas QE de baixa cardinalidade, OpenTelemetry Collector e Jaeger local).
 - [LAB] **LAB-08:** Synthetic & End-to-End Control Plane Journeys validando o fluxo ponta a ponta do usuário, idempotência em voo, tolerância a falhas transitórias e SLAs sintéticos com evidências em JSON.
 - [LAB] **LAB-09:** Performance & Baseline Quality Pack com k6, cenários de concorrência e idempotência paralela, detecção determinística de regressão contra baseline versionado e evidências em JSON.
+- [LAB] **LAB-10:** Security Quality Pack com TruffleHog, `npm audit`, Semgrep, OWASP ZAP Baseline local, controles Playwright de API e evidências normalizadas.
 - [LAB] **AI-01:** QE Intelligence Layer consultiva com provider OpenAI substituível, saída estruturada e fallback não bloqueante.
 - [LAB] **AI-02:** Failure Intelligence consultivo correlacionando métricas determinísticas e evidências de resiliência distribuída do LAB-06.
 - [LAB] **AI-03:** Telemetry & Trace Intelligence correlacionando traces OpenTelemetry (LAB-07), métricas agregadas e falhas distribuídas com classificações estritas `[OBSERVED]`, `[INFERRED]` e `[GAP]`.
 - [LAB] **AI-04:** Journey Intelligence consultivo correlacionando jornadas sintéticas completas (LAB-08), SLAs sintéticos e evidências distribuídas.
 - [LAB] **AI-05:** Executive Quality Scorecard determinístico em JSON/Markdown/HTML/PDF, com interpretação LLM opcional, estruturada e não bloqueante.
 
-[LAB] LAB-10 e posteriores — segurança automatizada, stress testing destrutivo em escala, soak testing de longa duração, observabilidade corporativa e descoberta de onboarding — permanecem fora desta entrega.
+[LAB] LAB-11 e posteriores — IAM, DAST ativo, pentest, stress testing destrutivo em escala, soak testing de longa duração, observabilidade corporativa e descoberta de onboarding — permanecem fora desta entrega.
 
 ## Estrutura
 
@@ -48,6 +49,7 @@ evidence/observability/        evidências estruturadas em JSON dos cenários de
 evidence/performance/          evidências estruturadas em JSON de baselines e comparações de performance (LAB-09)
 evidence/resiliency/           evidências estruturadas em JSON dos cenários de falha e recuperação (LAB-06)
 evidence/scorecard/            scorecard atual em JSON, Markdown, HTML e PDF (AI-05)
+evidence/security/             findings normalizados e resumo determinístico de segurança (LAB-10)
 infra/                         docker-compose (PostgreSQL, NATS JetStream, Toxiproxy, OTel Collector, Jaeger) e configs
 performance/                   scripts k6, limiares, orquestrador e comparador de baseline (LAB-09)
 specs/openapi/                 contrato versionado do laboratório
@@ -58,8 +60,10 @@ tests/journeys/                controles de jornadas sintéticas ponta a ponta e
 tests/performance/             controles de baseline de performance e capacidade (LAB-09)
 tests/resiliency/              controles de degradação e recuperação distribuída (LAB-06)
 tests/observability/           controles de tracing distribuído e métricas QE (LAB-07)
+tests/security/                controles de segurança comportamental da API local (LAB-10)
 tools/                         validação e contexto consultivo de impacto
 tools/scorecard/               normalização, regras determinísticas e renderização do scorecard
+tools/security/                adapters, schemas e regras determinísticas do Security Quality Pack
 .github/workflows/             gate mínimo, objetivo e determinístico
 ```
 
@@ -150,6 +154,10 @@ npm run test:integration
 # Executar suíte de contrato e API
 npm run test:api
 npm run test:contract
+
+# Executar controles de segurança da API e os quatro scanners locais
+npm run test:security
+npm run security:scan
 ```
 
 ### Evidências diagnósticas em JSON (LAB-06, LAB-07 e LAB-08)
@@ -160,6 +168,7 @@ npm run test:contract
 - `evidence/performance/*.json`: linha de base de performance, métricas p50/p95/p99, vazão, integridade concorrente e status de regressão;
 - `evidence/resiliency/*.json`: cenários de degradação, recuperação e consistência distribuída;
 - `evidence/observability/*.json`: árvore de 6 spans, propagação de traceId, separação de IDs, visibilidade de erros e exatidão de métricas.
+- `evidence/security/*.json`: resultados normalizados de secrets, dependências, SAST, DAST e Security Status determinístico.
 
 ### Como verificar Telemetria e Jaeger (LAB-07)
 
@@ -227,5 +236,6 @@ npm run ai:scorecard
 - [Guia LAB-08: Jornadas Sintéticas E2E](docs/08-synthetic-journeys.md)
 - [Guia LAB-09: Performance e Baseline](docs/09-performance-baseline.md)
 - [Guia AI-05: Executive Quality Scorecard](docs/10-executive-quality-scorecard.md)
+- [Guia LAB-10: Security Quality Pack](docs/11-security-quality-pack.md)
 - [Arquitetura de IA assistiva](docs/ai-assisted-impact-analysis.md)
 - [OpenAPI](specs/openapi/cloud-control-plane.yaml)

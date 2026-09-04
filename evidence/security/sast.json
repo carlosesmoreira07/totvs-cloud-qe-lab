@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-09-04T23:02:20.889Z",
+  "scanner": "Semgrep 1.172.0",
+  "source": "SAST",
+  "status": "EXECUTED",
+  "target": "apps/ e tools/ com regras locais versionadas",
+  "findings": []
+}

@@ -99,6 +99,18 @@ const rules: ImpactRule[] = [
     question: 'JSON, Markdown, HTML e PDF preservam as mesmas regras, status, tendências, gaps e autoridade de decisão humana?',
   },
   {
+    pattern: /^(security\/|tools\/security\/|tests\/security\/|tests\/fixtures\/security\/|evidence\/security\/|docs\/11-security-quality-pack\.md|package(?:-lock)?\.json$|\.github\/workflows\/)/,
+    risk: 'segredo versionado, dependência vulnerável, padrão estático inseguro, exposição HTTP ou evidência de segurança insuficiente',
+    tests: ['npm run test:security', 'npm run security:scan', 'npm run test:unit', 'npm run scorecard'],
+    question: 'Secrets, dependências, SAST, DAST passivo local, controles de API e Security Status foram reavaliados sem tratar ausência de evidência como sucesso?',
+  },
+  {
+    pattern: /^(apps\/control-plane-mock\/.*|specs\/openapi\/.*|infra\/.*)$/,
+    risk: 'mudança na superfície HTTP, autenticação/IAM, imagem ou workflow pode alterar a postura de segurança do laboratório',
+    tests: ['npm run test:security', 'npm run security:scan'],
+    question: 'A mudança introduz fronteira de autenticação, exposição de rede, header, imagem ou comportamento que exija novo controle de segurança?',
+  },
+  {
     pattern: /^tools\/ai\//,
     risk: 'regressão na QE Intelligence Layer ou violação dos guardrails de IA assistiva',
     tests: ['npm run test:unit', 'npm test'],

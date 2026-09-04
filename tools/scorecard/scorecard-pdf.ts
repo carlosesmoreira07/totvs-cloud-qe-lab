@@ -175,13 +175,13 @@ export async function renderScorecardPdf(scorecard: ExecutiveScorecard): Promise
   });
 
   drawHeader(pages[1]!, regular, bold, view, 'Panorama integrado', 'Visão por Dimensão');
-  const cardWidth = (PAGE.width - PAGE.margin * 2 - 16) / 2;
-  const cardHeight = 95;
+  const cardWidth = (PAGE.width - PAGE.margin * 2 - 24) / 3;
+  const cardHeight = 118;
   view.dimensions.forEach((dimension, index) => {
-    const column = index % 2;
-    const row = Math.floor(index / 2);
-    const x = PAGE.margin + column * (cardWidth + 16);
-    const y = 469 - row * 102 - cardHeight;
+    const column = index % 3;
+    const row = Math.floor(index / 3);
+    const x = PAGE.margin + column * (cardWidth + 12);
+    const y = 469 - row * 125 - cardHeight;
     drawDimensionCard(pages[1]!, regular, bold, dimension, x, y, cardWidth, cardHeight);
   });
 

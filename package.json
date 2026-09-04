@@ -1,6 +1,6 @@
 {
   "name": "totvs-cloud-qe-lab",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Laboratorio pessoal e nao oficial de Quality Engineering aplicado a Cloud.",
   "type": "module",
@@ -22,6 +22,7 @@
     "test:journeys": "playwright test tests/journeys",
     "test:performance": "tsx performance/runner.ts",
     "test:performance:smoke": "tsx performance/runner.ts --smoke",
+    "test:security": "playwright test tests/security",
     "test:playwright": "playwright test",
     "test:unit": "tsx --test tests/unit/*.test.ts",
     "verify": "npm run typecheck && npm run build && npm run validate:openapi && npm test",
@@ -31,7 +32,8 @@
     "ai:telemetry-advisory": "tsx tools/ai/telemetry-intelligence.ts",
     "ai:journey-advisory": "tsx tools/ai/journey-intelligence.ts",
     "scorecard": "tsx tools/scorecard/scorecard-builder.ts",
-    "ai:scorecard": "tsx tools/ai/executive-scorecard-intelligence.ts"
+    "ai:scorecard": "tsx tools/ai/executive-scorecard-intelligence.ts",
+    "security:scan": "tsx tools/security/security-runner.ts"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "13.0.0",

@@ -1,0 +1,41 @@
+rules:
+  - id: qe-lab-node-command-injection
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Entrada pode alcançar execução de comando via shell.
+    metadata:
+      remediation: Use execFile/spawn com argumentos separados e valide entradas não confiáveis.
+    patterns:
+      - pattern-either:
+          - pattern: exec($COMMAND, ...)
+          - pattern: child_process.exec($COMMAND, ...)
+
+  - id: qe-lab-dynamic-code-execution
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Execução dinâmica de código amplia a superfície de injeção.
+    metadata:
+      remediation: Remova eval/new Function e use parsing ou dispatch explícito.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+
+  - id: qe-lab-sensitive-environment-log
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Variável de ambiente sensível pode ser exposta em log.
+    metadata:
+      remediation: Nunca registre secrets; use apenas metadados não sensíveis e redigidos.
+    patterns:
+      - pattern: console.$METHOD(..., process.env.$SECRET, ...)
+      - metavariable-regex:
+          metavariable: $SECRET
+          regex: (?i).*(secret|token|password|api_key|private_key).*
+
+  - id: qe-lab-sql-template-interpolation
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Interpolação em query SQL pode permitir injeção.
+    metadata:
+      remediation: Use placeholders parametrizados pelo driver PostgreSQL.
+    pattern: $CLIENT.query(`...${$VALUE}...`, ...)

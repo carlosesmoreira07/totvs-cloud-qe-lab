@@ -7,6 +7,7 @@ import { loadResiliencyData } from '../ai/evidence-loader.js';
 import { loadJourneyData } from '../ai/journey-evidence-loader.js';
 import { loadTelemetryData } from '../ai/telemetry-evidence-loader.js';
 import { renderScorecardPdf } from './scorecard-pdf.js';
+import { parseSecuritySummary, type SecuritySummary } from '../security/security-schema.js';
 import { renderExecutiveSummaryMarkdown, renderScorecardHtml } from './scorecard-renderer.js';
 import {
   parseExecutiveScorecard,
@@ -24,7 +25,7 @@ export interface RiskControlSignal {
 export interface ControlExecutionSignal extends RiskControlSignal {
   result: 'PASSED' | 'FAILED';
   source: string;
-  kind: 'RESILIENCY' | 'OBSERVABILITY' | 'JOURNEY' | 'PERFORMANCE';
+  kind: 'RESILIENCY' | 'OBSERVABILITY' | 'JOURNEY' | 'PERFORMANCE' | 'SECURITY';
 }
 
 export interface ScorecardSignals {
@@ -38,6 +39,7 @@ export interface ScorecardSignals {
     journeys: boolean;
     performanceCurrent: boolean;
     performanceBaseline: boolean;
+    security: boolean;
   };
   journeys: {
     total: number;
@@ -78,6 +80,17 @@ export interface ScorecardSignals {
     comparisonStatus: 'IMPROVED' | 'STABLE' | 'REGRESSED' | 'NO_BASELINE';
     tolerancePct: number | null;
     regressedMetrics: string[];
+  };
+  security: {
+    status: QualityStatus;
+    findings: number;
+    openHigh: number;
+    openCritical: number;
+    scannersExecuted: number;
+    controlsPassed: number;
+    controlsFailed: number;
+    controlsUnknown: number;
+    knownGaps: string[];
   };
   hasHistoricalSeries: boolean;
   latestEvidenceAt: string | null;
@@ -180,12 +193,20 @@ export function loadScorecardSignals(repositoryRoot = process.cwd()): ScorecardS
   const performanceDir = path.join(repositoryRoot, 'evidence', 'performance');
   const currentPath = path.join(performanceDir, 'current.json');
   const baselinePath = path.join(performanceDir, 'baseline.json');
+  const securityPath = path.join(repositoryRoot, 'evidence', 'security', 'summary.json');
 
   const resiliency = loadResiliencyData(resiliencyDir);
   const telemetry = loadTelemetryData(observabilityDir, resiliencyDir);
   const journey = loadJourneyData(journeysDir, observabilityDir, resiliencyDir);
   const current = readJson<PerformanceCurrent>(currentPath);
   const baseline = readJson<Record<string, unknown>>(baselinePath);
+  const rawSecurity = readJson<unknown>(securityPath);
+  let security: SecuritySummary | null = null;
+  try {
+    if (rawSecurity) security = parseSecuritySummary(rawSecurity);
+  } catch {
+    security = null;
+  }
 
   const controlExecutions: ControlExecutionSignal[] = [
     ...resiliency.evidences.map((item) => ({
@@ -210,6 +231,13 @@ export function loadScorecardSignals(repositoryRoot = process.cwd()): ScorecardS
       kind: 'JOURNEY' as const,
     })),
     ...performanceExecutions(current),
+    ...(security?.controls ?? []).flatMap((item) => item.result === 'UNKNOWN' ? [] : [{
+      riskId: item.riskId,
+      controlId: item.controlId,
+      result: item.result,
+      source: item.evidence,
+      kind: 'SECURITY' as const,
+    }]),
   ];
 
   const comparisonStatus = current?.baselineComparison?.status;
@@ -232,6 +260,7 @@ export function loadScorecardSignals(repositoryRoot = process.cwd()): ScorecardS
       journeys: fs.existsSync(journeysDir) && journey.journeyEvidences.length > 0,
       performanceCurrent: current !== null,
       performanceBaseline: baseline !== null,
+      security: security !== null,
     },
     journeys: {
       total: journey.correlation.totalJourneys,
@@ -275,6 +304,17 @@ export function loadScorecardSignals(repositoryRoot = process.cwd()): ScorecardS
         ? current.baselineComparison.regressedMetrics.filter((item): item is string => typeof item === 'string')
         : [],
     },
+    security: {
+      status: security?.status ?? 'UNKNOWN',
+      findings: security?.metrics.total ?? 0,
+      openHigh: security?.metrics.openSeverities.HIGH ?? 0,
+      openCritical: security?.metrics.openSeverities.CRITICAL ?? 0,
+      scannersExecuted: security?.scannersExecuted.length ?? 0,
+      controlsPassed: security?.controlsPassed ?? 0,
+      controlsFailed: security?.controlsFailed ?? 0,
+      controlsUnknown: security?.controlsUnknown ?? 4,
+      knownGaps: security?.knownGaps ?? [],
+    },
     hasHistoricalSeries: false,
     latestEvidenceAt: latestIso([
       ...resiliency.evidences.flatMap((item) => [item.startedAt, item.recoveredAt]),
@@ -294,12 +334,12 @@ function indicator(key: string, label: string, value: string | number, status: Q
   return { key, label, value, status, ...(unit ? { unit } : {}) };
 }
 
-function evidence(source: string, kind: 'RISK_MAP' | 'RESILIENCY' | 'OBSERVABILITY' | 'JOURNEY' | 'PERFORMANCE' | 'BASELINE', result: string) {
+function evidence(source: string, kind: 'RISK_MAP' | 'RESILIENCY' | 'OBSERVABILITY' | 'JOURNEY' | 'PERFORMANCE' | 'BASELINE' | 'SECURITY', result: string) {
   return { source, kind, result };
 }
 
 function overallStatus(dimensions: ScorecardDimension[]): QualityStatus {
-  const operational = dimensions.filter((dimension) => ['CRITICAL_JOURNEYS', 'RESILIENCE', 'OBSERVABILITY', 'PERFORMANCE'].includes(dimension.key));
+  const operational = dimensions.filter((dimension) => ['CRITICAL_JOURNEYS', 'RESILIENCE', 'OBSERVABILITY', 'PERFORMANCE', 'SECURITY'].includes(dimension.key));
   if (operational.every((dimension) => dimension.status === 'UNKNOWN')) return 'UNKNOWN';
   if (dimensions.some((dimension) => dimension.status === 'RED')) return 'RED';
   if (dimensions.some((dimension) => dimension.status === 'YELLOW' || dimension.status === 'UNKNOWN')) return 'YELLOW';
@@ -333,7 +373,8 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
     : null;
   const invalidGap = signals.invalidEvidenceFiles > 0 ? `${signals.invalidEvidenceFiles} arquivos de evidência inválidos foram ignorados.` : null;
   const historyGap = signals.hasHistoricalSeries ? null : 'Baseline e current permitem comparação pontual, mas ainda não formam série histórica.';
-  const knownGaps = [coverageGap, observabilityGap, invalidGap, historyGap, ...sourceGaps].filter((item): item is string => Boolean(item));
+  const securityGaps = signals.security.knownGaps.map((gap) => `Segurança: ${gap}.`);
+  const knownGaps = [coverageGap, observabilityGap, invalidGap, historyGap, ...securityGaps, ...sourceGaps].filter((item): item is string => Boolean(item));
 
   const coverageStatus: QualityStatus = knownRisks === 0 ? 'UNKNOWN' : coveragePct >= 80 ? 'GREEN' : coveragePct >= 50 ? 'YELLOW' : 'RED';
   const controlsStatus: QualityStatus = uniqueExecutions.size === 0 ? 'UNKNOWN' : failed > 0 ? 'RED' : unknown > 0 ? 'YELLOW' : 'GREEN';
@@ -349,6 +390,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
     ? 'UNKNOWN'
     : signals.performance.comparisonStatus === 'REGRESSED' ? 'RED' : 'GREEN';
   const gapStatus: QualityStatus = knownGaps.length > 0 ? 'YELLOW' : 'GREEN';
+  const securityStatus = signals.security.status;
   const performanceTrend = comparisonTrend(signals.performance.comparisonStatus);
 
   const dimensions: ScorecardDimension[] = [
@@ -437,6 +479,18 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
       risks: signals.performance.regressedMetrics.length > 0 ? ['RISK-PERF-005'] : [],
     },
     {
+      key: 'SECURITY', label: 'Security', status: securityStatus, trend: 'UNKNOWN',
+      evidence: [evidence('evidence/security/summary.json', 'SECURITY', securityStatus)],
+      indicators: [
+        indicator('security-findings', 'Findings', signals.security.findings, securityStatus),
+        indicator('security-scanners', 'Scanners executados', signals.security.scannersExecuted, signals.security.scannersExecuted === 4 ? securityStatus : 'UNKNOWN'),
+        indicator('security-high', 'High abertos', signals.security.openHigh, signals.security.openHigh > 0 ? 'RED' : securityStatus),
+        indicator('security-critical', 'Critical abertos', signals.security.openCritical, signals.security.openCritical > 0 ? 'RED' : securityStatus),
+      ],
+      explanation: `Scanners locais: ${signals.security.scannersExecuted}/4; controles ${signals.security.controlsPassed} aprovados, ${signals.security.controlsFailed} falhos e ${signals.security.controlsUnknown} sem evidência; gaps explícitos mantêm YELLOW.`,
+      risks: signals.controlExecutions.filter((item) => item.kind === 'SECURITY' && item.result === 'FAILED').map((item) => item.riskId),
+    },
+    {
       key: 'KNOWN_GAPS', label: 'Known Gaps', status: gapStatus, trend: 'UNKNOWN',
       evidence: [evidence('scorecard deterministic normalization', 'RISK_MAP', `${knownGaps.length} gaps explicitados`)],
       indicators: [
@@ -453,7 +507,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
   const overallTrend = performanceTrend;
   const overallDimension: ScorecardDimension = {
     key: 'OVERALL_QUALITY', label: 'Overall Quality', status: calculatedOverall, trend: overallTrend,
-    evidence: [evidence('evidence/scorecard/current.json', 'RISK_MAP', 'síntese das oito dimensões')],
+    evidence: [evidence('evidence/scorecard/current.json', 'RISK_MAP', 'síntese das nove dimensões')],
     indicators: [
       indicator('risk-coverage', 'Risk coverage', coveragePct, coverageStatus, '%'),
       indicator('failed-controls', 'Controles falhos', failed, failed > 0 ? 'RED' : 'GREEN'),

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cloud Control Plane Lab API
-  version: 0.2.0
+  version: 0.3.0
   description: >-
     [LAB] API ficticia e nao oficial para exercicios de Quality Engineering.
     Nao representa contratos, arquitetura ou produtos internos da TOTVS.
@@ -12,6 +12,17 @@ tags:
   - name: Health
   - name: Instances
   - name: Operations
+x-lab-security-controls:
+  request-body-limit-bytes: 16384
+  required-request-content-type: application/json
+  response-headers:
+    - Cache-Control
+    - Content-Security-Policy
+    - Cross-Origin-Resource-Policy
+    - Referrer-Policy
+    - X-Content-Type-Options
+    - X-Frame-Options
+  iam: SECURITY_GAP_IAM_NOT_IMPLEMENTED
 paths:
   /health:
     get:
@@ -79,6 +90,10 @@ paths:
                 $ref: '#/components/schemas/Operation'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
         '409':
           description: Chave de idempotencia reutilizada com outro payload
           headers:
@@ -175,6 +190,18 @@ components:
       schema:
         type: string
         format: uuid
+    ContentTypeOptions:
+      description: Impede MIME sniffing da resposta
+      required: true
+      schema:
+        type: string
+        const: nosniff
+    FrameOptions:
+      description: Impede enquadramento da resposta em frames
+      required: true
+      schema:
+        type: string
+        const: DENY
   responses:
     BadRequest:
       description: Requisicao invalida
@@ -183,6 +210,36 @@ components:
           $ref: '#/components/headers/CorrelationId'
         X-Request-Id:
           $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    PayloadTooLarge:
+      description: Corpo excede o limite LAB de 16384 bytes
+      headers:
+        X-Correlation-Id:
+          $ref: '#/components/headers/CorrelationId'
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Content-Type-Options:
+          $ref: '#/components/headers/ContentTypeOptions'
+        X-Frame-Options:
+          $ref: '#/components/headers/FrameOptions'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnsupportedMediaType:
+      description: Content-Type ausente ou diferente de application/json
+      headers:
+        X-Correlation-Id:
+          $ref: '#/components/headers/CorrelationId'
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Content-Type-Options:
+          $ref: '#/components/headers/ContentTypeOptions'
+        X-Frame-Options:
+          $ref: '#/components/headers/FrameOptions'
       content:
         application/json:
           schema:
@@ -212,7 +269,7 @@ components:
           const: cloud-control-plane-mock
         version:
           type: string
-          const: 0.2.0
+          const: 0.3.0
         timestamp:
           type: string
           format: date-time

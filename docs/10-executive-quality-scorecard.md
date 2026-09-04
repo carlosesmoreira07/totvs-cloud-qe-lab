@@ -30,12 +30,13 @@ Os artefatos Markdown, HTML e PDF apresentam essa mesma fonte em PT-BR executivo
 | `evidence/journeys/*.json` | resultado E2E, SLA sintético e latências |
 | `evidence/performance/current.json` | p50/p95/p99, throughput, taxa de erro, duplicidades e thresholds |
 | `evidence/performance/baseline.json` | referência para a comparação pontual de regressão |
+| `evidence/security/summary.json` | Security Status, scanners, severidades, controles e gaps do LAB-10 |
 
 Ausência ou arquivo inválido é registrado como `UNKNOWN` ou gap; nunca como aprovação implícita.
 
 ## Dimensões e indicadores
 
-O schema exige exatamente nove dimensões: Overall Quality, Risk Coverage, Controls, Critical Journeys, Resilience, Observability, Performance, Regression e Known Gaps. Cada dimensão contém `status`, `trend`, referências de evidência, indicadores, explicação e riscos relacionados.
+O schema exige exatamente dez dimensões: Overall Quality, Risk Coverage, Controls, Critical Journeys, Resilience, Observability, Performance, Regression, Security e Known Gaps. Cada dimensão contém `status`, `trend`, referências de evidência, indicadores, explicação e riscos relacionados.
 
 Os indicadores centrais são:
 
@@ -46,6 +47,7 @@ Os indicadores centrais são:
 - traces analisados, traces com `ERROR` e cenários com cadeia parcial;
 - p50, p95, p99, throughput, taxa de erro, E2E p95 e duplicidades;
 - comparação contra baseline, tolerância e métricas regredidas;
+- Security Status, scanners executados e findings por severidade;
 - gaps de cobertura, fontes ausentes e evidências inválidas.
 
 ## Regras determinísticas
@@ -112,6 +114,6 @@ São proibidas conclusões como “aprovado pela IA”, “reprovado pela IA”,
 
 - [LAB] SLAs são sintéticos e não representam SLA real da TOTVS.
 - [LAB] Não há série histórica, análise estatística longitudinal nem janela móvel.
-- [LAB] Não há segurança automatizada, SAST/DAST, Kubernetes, Grafana corporativo ou auto-remediação.
+- [LAB] O LAB-10 cobre somente scanners locais e DAST passivo; não há IAM, DAST ativo, pentest, Kubernetes, Grafana corporativo ou auto-remediação.
 - [LAB] Não há RAG, embeddings, vector database ou persistência das respostas do modelo.
 - [VALIDAR] Critérios executivos, tolerâncias e cadência reais só podem ser discutidos após contexto autorizado de onboarding.

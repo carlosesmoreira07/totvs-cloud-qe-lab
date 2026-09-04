@@ -1,0 +1,10 @@
+\.git/
+node_modules/
+dist/
+evidence/generated/
+evidence/security/
+tests/fixtures/security/
+playwright-report/
+test-results/
+blob-report/
+(^|/)\.env($|\.)

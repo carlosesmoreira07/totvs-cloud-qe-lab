@@ -1,24 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "rulesVersion": "scorecard-rules-v1",
-  "generatedAt": "2026-09-04T21:41:40.135Z",
-  "commit": "8b3a2f8da4d0",
+  "generatedAt": "2026-09-04T23:07:59.757Z",
+  "commit": "5455ac61269b",
   "scope": "[LAB] Cloud Control Plane fictício",
   "decisionAuthority": "HUMAN",
   "overallStatus": "YELLOW",
   "overallTrend": "IMPROVING",
   "summary": {
-    "knownRisks": 34,
-    "exercisedRisks": 22,
-    "riskCoveragePct": 64.7,
-    "controlsPassed": 22,
+    "knownRisks": 41,
+    "exercisedRisks": 26,
+    "riskCoveragePct": 63.4,
+    "controlsPassed": 26,
     "controlsFailed": 0,
-    "controlsUnknown": 12,
+    "controlsUnknown": 15,
     "journeysPassed": 4,
     "journeysTotal": 4,
     "syntheticSlaMet": 4,
     "syntheticSlaTotal": 4,
-    "knownGapCount": 3
+    "knownGapCount": 4
   },
   "dimensions": [
     {
@@ -30,14 +30,14 @@
         {
           "source": "evidence/scorecard/current.json",
           "kind": "RISK_MAP",
-          "result": "síntese das oito dimensões"
+          "result": "síntese das nove dimensões"
         }
       ],
       "indicators": [
         {
           "key": "risk-coverage",
           "label": "Risk coverage",
-          "value": 64.7,
+          "value": 63.4,
           "unit": "%",
           "status": "YELLOW"
         },
@@ -56,7 +56,7 @@
         {
           "key": "known-gaps",
           "label": "Gaps conhecidos",
-          "value": 3,
+          "value": 4,
           "status": "YELLOW"
         }
       ],
@@ -73,7 +73,10 @@
         "RISK-OUTBOX-002",
         "RISK-OUTBOX-003",
         "RISK-EVENT-001",
-        "RISK-CONSUMER-001"
+        "RISK-CONSUMER-001",
+        "RISK-SEC-005",
+        "RISK-SEC-006",
+        "RISK-SEC-007"
       ]
     },
     {
@@ -85,26 +88,26 @@
         {
           "source": "docs/04-quality-risk-map.md",
           "kind": "RISK_MAP",
-          "result": "22/34 riscos exercitados"
+          "result": "26/41 riscos exercitados"
         }
       ],
       "indicators": [
         {
           "key": "known-risks",
           "label": "Riscos conhecidos",
-          "value": 34,
+          "value": 41,
           "status": "GREEN"
         },
         {
           "key": "exercised-risks",
           "label": "Riscos exercitados",
-          "value": 22,
+          "value": 26,
           "status": "YELLOW"
         },
         {
           "key": "coverage-pct",
           "label": "Cobertura",
-          "value": 64.7,
+          "value": 63.4,
           "unit": "%",
           "status": "YELLOW"
         }
@@ -122,7 +125,10 @@
         "RISK-OUTBOX-002",
         "RISK-OUTBOX-003",
         "RISK-EVENT-001",
-        "RISK-CONSUMER-001"
+        "RISK-CONSUMER-001",
+        "RISK-SEC-005",
+        "RISK-SEC-006",
+        "RISK-SEC-007"
       ]
     },
     {
@@ -134,14 +140,14 @@
         {
           "source": "evidence/{resiliency,observability,journeys,performance}",
           "kind": "RISK_MAP",
-          "result": "22 controles com resultado"
+          "result": "26 controles com resultado"
         }
       ],
       "indicators": [
         {
           "key": "controls-passed",
           "label": "Aprovados",
-          "value": 22,
+          "value": 26,
           "status": "GREEN"
         },
         {
@@ -153,7 +159,7 @@
         {
           "key": "controls-unknown",
           "label": "Sem evidência",
-          "value": 12,
+          "value": 15,
           "status": "YELLOW"
         }
       ],
@@ -374,6 +380,47 @@
       "risks": []
     },
     {
+      "key": "SECURITY",
+      "label": "Security",
+      "status": "YELLOW",
+      "trend": "UNKNOWN",
+      "evidence": [
+        {
+          "source": "evidence/security/summary.json",
+          "kind": "SECURITY",
+          "result": "YELLOW"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "security-findings",
+          "label": "Findings",
+          "value": 4,
+          "status": "YELLOW"
+        },
+        {
+          "key": "security-scanners",
+          "label": "Scanners executados",
+          "value": 4,
+          "status": "YELLOW"
+        },
+        {
+          "key": "security-high",
+          "label": "High abertos",
+          "value": 0,
+          "status": "YELLOW"
+        },
+        {
+          "key": "security-critical",
+          "label": "Critical abertos",
+          "value": 0,
+          "status": "YELLOW"
+        }
+      ],
+      "explanation": "Scanners locais: 4/4; controles 4 aprovados, 0 falhos e 0 sem evidência; gaps explícitos mantêm YELLOW.",
+      "risks": []
+    },
+    {
       "key": "KNOWN_GAPS",
       "label": "Known Gaps",
       "status": "YELLOW",
@@ -382,14 +429,14 @@
         {
           "source": "scorecard deterministic normalization",
           "kind": "RISK_MAP",
-          "result": "3 gaps explicitados"
+          "result": "4 gaps explicitados"
         }
       ],
       "indicators": [
         {
           "key": "known-gaps",
           "label": "Gaps conhecidos",
-          "value": 3,
+          "value": 4,
           "status": "YELLOW"
         },
         {
@@ -418,14 +465,18 @@
         "RISK-OUTBOX-002",
         "RISK-OUTBOX-003",
         "RISK-EVENT-001",
-        "RISK-CONSUMER-001"
+        "RISK-CONSUMER-001",
+        "RISK-SEC-005",
+        "RISK-SEC-006",
+        "RISK-SEC-007"
       ]
     }
   ],
   "knownGaps": [
-    "12 riscos conhecidos não possuem evidência serializada nesta coleta.",
+    "15 riscos conhecidos não possuem evidência serializada nesta coleta.",
     "1 cenários de observabilidade possuem cadeia parcial de spans e exigem interpretação humana.",
-    "Baseline e current permitem comparação pontual, mas ainda não formam série histórica."
+    "Baseline e current permitem comparação pontual, mas ainda não formam série histórica.",
+    "Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED."
   ],
   "trendDisclaimer": "Comparação pontual entre baseline e execução atual; não constitui série histórica.",
   "syntheticSlaDisclaimer": "SLAs sintéticos do laboratório não representam SLA real da TOTVS."

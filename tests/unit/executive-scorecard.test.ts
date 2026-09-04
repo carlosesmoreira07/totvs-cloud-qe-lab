@@ -47,6 +47,7 @@ function greenSignals(): ScorecardSignals {
       journeys: true,
       performanceCurrent: true,
       performanceBaseline: true,
+      security: true,
     },
     journeys: {
       total: 1, passed: 1, failed: 0, slaMet: 1, slaBreached: 0,
@@ -63,6 +64,10 @@ function greenSignals(): ScorecardSignals {
       result: 'PASSED', p50Ms: 25, p95Ms: 150, p99Ms: 300, throughputRps: 20,
       errorRate: 0, duplicateResources: 0, duplicateOperations: 0, e2eP95Ms: 400,
       thresholdStatus: 'MET', comparisonStatus: 'STABLE', tolerancePct: 0.2, regressedMetrics: [],
+    },
+    security: {
+      status: 'GREEN', findings: 0, openHigh: 0, openCritical: 0, scannersExecuted: 4,
+      controlsPassed: 4, controlsFailed: 0, controlsUnknown: 0, knownGaps: [],
     },
     hasHistoricalSeries: true,
     latestEvidenceAt: '2026-09-04T12:00:00.000Z',
@@ -102,6 +107,7 @@ test('regra determinística produz UNKNOWN quando evidências operacionais estã
   signals.resilience = { total: 0, passed: 0, failed: 0, recoveryMinMs: 0, recoveryAvgMs: 0, recoveryMaxMs: 0 };
   signals.observability = { total: 0, passed: 0, failed: 0, traces: 0, errorTraces: 0, missingSpanScenarios: 0 };
   signals.performance = { ...signals.performance, result: 'UNKNOWN', thresholdStatus: 'UNKNOWN', comparisonStatus: 'NO_BASELINE' };
+  signals.security = { ...signals.security, status: 'UNKNOWN', scannersExecuted: 0, controlsPassed: 0, controlsUnknown: 4 };
   const scorecard = buildExecutiveScorecard(signals, metadata);
   assert.equal(scorecard.overallStatus, 'UNKNOWN');
 });
@@ -155,6 +161,15 @@ test('gap de observabilidade resulta em YELLOW sem confundir ERROR simulado com 
   signals.observability.missingSpanScenarios = 1;
   const scorecard = buildExecutiveScorecard(signals, metadata);
   assert.equal(scorecard.dimensions.find((item) => item.key === 'OBSERVABILITY')?.status, 'YELLOW');
+});
+
+test('gap IAM mantém a dimensão Security YELLOW sem criar falha fictícia', () => {
+  const signals = greenSignals();
+  signals.security.status = 'YELLOW';
+  signals.security.knownGaps = ['SECURITY_GAP_IAM_NOT_IMPLEMENTED'];
+  const scorecard = buildExecutiveScorecard(signals, metadata);
+  assert.equal(scorecard.dimensions.find((item) => item.key === 'SECURITY')?.status, 'YELLOW');
+  assert.equal(scorecard.overallStatus, 'YELLOW');
 });
 
 test('tendência STABLE é preservada para comparação pontual estável', () => {

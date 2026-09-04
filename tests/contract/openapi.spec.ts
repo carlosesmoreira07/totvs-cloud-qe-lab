@@ -23,7 +23,7 @@ test('a especificação OpenAPI é válida e resolvível', async ({}, testInfo) 
     paths?: Record<string, unknown>;
   };
   expect(api.openapi).toBe('3.1.0');
-  expect(api.info.version).toBe('0.2.0');
+  expect(api.info.version).toBe('0.3.0');
   expect(Object.keys(api.paths ?? {})).toEqual(
     expect.arrayContaining(['/health', '/v1/instances', '/v1/instances/{id}', '/v1/operations/{id}']),
   );

@@ -13,6 +13,7 @@ import {
 } from './telemetry.js';
 
 const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
+const MAX_REQUEST_BODY_BYTES = 16_384;
 
 interface RequestContext {
   correlationId: string;
@@ -39,6 +40,12 @@ function sendJson(
 ): void {
   response.writeHead(status, {
     'content-type': JSON_CONTENT_TYPE,
+    'cache-control': 'no-store',
+    'content-security-policy': "default-src 'none'; frame-ancestors 'none'",
+    'cross-origin-resource-policy': 'same-origin',
+    'referrer-policy': 'no-referrer',
+    'x-content-type-options': 'nosniff',
+    'x-frame-options': 'DENY',
     'x-correlation-id': context.correlationId,
     'x-request-id': context.requestId,
     ...headers,
@@ -73,12 +80,18 @@ async function readJson(request: IncomingMessage): Promise<unknown> {
   for await (const chunk of request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     bytes += buffer.length;
-    if (bytes > 16_384) throw new Error('PAYLOAD_TOO_LARGE');
+    if (bytes > MAX_REQUEST_BODY_BYTES) throw new Error('PAYLOAD_TOO_LARGE');
     chunks.push(buffer);
   }
   const source = Buffer.concat(chunks).toString('utf8');
   if (!source) throw new Error('EMPTY_BODY');
   return JSON.parse(source) as unknown;
+}
+
+function hasJsonContentType(request: IncomingMessage): boolean {
+  const rawContentType = request.headers['content-type'];
+  const contentType = Array.isArray(rawContentType) ? rawContentType[0] : rawContentType;
+  return contentType?.split(';', 1)[0]?.trim().toLowerCase() === 'application/json';
 }
 
 function validateCreatePayload(value: unknown): {
@@ -169,7 +182,7 @@ export function createRequestHandler(store: ControlPlaneStoreInterface = new Con
         {
           status: 'ok',
           service: 'cloud-control-plane-mock',
-          version: '0.2.0',
+          version: '0.3.0',
           timestamp: new Date().toISOString(),
         },
         context,
@@ -179,6 +192,20 @@ export function createRequestHandler(store: ControlPlaneStoreInterface = new Con
     }
 
     if (method === 'POST' && route === '/v1/instances') {
+      if (!hasJsonContentType(request)) {
+        sendError(
+          response,
+          415,
+          'UNSUPPORTED_MEDIA_TYPE',
+          'Content-Type must be application/json',
+          context,
+          undefined,
+          method,
+          route,
+        );
+        return;
+      }
+
       const rawIdempotencyKey = request.headers['idempotency-key'];
       const idempotencyKey = Array.isArray(rawIdempotencyKey)
         ? rawIdempotencyKey[0]
@@ -201,10 +228,17 @@ export function createRequestHandler(store: ControlPlaneStoreInterface = new Con
       try {
         rawPayload = await readJson(request);
       } catch (error) {
-        const code = error instanceof Error && error.message === 'PAYLOAD_TOO_LARGE'
-          ? 'PAYLOAD_TOO_LARGE'
-          : 'INVALID_JSON';
-        sendError(response, 400, code, 'Request body is not valid JSON', context, undefined, method, route);
+        const tooLarge = error instanceof Error && error.message === 'PAYLOAD_TOO_LARGE';
+        sendError(
+          response,
+          tooLarge ? 413 : 400,
+          tooLarge ? 'PAYLOAD_TOO_LARGE' : 'INVALID_JSON',
+          tooLarge ? `Request body exceeds the ${MAX_REQUEST_BODY_BYTES} byte limit` : 'Request body is not valid JSON',
+          context,
+          undefined,
+          method,
+          route,
+        );
         return;
       }
 

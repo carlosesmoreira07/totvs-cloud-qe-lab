@@ -5,7 +5,7 @@ export const qualityTrendSchema = z.enum(['IMPROVING', 'STABLE', 'DEGRADING', 'U
 
 export const evidenceReferenceSchema = z.object({
   source: z.string().min(1),
-  kind: z.enum(['RISK_MAP', 'RESILIENCY', 'OBSERVABILITY', 'JOURNEY', 'PERFORMANCE', 'BASELINE']),
+  kind: z.enum(['RISK_MAP', 'RESILIENCY', 'OBSERVABILITY', 'JOURNEY', 'PERFORMANCE', 'BASELINE', 'SECURITY']),
   result: z.string().min(1),
 }).strict();
 
@@ -27,6 +27,7 @@ export const scorecardDimensionSchema = z.object({
     'OBSERVABILITY',
     'PERFORMANCE',
     'REGRESSION',
+    'SECURITY',
     'KNOWN_GAPS',
   ]),
   label: z.string().min(1),
@@ -60,7 +61,7 @@ export const executiveScorecardSchema = z.object({
     syntheticSlaTotal: z.number().int().nonnegative(),
     knownGapCount: z.number().int().nonnegative(),
   }).strict(),
-  dimensions: z.array(scorecardDimensionSchema).length(9),
+  dimensions: z.array(scorecardDimensionSchema).length(10),
   knownGaps: z.array(z.string().min(1)),
   trendDisclaimer: z.literal('Comparação pontual entre baseline e execução atual; não constitui série histórica.'),
   syntheticSlaDisclaimer: z.literal('SLAs sintéticos do laboratório não representam SLA real da TOTVS.'),
