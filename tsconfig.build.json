@@ -6,6 +6,5 @@
     "declaration": true,
     "sourceMap": true
   },
-  "include": ["apps/**/*.ts"]
+  "include": ["apps/**/*.ts", "tools/**/*.ts"]
 }
-

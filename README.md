@@ -25,7 +25,7 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **LAB-02:** OpenAPI 3.1 e mock executável de um Cloud Control Plane fictício.
 - [LAB] **LAB-03:** controles Playwright de API e contrato focados nos riscos do MVP.
 - [LAB] **LAB-04:** semântica explícita e controles de idempotência, retry e concorrência no provisionamento assíncrono.
-- [LAB] **IA assistiva:** coletor determinístico de contexto de mudança e arquitetura para futura análise por modelo; sempre consultiva.
+- [LAB] **AI-01:** QE Intelligence Layer consultiva com provider OpenAI substituível, saída estruturada e fallback não bloqueante.
 
 [LAB] LAB-05 e posteriores — resiliência distribuída, segurança, performance, mensageria, evidências executivas e descoberta de onboarding — permanecem fora desta entrega.
 
@@ -62,6 +62,14 @@ curl http://127.0.0.1:4010/health
 ```bash
 npm run impact:context
 ```
+
+[LAB] Para executar o advisory (usa `OPENAI_API_KEY` somente quando presente):
+
+```bash
+npm run ai:advisory
+```
+
+[LAB] O modelo pode ser configurado com `QE_AI_MODEL`; sem chave ou com falha do provider, o comando retorna `AI_ADVISORY_UNAVAILABLE` sem afetar o Quality Gate.
 
 [LAB] O relatório HTML do Playwright fica em `playwright-report/` e não é versionado. O mock pode ser apontado para outra porta com `PORT`; os testes podem usar outro endpoint com `BASE_URL`.
 

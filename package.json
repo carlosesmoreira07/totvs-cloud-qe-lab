@@ -13,11 +13,14 @@
     "start": "node dist/apps/control-plane-mock/src/server.js",
     "typecheck": "tsc --noEmit",
     "validate:openapi": "tsx tools/validate-openapi.ts",
-    "test": "playwright test",
+    "test": "npm run test:unit && npm run test:playwright",
     "test:api": "playwright test tests/api",
     "test:contract": "playwright test tests/contract",
+    "test:playwright": "playwright test",
+    "test:unit": "tsx --test tests/unit/ai-advisory.test.ts",
     "verify": "npm run typecheck && npm run build && npm run validate:openapi && npm test",
-    "impact:context": "tsx tools/impact-context.ts"
+    "impact:context": "tsx tools/impact-context.ts",
+    "ai:advisory": "tsx tools/ai/advisory-analysis.ts"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "13.0.0",
@@ -27,5 +30,9 @@
     "ajv-formats": "3.0.1",
     "tsx": "4.23.13",
     "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "openai": "7.10.0",
+    "zod": "4.5.4"
   }
 }
