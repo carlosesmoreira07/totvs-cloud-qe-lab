@@ -21,7 +21,8 @@ export const AI_EXECUTIVE_SCORECARD_UNAVAILABLE = 'AI_EXECUTIVE_SCORECARD_UNAVAI
 export const QE_EXECUTIVE_SCORECARD_PROMPT_VERSION = 'qe-executive-scorecard-v1' as const;
 
 export const EXECUTIVE_SCORECARD_SYSTEM_INSTRUCTIONS = [
-  'Você é uma camada consultiva de Quality Engineering que interpreta um scorecard determinístico [LAB].',
+  'Você é uma camada consultiva de Quality Engineering que interpreta um scorecard determinístico [LAB] para liderança técnica.',
+  'Escreva em português do Brasil, com linguagem executiva, direta e sem jargão desnecessário.',
   'Não recalcule indicadores e não contradiga status, tendências ou evidências fornecidos.',
   'Classifique cada finding como OBSERVED (direto no scorecard), INFERRED (hipótese sustentada por sinais) ou GAP (ausência de evidência).',
   'Cite a dimensão, risco, controle, indicador ou arquivo que sustenta cada finding.',
@@ -109,8 +110,8 @@ function findings(title: string, items: ExecutiveScorecardFinding[]): string[] {
     `### ${title}`,
     '',
     ...(items.length > 0
-      ? items.map((item) => `- \`[${item.classification}]\` **${item.subject}:** ${item.rationale}. Evidência: ${item.evidence.join('; ')}.`)
-      : ['- Nenhum finding sugerido.']),
+      ? items.map((item) => `- **${item.subject}** — \`[${item.classification}]\` ${item.rationale}. **Base da leitura:** ${item.evidence.join('; ')}.`)
+      : ['- Nenhum ponto adicional sugerido.']),
     '',
   ];
 }
@@ -118,11 +119,11 @@ function findings(title: string, items: ExecutiveScorecardFinding[]): string[] {
 export function formatExecutiveScorecardAdvisory(outcome: ExecutiveScorecardAdvisoryOutcome): string {
   if (outcome.status === AI_EXECUTIVE_SCORECARD_UNAVAILABLE) {
     return [
-      '## QE Intelligence Layer — Executive Quality Scorecard (AI-05)',
+      '## Parecer Executivo Consultivo — AI-05',
       '',
       `**${AI_EXECUTIVE_SCORECARD_UNAVAILABLE}**`,
       '',
-      'AI Executive Scorecard indisponível — Quality Gate não afetado.',
+      'Parecer executivo de IA indisponível — Quality Gate não afetado.',
       '',
       `Motivo técnico: \`${outcome.reason}\`.`,
       '',
@@ -131,14 +132,14 @@ export function formatExecutiveScorecardAdvisory(outcome: ExecutiveScorecardAdvi
 
   const advisory = outcome.advisory;
   return [
-    '## QE Intelligence Layer — Executive Quality Scorecard (AI-05)',
+    '## Parecer Executivo Consultivo — AI-05',
     '',
-    '> [LAB] Interpretação probabilística sobre scorecard determinístico. Decisão humana obrigatória.',
+    '> [LAB] Leitura probabilística sobre evidências determinísticas. A decisão permanece humana.',
     '',
     `- Confiança: **${advisory.confidence}**`,
     `- Provedor: \`${outcome.provider}\` (modelo \`${outcome.model}\`, prompt \`${QE_EXECUTIVE_SCORECARD_PROMPT_VERSION}\`)`,
     '',
-    '### Resumo executivo',
+    '### Resumo Executivo',
     '',
     advisory.executiveSummary,
     '',
@@ -149,11 +150,11 @@ export function formatExecutiveScorecardAdvisory(outcome: ExecutiveScorecardAdvi
     ...findings('Jornadas degradadas', advisory.degradedJourneys),
     ...findings('Resiliência', advisory.resilienceFindings),
     ...findings('Observabilidade', advisory.observabilityFindings),
-    ...findings('Performance', advisory.performanceFindings),
-    ...findings('Gaps de cobertura', advisory.coverageGaps),
+    ...findings('Desempenho', advisory.performanceFindings),
+    ...findings('Lacunas de cobertura', advisory.coverageGaps),
     ...findings('Investigações recomendadas', advisory.recommendedInvestigations),
     ...findings('Testes recomendados', advisory.recommendedTests),
-    ...findings('Perguntas humanas', advisory.humanQuestions),
+    ...findings('Perguntas para decisão humana', advisory.humanQuestions),
   ].join('\n');
 }
 

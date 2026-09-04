@@ -1,34 +1,87 @@
-# Executive Quality Scorecard — AI-05
+# Quality Engineering Executive Scorecard
 
-> [LAB] Síntese determinística e não oficial. A decisão permanece humana.
+> Visão executiva da qualidade do laboratório Cloud Control Plane [LAB]
 
-- Status geral: **YELLOW**
-- Tendência pontual: **IMPROVING**
-- Riscos exercitados: **22/34 (64.7%)**
-- Controles: **22 aprovados / 0 falhos / 12 sem evidência nesta coleta**
-- Jornadas: **4/4 aprovadas**
-- SLAs sintéticos: **4/4 atendidos**
+- **Status geral:** AMARELO - Requer atenção
+- **Tendência:** Em melhoria
+- **Gerado em:** 04/09/2026, 18:41
+- **Commit analisado:** `8b3a2f8da4d0`
+- **Contexto:** Personal & Non-Official [LAB]
 
-| Dimensão | Status | Tendência | Explicação |
-|---|---|---|---|
-| Overall Quality | YELLOW | IMPROVING | Pior status determinístico entre as dimensões; UNKNOWN é preservado quando não há evidência operacional suficiente. |
-| Risk Coverage | YELLOW | UNKNOWN | Cobertura calculada por risco conhecido com ao menos um controle presente nas evidências serializadas desta coleta. |
-| Controls | YELLOW | UNKNOWN | Consolidação deduplicada por controlId; ausência de arquivo não é convertida em aprovação. |
-| Critical Journeys | GREEN | UNKNOWN | Resultado e SLA sintético são lidos das jornadas ponta a ponta; qualquer falha ou breach torna a dimensão vermelha. |
-| Resilience | GREEN | UNKNOWN | Cenários [LAB] verificam recuperação e consistência nas falhas distribuídas efetivamente exercitadas. |
-| Observability | YELLOW | UNKNOWN | Spans ERROR esperados em falhas simuladas não reprovam sozinhos; controles falhos reprovam e cadeias parciais pedem revisão. |
-| Performance | GREEN | IMPROVING | Thresholds sintéticos: MET; error rate 0; E2E p95 297.7 ms. |
-| Regression | GREEN | IMPROVING | Baseline versus current é uma comparação pontual determinística; não representa tendência histórica. |
-| Known Gaps | YELLOW | UNKNOWN | Lacunas permanecem visíveis e nunca são interpretadas como sucesso implícito. |
+## Resumo Executivo
 
-## Gaps conhecidos
+- A situação geral está em amarelo: requer atenção.
+- Principal risco: 12 de 34 riscos conhecidos ainda não possuem evidência nesta coleta.
+- Principal força: 22 controles exercitados foram aprovados, sem falhas registradas.
+- Principal lacuna: 1 cadeia de rastreabilidade está parcial e não há série histórica.
+- Prioridade recomendada: ampliar a cobertura de evidência e fechar a rastreabilidade parcial.
+
+## Visão por Dimensão
+
+### Cobertura de Riscos - AMARELO
+
+**64,7% cobertos.** 12 riscos ainda aguardam evidência nesta coleta. Direção: Sem histórico.
+
+### Controles - AMARELO
+
+**22 aprovados.** Nenhum controle exercitado apresentou falha. Direção: Sem histórico.
+
+### Jornadas Críticas - VERDE
+
+**4/4 aprovadas.** As jornadas avaliadas atenderam aos limites sintéticos [LAB]. Direção: Sem histórico.
+
+### Resiliência - VERDE
+
+**6 cenários aprovados.** Os cenários exercitados recuperaram o fluxo esperado. Direção: Sem histórico.
+
+### Observabilidade - AMARELO
+
+**7 rastros analisados.** 1 cadeia parcial reduz a confiança no diagnóstico. Direção: Sem histórico.
+
+### Desempenho - VERDE
+
+**p95 de 200,3 ms.** Os limites sintéticos foram atendidos na execução registrada. Direção: Em melhoria.
+
+### Regressão - VERDE
+
+**Melhorou.** Comparação pontual favorável; ainda não há série histórica. Direção: Em melhoria.
+
+### Lacunas Conhecidas - AMARELO
+
+**3 lacunas explícitas.** As lacunas seguem visíveis e não contam como sucesso. Direção: Sem histórico.
+
+## Principais Pontos de Atenção
+
+- **Cobertura de evidência parcial.** Impacto: A leitura não permite o mesmo nível de confiança para todo o mapa de riscos. Evidência: 12 de 34 riscos conhecidos não possuem evidência nesta coleta.
+- **Rastreabilidade incompleta.** Impacto: Uma investigação de falha pode exigir correlação manual adicional. Evidência: 1 cenário de observabilidade possui cadeia parcial.
+- **Tendência ainda pontual.** Impacto: A direção observada não demonstra comportamento sustentado ao longo do tempo. Evidência: Comparação pontual entre baseline e execução atual; não constitui série histórica.
+
+## O que está sob controle
+
+- 22 controles exercitados foram aprovados, sem falhas registradas.
+- 4/4 jornadas críticas atenderam aos critérios [LAB].
+- 4/4 limites sintéticos foram atendidos.
+- 6 cenários de resiliência preservaram a recuperação esperada.
+- Os limites de desempenho e duplicidade avaliados foram atendidos.
+
+## Gaps e Limites Atuais
 
 - 12 riscos conhecidos não possuem evidência serializada nesta coleta.
-- 1 cenários de observabilidade possuem cadeia parcial de spans e exigem interpretação humana.
-- Baseline e current permitem comparação pontual, mas ainda não formam série histórica.
+- 1 cenário de observabilidade possui cadeia parcial de rastreamento e exige interpretação humana.
+- A comparação entre a referência e a execução atual ainda não forma uma série histórica.
 
-> Comparação pontual entre baseline e execução atual; não constitui série histórica.
+- Comparação pontual entre baseline e execução atual; não constitui série histórica.
+- SLAs sintéticos do laboratório não representam SLA real da TOTVS.
 
-> SLAs sintéticos do laboratório não representam SLA real da TOTVS.
+## Ações Recomendadas
 
-**Quality Engineering Lab — NÃO OFICIAL | Evidências do laboratório | Decisão humana obrigatória**
+1. Priorizar evidências para os 12 riscos ainda não exercitados.
+2. Completar a cadeia de rastreabilidade do cenário parcial.
+3. Acumular execuções comparáveis antes de declarar tendência histórica.
+4. Submeter lacunas e sinais amarelos à revisão humana antes de qualquer decisão.
+
+> Este scorecard apoia a decisão profissional. A decisão humana é obrigatória e nenhuma leitura automatizada aprova ou reprova uma release.
+
+**TOTVS Cloud QE Lab — Personal & Non-Official [LAB]**
+
+Generated from deterministic Quality Engineering evidence

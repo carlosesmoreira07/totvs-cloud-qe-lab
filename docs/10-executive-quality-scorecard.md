@@ -18,6 +18,8 @@ Evidências -> Normalização -> Regras determinísticas -> Scorecard -> HTML/PD
 
 O JSON validado é a fonte de verdade do HTML, do PDF e da interpretação consultiva. O modelo não recalcula métricas, não muda status e não funciona como Quality Gate.
 
+Os artefatos Markdown, HTML e PDF apresentam essa mesma fonte em PT-BR executivo. A primeira página responde imediatamente à situação geral, tendência, pontos de atenção, pontos sob controle, lacunas e prioridade recomendada; detalhes técnicos permanecem em áreas secundárias.
+
 ## Fontes consumidas
 
 | Fonte | Sinal normalizado |
@@ -84,11 +86,11 @@ O primeiro comando produz:
 - `evidence/scorecard/executive-scorecard.html`;
 - `evidence/scorecard/executive-scorecard.pdf`.
 
-O PDF é gerado localmente e em CI, sem SaaS externo. HTML e PDF incluem: `Quality Engineering Lab — NÃO OFICIAL`, `Evidências do laboratório` e `Decisão humana obrigatória`.
+O PDF é gerado localmente e em CI, sem SaaS externo. Markdown, HTML e PDF usam o rodapé `TOTVS Cloud QE Lab — Personal & Non-Official [LAB]` e `Generated from deterministic Quality Engineering evidence`. A decisão humana obrigatória permanece explícita na seção de governança.
 
 ## IA consultiva
 
-`tools/ai/executive-scorecard-intelligence.ts` usa a interface `AiProvider`, o adapter OpenAI e Structured Outputs com Zod. A entrada contém apenas o scorecard determinístico; não inclui repositório, logs completos ou secrets.
+`tools/ai/executive-scorecard-intelligence.ts` usa a interface `AiProvider`, o adapter OpenAI e Structured Outputs com Zod. A entrada contém apenas o scorecard determinístico; não inclui repositório, logs completos ou secrets. A apresentação final foi refinada para PT-BR executivo, mantendo a estrutura, a classificação e a governança originais.
 
 Cada finding é classificado como:
 
@@ -104,7 +106,7 @@ São proibidas conclusões como “aprovado pela IA”, “reprovado pela IA”,
 
 [PUB] As páginas oficiais da TOTVS Cloud descrevem gestão centralizada, monitoramento, disponibilidade e administração de recursos via T-Cloud. Esses conceitos orientaram a hierarquia de informações e os cartões de status: [TOTVS Cloud](https://www.totvs.com/cloud/), [TOTVS Cloud IaaS](https://produtos.totvs.com/ficha-tecnica/totvs-cloud-iaas/) e [TOTVS Cloud PaaS](https://www.totvs.com/cloud/paas/).
 
-[LAB] A paleta escura com acento azul-esverdeado, tipografia do sistema, grid, cartões, badges e composição do painel são aproximações próprias do laboratório. Nenhum logotipo, fonte, ilustração ou ativo proprietário foi copiado, e o visual não deve ser interpretado como identidade oficial TOTVS/T-Cloud.
+[LAB] A paleta combina azul cloud, azul escuro, ciano de apoio, neutros claros e cores semânticas de status. Tipografia do sistema, cartões, badges, sombras leves e composição são aproximações próprias do laboratório inspiradas apenas no universo visual público de tecnologia/cloud. Nenhum logotipo, fonte, ilustração ou ativo proprietário foi copiado, e o visual não deve ser interpretado como identidade oficial TOTVS/T-Cloud.
 
 ## Limites conscientes
 

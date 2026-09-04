@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0.0",
   "rulesVersion": "scorecard-rules-v1",
-  "generatedAt": "2026-09-04T08:16:49.560Z",
-  "commit": "d1a197d8c3e1",
+  "generatedAt": "2026-09-04T21:41:40.135Z",
+  "commit": "8b3a2f8da4d0",
   "scope": "[LAB] Cloud Control Plane fictício",
   "decisionAuthority": "HUMAN",
   "overallStatus": "YELLOW",

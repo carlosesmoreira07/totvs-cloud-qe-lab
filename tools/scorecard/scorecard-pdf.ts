@@ -1,10 +1,16 @@
 import { PDFDocument, StandardFonts, rgb, type PDFPage, type PDFFont } from 'pdf-lib';
 
 import type { ExecutiveScorecard, QualityStatus } from './scorecard-schema.js';
-import { SCORECARD_THEME, statusColor } from './scorecard-theme.js';
+import { buildExecutiveScorecardView, type ExecutiveAttentionView, type ExecutiveScorecardView } from './scorecard-renderer.js';
+import { SCORECARD_THEME, statusColor, statusSurface } from './scorecard-theme.js';
 
 const PAGE = { width: 841.89, height: 595.28, margin: 34 } as const;
-const FOOTER = 'Quality Engineering Lab — NÃO OFICIAL | Evidências do laboratório | Decisão humana obrigatória';
+const FOOTER_LINE_1 = 'TOTVS Cloud QE Lab - Personal & Non-Official [LAB]';
+const FOOTER_LINE_2 = 'Generated from deterministic Quality Engineering evidence';
+
+function safeText(value: string): string {
+  return value.replaceAll('—', '-').replaceAll('–', '-').replaceAll('->', '-');
+}
 
 function hex(value: string): ReturnType<typeof rgb> {
   const normalized = value.replace('#', '');
@@ -16,14 +22,13 @@ function hex(value: string): ReturnType<typeof rgb> {
 }
 
 function wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
-  const words = text.replace(/\s+/g, ' ').trim().split(' ');
+  const words = safeText(text).replace(/\s+/g, ' ').trim().split(' ');
   const lines: string[] = [];
   let line = '';
   for (const word of words) {
     const candidate = line ? `${line} ${word}` : word;
-    if (font.widthOfTextAtSize(candidate, size) <= maxWidth) {
-      line = candidate;
-    } else {
+    if (font.widthOfTextAtSize(candidate, size) <= maxWidth) line = candidate;
+    else {
       if (line) lines.push(line);
       line = word;
     }
@@ -32,172 +37,161 @@ function wrap(text: string, font: PDFFont, size: number, maxWidth: number): stri
   return lines;
 }
 
-function drawFooter(page: PDFPage, font: PDFFont, pageNumber: number, totalPages: number): void {
-  page.drawLine({
-    start: { x: PAGE.margin, y: 30 },
-    end: { x: PAGE.width - PAGE.margin, y: 30 },
-    color: hex(SCORECARD_THEME.line),
-    thickness: 0.8,
-  });
-  page.drawText(FOOTER, {
-    x: PAGE.margin,
-    y: 16,
-    size: 7.4,
-    font,
-    color: hex(SCORECARD_THEME.mutedInk),
-  });
-  page.drawText(`${pageNumber}/${totalPages}`, {
-    x: PAGE.width - PAGE.margin - 20,
-    y: 16,
-    size: 7.4,
-    font,
-    color: hex(SCORECARD_THEME.mutedInk),
-  });
+function drawWrapped(page: PDFPage, text: string, options: {
+  x: number;
+  y: number;
+  width: number;
+  size: number;
+  lineHeight: number;
+  font: PDFFont;
+  color: ReturnType<typeof rgb>;
+  maxLines?: number;
+}): number {
+  const lines = wrap(text, options.font, options.size, options.width).slice(0, options.maxLines);
+  lines.forEach((line, index) => page.drawText(line, {
+    x: options.x,
+    y: options.y - index * options.lineHeight,
+    size: options.size,
+    font: options.font,
+    color: options.color,
+  }));
+  return options.y - lines.length * options.lineHeight;
 }
 
-function drawHeader(page: PDFPage, regular: PDFFont, bold: PDFFont, scorecard: ExecutiveScorecard, subtitle: string): void {
-  page.drawRectangle({ x: 0, y: PAGE.height - 112, width: PAGE.width, height: 112, color: hex(SCORECARD_THEME.ink) });
-  page.drawRectangle({ x: 0, y: PAGE.height - 112, width: 9, height: 112, color: hex(SCORECARD_THEME.accent) });
-  page.drawText('EXECUTIVE QUALITY SCORECARD', {
-    x: PAGE.margin,
-    y: PAGE.height - 46,
-    size: 21,
-    font: bold,
-    color: rgb(1, 1, 1),
-  });
-  page.drawText(subtitle, {
-    x: PAGE.margin,
-    y: PAGE.height - 69,
-    size: 10,
-    font: regular,
-    color: hex('#CFEAF0'),
-  });
-  page.drawText(`Ref ${scorecard.commit} · ${new Date(scorecard.generatedAt).toISOString().slice(0, 10)}`, {
-    x: PAGE.margin,
-    y: PAGE.height - 91,
-    size: 8,
-    font: regular,
-    color: hex('#AEBBCD'),
-  });
+function drawFooter(page: PDFPage, regular: PDFFont, bold: PDFFont, pageNumber: number, totalPages: number): void {
+  page.drawLine({ start: { x: PAGE.margin, y: 33 }, end: { x: PAGE.width - PAGE.margin, y: 33 }, color: hex(SCORECARD_THEME.line), thickness: 0.8 });
+  page.drawText(FOOTER_LINE_1, { x: PAGE.margin, y: 20, size: 6.8, font: bold, color: hex(SCORECARD_THEME.inkSoft) });
+  page.drawText(FOOTER_LINE_2, { x: PAGE.margin, y: 10.5, size: 6.2, font: regular, color: hex(SCORECARD_THEME.mutedInk) });
+  page.drawText(`${pageNumber}/${totalPages}`, { x: PAGE.width - PAGE.margin - 18, y: 16, size: 7, font: bold, color: hex(SCORECARD_THEME.mutedInk) });
 }
 
-function drawStatusPill(page: PDFPage, font: PDFFont, status: QualityStatus, x: number, y: number): void {
-  const color = hex(statusColor(status));
-  page.drawRectangle({ x, y, width: 68, height: 20, borderColor: color, borderWidth: 1, color: rgb(1, 1, 1) });
-  page.drawText(status, { x: x + 8, y: y + 6, size: 8.5, font, color });
+function drawHeader(page: PDFPage, regular: PDFFont, bold: PDFFont, view: ExecutiveScorecardView, label: string, title: string): void {
+  page.drawRectangle({ x: 0, y: PAGE.height - 102, width: PAGE.width, height: 102, color: hex(SCORECARD_THEME.navy) });
+  page.drawRectangle({ x: 0, y: PAGE.height - 102, width: 8, height: 102, color: hex(SCORECARD_THEME.cyan) });
+  page.drawText(safeText(label.toUpperCase()), { x: PAGE.margin, y: PAGE.height - 31, size: 7.8, font: bold, color: hex(SCORECARD_THEME.cyanLight) });
+  page.drawText(safeText(title), { x: PAGE.margin, y: PAGE.height - 60, size: 22, font: bold, color: rgb(1, 1, 1) });
+  page.drawText(safeText(view.subtitle), { x: PAGE.margin, y: PAGE.height - 80, size: 9.2, font: regular, color: hex('#D9F4FA') });
+  page.drawText('Personal & Non-Official [LAB]', { x: PAGE.width - PAGE.margin - 143, y: PAGE.height - 31, size: 7.2, font: regular, color: hex('#B8CAD9') });
 }
 
-function drawDimensionCard(
-  page: PDFPage,
-  regular: PDFFont,
-  bold: PDFFont,
-  scorecard: ExecutiveScorecard,
-  index: number,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-): void {
-  const dimension = scorecard.dimensions[index];
-  if (!dimension) return;
-  page.drawRectangle({
-    x,
-    y,
-    width,
-    height,
-    color: rgb(1, 1, 1),
-    borderColor: hex(SCORECARD_THEME.line),
-    borderWidth: 1,
-  });
-  page.drawRectangle({ x, y: y + height - 5, width, height: 5, color: hex(statusColor(dimension.status)) });
-  page.drawText(dimension.label, { x: x + 14, y: y + height - 29, size: 11.5, font: bold, color: hex(SCORECARD_THEME.ink) });
-  drawStatusPill(page, bold, dimension.status, x + width - 82, y + height - 35);
-  page.drawText(`Tendência: ${dimension.trend}`, { x: x + 14, y: y + height - 48, size: 7.5, font: regular, color: hex(SCORECARD_THEME.mutedInk) });
+function drawBadge(page: PDFPage, font: PDFFont, status: QualityStatus, label: string, x: number, y: number, width = 72): void {
+  page.drawRectangle({ x, y, width, height: 18, color: hex(statusSurface(status)), borderColor: hex(statusColor(status)), borderWidth: 0.6 });
+  const textWidth = font.widthOfTextAtSize(label, 7.1);
+  page.drawText(label, { x: x + (width - textWidth) / 2, y: y + 5.7, size: 7.1, font, color: hex(statusColor(status)) });
+}
 
-  let cursor = y + height - 70;
-  for (const indicator of dimension.indicators.slice(0, 3)) {
-    const unit = indicator.unit ? ` ${indicator.unit}` : '';
-    page.drawText(`${indicator.label}:`, { x: x + 14, y: cursor, size: 7.5, font: regular, color: hex(SCORECARD_THEME.mutedInk) });
-    page.drawText(`${indicator.value}${unit}`, { x: x + width - 108, y: cursor, size: 8.3, font: bold, color: hex(statusColor(indicator.status)) });
-    cursor -= 16;
+function drawSummaryCell(page: PDFPage, regular: PDFFont, bold: PDFFont, x: number, y: number, width: number, label: string, value: string, detail: string, accent?: string): void {
+  page.drawRectangle({ x, y, width, height: 62, color: rgb(1, 1, 1), borderColor: hex(SCORECARD_THEME.line), borderWidth: 0.8 });
+  if (accent) page.drawRectangle({ x, y, width: 5, height: 62, color: hex(accent) });
+  page.drawText(safeText(label.toUpperCase()), { x: x + 12, y: y + 45, size: 6.4, font: bold, color: hex(SCORECARD_THEME.mutedInk) });
+  page.drawText(safeText(value), { x: x + 12, y: y + 24, size: 14, font: bold, color: accent ? hex(accent) : hex(SCORECARD_THEME.ink) });
+  page.drawText(safeText(detail), { x: x + 12, y: y + 9, size: 6.5, font: regular, color: hex(SCORECARD_THEME.mutedInk) });
+}
+
+function drawDimensionCard(page: PDFPage, regular: PDFFont, bold: PDFFont, dimension: ExecutiveScorecardView['dimensions'][number], x: number, y: number, width: number, height: number): void {
+  page.drawRectangle({ x, y, width, height, color: rgb(1, 1, 1), borderColor: hex(SCORECARD_THEME.line), borderWidth: 0.8 });
+  page.drawRectangle({ x, y, width: 5, height, color: hex(statusColor(dimension.status)) });
+  page.drawText(safeText(dimension.label), { x: x + 15, y: y + height - 23, size: 10.2, font: bold, color: hex(SCORECARD_THEME.ink) });
+  drawBadge(page, bold, dimension.status, safeText(dimension.statusLabel), x + width - 82, y + height - 29, 68);
+  page.drawText(safeText(dimension.metric), { x: x + 15, y: y + height - 49, size: 15.5, font: bold, color: hex(SCORECARD_THEME.primaryDark) });
+  drawWrapped(page, dimension.interpretation, { x: x + 15, y: y + height - 66, width: width - 30, size: 7.2, lineHeight: 9, font: regular, color: hex(SCORECARD_THEME.inkSoft), maxLines: 2 });
+  page.drawText(`Direção: ${safeText(dimension.trendLabel)}`, { x: x + 15, y: y + 9, size: 6.4, font: regular, color: hex(SCORECARD_THEME.mutedInk) });
+}
+
+function drawListPanel(page: PDFPage, regular: PDFFont, bold: PDFFont, title: string, items: string[], x: number, y: number, width: number, height: number, markerColor: string): void {
+  page.drawRectangle({ x, y, width, height, color: rgb(1, 1, 1), borderColor: hex(SCORECARD_THEME.line), borderWidth: 0.8 });
+  page.drawText(safeText(title), { x: x + 15, y: y + height - 25, size: 11.5, font: bold, color: hex(SCORECARD_THEME.ink) });
+  let cursor = y + height - 48;
+  for (const item of items.slice(0, 5)) {
+    page.drawCircle({ x: x + 18, y: cursor + 2.5, size: 2.6, color: hex(markerColor) });
+    cursor = drawWrapped(page, item.replace(/^\d+\.\s*/, ''), { x: x + 28, y: cursor + 5, width: width - 43, size: 7.4, lineHeight: 9.5, font: regular, color: hex(SCORECARD_THEME.inkSoft), maxLines: 2 }) - 8;
   }
-  const explanation = wrap(dimension.explanation, regular, 7.4, width - 28).slice(0, 3);
-  cursor -= 2;
-  for (const line of explanation) {
-    page.drawText(line, { x: x + 14, y: cursor, size: 7.4, font: regular, color: hex(SCORECARD_THEME.ink) });
-    cursor -= 11;
-  }
+}
+
+function drawAttentionPanel(page: PDFPage, regular: PDFFont, bold: PDFFont, items: ExecutiveAttentionView[], x: number, y: number, width: number, height: number): void {
+  page.drawRectangle({ x, y, width, height, color: rgb(1, 1, 1), borderColor: hex(SCORECARD_THEME.line), borderWidth: 0.8 });
+  page.drawText('Principais Pontos de Atenção', { x: x + 15, y: y + height - 25, size: 11.5, font: bold, color: hex(SCORECARD_THEME.ink) });
+  let cursor = y + height - 48;
+  items.slice(0, 4).forEach((item, index) => {
+    page.drawCircle({ x: x + 19, y: cursor + 2, size: 8, color: hex(SCORECARD_THEME.yellow) });
+    page.drawText(String(index + 1), { x: x + 16.7, y: cursor - 0.7, size: 6.8, font: bold, color: rgb(1, 1, 1) });
+    page.drawText(safeText(item.title), { x: x + 34, y: cursor + 5, size: 8.2, font: bold, color: hex(SCORECARD_THEME.ink) });
+    cursor = drawWrapped(page, `Impacto: ${item.impact}`, { x: x + 34, y: cursor - 7, width: width - 49, size: 6.6, lineHeight: 8.5, font: regular, color: hex(SCORECARD_THEME.inkSoft), maxLines: 2 });
+    cursor = drawWrapped(page, `Evidência: ${item.evidence}`, { x: x + 34, y: cursor - 1, width: width - 49, size: 6.1, lineHeight: 8, font: regular, color: hex(SCORECARD_THEME.mutedInk), maxLines: 2 }) - 8;
+  });
 }
 
 export async function renderScorecardPdf(scorecard: ExecutiveScorecard): Promise<Uint8Array> {
+  const view = buildExecutiveScorecardView(scorecard);
   const document = await PDFDocument.create();
-  document.setTitle('Executive Quality Scorecard — AI-05');
-  document.setSubject('[LAB] Evidências determinísticas de Quality Engineering');
-  document.setAuthor('Quality Engineering Lab — NÃO OFICIAL');
+  document.setTitle('Quality Engineering Executive Scorecard - AI-05');
+  document.setSubject('[LAB] Visão executiva baseada em evidências determinísticas');
+  document.setAuthor('TOTVS Cloud QE Lab - Personal & Non-Official [LAB]');
   document.setCreator('totvs-cloud-qe-lab');
   document.setProducer('pdf-lib');
   const regular = await document.embedFont(StandardFonts.Helvetica);
   const bold = await document.embedFont(StandardFonts.HelveticaBold);
-
   const pages = [document.addPage([PAGE.width, PAGE.height]), document.addPage([PAGE.width, PAGE.height]), document.addPage([PAGE.width, PAGE.height])];
-  for (const page of pages) page.drawRectangle({ x: 0, y: 0, width: PAGE.width, height: PAGE.height, color: hex(SCORECARD_THEME.canvas) });
+  pages.forEach((page) => page.drawRectangle({ x: 0, y: 0, width: PAGE.width, height: PAGE.height, color: hex(SCORECARD_THEME.canvas) }));
 
-  drawHeader(pages[0]!, regular, bold, scorecard, 'Evidências determinísticas para decisão humana');
-  pages[0]!.drawText('STATUS GERAL', { x: PAGE.margin, y: 445, size: 9, font: bold, color: hex(SCORECARD_THEME.mutedInk) });
-  pages[0]!.drawText(scorecard.overallStatus, { x: PAGE.margin, y: 398, size: 36, font: bold, color: hex(statusColor(scorecard.overallStatus)) });
-  pages[0]!.drawText(`Tendência pontual: ${scorecard.overallTrend}`, { x: PAGE.margin, y: 378, size: 9, font: regular, color: hex(SCORECARD_THEME.mutedInk) });
-
-  const headline = [
-    ['Riscos exercitados', `${scorecard.summary.exercisedRisks}/${scorecard.summary.knownRisks}`],
-    ['Controles aprovados', String(scorecard.summary.controlsPassed)],
-    ['Jornadas', `${scorecard.summary.journeysPassed}/${scorecard.summary.journeysTotal}`],
-    ['SLA sintético', `${scorecard.summary.syntheticSlaMet}/${scorecard.summary.syntheticSlaTotal}`],
-  ];
-  headline.forEach(([label, value], index) => {
-    const x = 282 + index * 130;
-    pages[0]!.drawText(value!, { x, y: 414, size: 22, font: bold, color: hex(SCORECARD_THEME.ink) });
-    pages[0]!.drawText(label!, { x, y: 394, size: 7.5, font: regular, color: hex(SCORECARD_THEME.mutedInk) });
-  });
-
-  const cardWidth = 370;
-  drawDimensionCard(pages[0]!, regular, bold, scorecard, 1, PAGE.margin, 188, cardWidth, 156);
-  drawDimensionCard(pages[0]!, regular, bold, scorecard, 2, PAGE.margin + cardWidth + 22, 188, cardWidth, 156);
-  pages[0]!.drawRectangle({ x: PAGE.margin, y: 56, width: PAGE.width - PAGE.margin * 2, height: 108, color: hex('#E7F3F5'), borderColor: hex('#B8DCE1'), borderWidth: 1 });
-  pages[0]!.drawText('DECISÃO HUMANA OBRIGATÓRIA', { x: PAGE.margin + 16, y: 137, size: 11, font: bold, color: hex(SCORECARD_THEME.accentDark) });
-  const decisionText = 'Este scorecard sintetiza evidências do laboratório. Ele não aprova nem reprova release e não substitui a análise do Quality Engineer responsável.';
-  wrap(decisionText, regular, 9, PAGE.width - PAGE.margin * 2 - 32).forEach((line, index) => {
-    pages[0]!.drawText(line, { x: PAGE.margin + 16, y: 116 - index * 14, size: 9, font: regular, color: hex(SCORECARD_THEME.ink) });
-  });
-
-  drawHeader(pages[1]!, regular, bold, scorecard, 'Dimensões de qualidade e sinais observados');
-  const positions = [
-    [PAGE.margin, 316], [PAGE.margin + cardWidth + 22, 316],
-    [PAGE.margin, 136], [PAGE.margin + cardWidth + 22, 136],
+  drawHeader(pages[0]!, regular, bold, view, 'AI-05 - Quality Engineering', view.title);
+  const cellY = 414;
+  const cellGap = 7;
+  const cellWidths = [150, 135, 160, 125, 163];
+  const cells = [
+    ['Status geral', view.statusLabel, view.statusMeaning, statusColor(view.status)],
+    ['Tendência', view.trendLabel, 'Leitura pontual', undefined],
+    ['Data e hora', view.generatedAt, 'Horário de Brasília', undefined],
+    ['Commit', view.commit, 'Referência analisada', undefined],
+    ['Contexto', 'Personal & Non-Official', '[LAB]', undefined],
   ] as const;
-  [3, 4, 5, 6].forEach((dimensionIndex, positionIndex) => {
-    const position = positions[positionIndex]!;
-    drawDimensionCard(pages[1]!, regular, bold, scorecard, dimensionIndex, position[0], position[1], cardWidth, 156);
+  let cellX = PAGE.margin;
+  cells.forEach((cell, index) => {
+    drawSummaryCell(pages[0]!, regular, bold, cellX, cellY, cellWidths[index]!, cell[0], cell[1], cell[2], cell[3]);
+    cellX += cellWidths[index]! + cellGap;
   });
 
-  drawHeader(pages[2]!, regular, bold, scorecard, 'Regressão, gaps conhecidos e rastreabilidade');
-  drawDimensionCard(pages[2]!, regular, bold, scorecard, 7, PAGE.margin, 316, cardWidth, 156);
-  drawDimensionCard(pages[2]!, regular, bold, scorecard, 8, PAGE.margin + cardWidth + 22, 316, cardWidth, 156);
-  pages[2]!.drawText('Gaps e limites explícitos', { x: PAGE.margin, y: 282, size: 12, font: bold, color: hex(SCORECARD_THEME.ink) });
-  let gapY = 260;
-  for (const gap of scorecard.knownGaps.slice(0, 5)) {
-    const lines = wrap(`• ${gap}`, regular, 8, PAGE.width - PAGE.margin * 2).slice(0, 2);
-    for (const line of lines) {
-      pages[2]!.drawText(line, { x: PAGE.margin, y: gapY, size: 8, font: regular, color: hex(SCORECARD_THEME.ink) });
-      gapY -= 12;
-    }
-    gapY -= 3;
-  }
-  pages[2]!.drawRectangle({ x: PAGE.margin, y: 62, width: PAGE.width - PAGE.margin * 2, height: 88, color: rgb(1, 1, 1), borderColor: hex(SCORECARD_THEME.line), borderWidth: 1 });
-  pages[2]!.drawText('Limites de interpretação', { x: PAGE.margin + 15, y: 127, size: 10, font: bold, color: hex(SCORECARD_THEME.ink) });
-  [scorecard.trendDisclaimer, scorecard.syntheticSlaDisclaimer].forEach((line, index) => {
-    pages[2]!.drawText(`• ${line}`, { x: PAGE.margin + 15, y: 106 - index * 20, size: 8, font: regular, color: hex(SCORECARD_THEME.mutedInk) });
+  pages[0]!.drawRectangle({ x: PAGE.margin, y: 190, width: PAGE.width - PAGE.margin * 2, height: 200, color: rgb(1, 1, 1), borderColor: hex(SCORECARD_THEME.line), borderWidth: 0.8 });
+  pages[0]!.drawText('LEITURA PARA DECISÃO', { x: PAGE.margin + 18, y: 364, size: 6.8, font: bold, color: hex(SCORECARD_THEME.primary) });
+  pages[0]!.drawText('Resumo Executivo', { x: PAGE.margin + 18, y: 340, size: 17, font: bold, color: hex(SCORECARD_THEME.ink) });
+  let summaryY = 313;
+  view.executiveSummary.forEach((item) => {
+    pages[0]!.drawCircle({ x: PAGE.margin + 21, y: summaryY + 3, size: 3, color: hex(SCORECARD_THEME.cyan) });
+    summaryY = drawWrapped(pages[0]!, item, { x: PAGE.margin + 33, y: summaryY + 6, width: PAGE.width - PAGE.margin * 2 - 55, size: 8.8, lineHeight: 12, font: regular, color: hex(SCORECARD_THEME.inkSoft), maxLines: 2 }) - 10;
   });
 
-  pages.forEach((page, index) => drawFooter(page, regular, index + 1, pages.length));
+  const quickWidth = (PAGE.width - PAGE.margin * 2 - 20) / 3;
+  const quick = [
+    ['Principal atenção', view.attention[0]?.title ?? 'Nenhuma atenção adicional', SCORECARD_THEME.yellow],
+    ['Sob controle', `${scorecard.summary.controlsPassed} controles aprovados e ${scorecard.summary.controlsFailed} falhos`, SCORECARD_THEME.green],
+    ['Prioridade', 'Ampliar cobertura e confiança das evidências', SCORECARD_THEME.primary],
+  ] as const;
+  quick.forEach((item, index) => {
+    const x = PAGE.margin + index * (quickWidth + 10);
+    pages[0]!.drawRectangle({ x, y: 58, width: quickWidth, height: 105, color: hex(SCORECARD_THEME.surfaceSoft), borderColor: hex(SCORECARD_THEME.line), borderWidth: 0.8 });
+    pages[0]!.drawRectangle({ x, y: 58, width: 5, height: 105, color: hex(item[2]) });
+    pages[0]!.drawText(item[0].toUpperCase(), { x: x + 16, y: 139, size: 6.5, font: bold, color: hex(SCORECARD_THEME.mutedInk) });
+    drawWrapped(pages[0]!, item[1], { x: x + 16, y: 116, width: quickWidth - 30, size: 10.5, lineHeight: 13, font: bold, color: hex(SCORECARD_THEME.ink), maxLines: 3 });
+  });
+
+  drawHeader(pages[1]!, regular, bold, view, 'Panorama integrado', 'Visão por Dimensão');
+  const cardWidth = (PAGE.width - PAGE.margin * 2 - 16) / 2;
+  const cardHeight = 95;
+  view.dimensions.forEach((dimension, index) => {
+    const column = index % 2;
+    const row = Math.floor(index / 2);
+    const x = PAGE.margin + column * (cardWidth + 16);
+    const y = 469 - row * 102 - cardHeight;
+    drawDimensionCard(pages[1]!, regular, bold, dimension, x, y, cardWidth, cardHeight);
+  });
+
+  drawHeader(pages[2]!, regular, bold, view, 'Foco de gestão', 'Atenções, controles e próximos passos');
+  const panelWidth = (PAGE.width - PAGE.margin * 2 - 16) / 2;
+  drawAttentionPanel(pages[2]!, regular, bold, view.attention, PAGE.margin, 284, panelWidth, 193);
+  drawListPanel(pages[2]!, regular, bold, 'O que está sob controle', view.underControl, PAGE.margin + panelWidth + 16, 284, panelWidth, 193, SCORECARD_THEME.green);
+  drawListPanel(pages[2]!, regular, bold, 'Ações Recomendadas', view.actions, PAGE.margin, 57, panelWidth, 209, SCORECARD_THEME.primary);
+  drawListPanel(pages[2]!, regular, bold, 'Gaps e Limites Atuais', [...view.gaps, view.trendDisclaimer, view.syntheticSlaDisclaimer], PAGE.margin + panelWidth + 16, 57, panelWidth, 209, SCORECARD_THEME.yellow);
+
+  pages.forEach((page, index) => drawFooter(page, regular, bold, index + 1, pages.length));
   return document.save({ useObjectStreams: false });
 }
