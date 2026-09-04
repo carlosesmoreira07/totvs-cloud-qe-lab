@@ -2,9 +2,9 @@
   "scenario": "message-redelivery-idempotency",
   "riskId": "RISK-RES-003",
   "controlId": "CTRL-RES-REDELIVERY-001",
-  "startedAt": "2026-09-04T06:47:51.682Z",
-  "recoveredAt": "2026-09-04T06:47:51.752Z",
-  "durationMs": 70,
+  "startedAt": "2026-09-04T07:17:56.884Z",
+  "recoveredAt": "2026-09-04T07:17:57.212Z",
+  "durationMs": 328,
   "observedFailure": "AT_LEAST_ONCE_DUPLICATE_DELIVERY",
   "finalState": {
     "operationStatus": "SUCCEEDED",

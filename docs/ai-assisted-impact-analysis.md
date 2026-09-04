@@ -326,11 +326,142 @@ A camada identifica oportunidades de aprimoramento na cobertura de observabilida
 }
 ```
 
+## AI-04 — Journey Intelligence
+
+### Objetivo
+
+[LAB] Evoluir a QE Intelligence Layer para analisar evidências reais de jornadas sintéticas completas de ponta a ponta (`evidence/journeys/*.json`), correlacionando-as deterministicamente com traces OpenTelemetry (`evidence/observability/*.json`), falhas de resiliência (`evidence/resiliency/*.json`) e alterações de código no PR.
+
+A inteligência de jornadas visa responder ao Quality Engineer:
+- quais jornadas completaram com sucesso ou sofreram degradação;
+- quais SLAs sintéticos de referência foram atendidos ou violados;
+- onde provavelmente ocorreram os gargalos na esteira assíncrona;
+- quais traces, spans e falhas de resiliência sustentam as hipóteses;
+- quais riscos de negócio e técnicos foram efetivamente exercitados;
+- quais gaps de teste ou instrumentação permanecem em aberto;
+- quais investigações e testes adicionais são recomendados.
+
+### Dados ingeridos
+
+1. **Evidências de jornadas sintéticas normalizadas:** `evidence/journeys/*.json` contendo `journey`, `riskId`, `controlId`, `startedAt`, `acceptedAt`, `completedAt`, `apiLatencyMs`, `endToEndDurationMs`, `recoveryDurationMs`, `traceId`, `correlationId`, `retries`, `redeliveries`, `finalState`, `slaAssessment` e `result`.
+2. **Evidências de observabilidade:** `evidence/observability/*.json` com árvore de spans e status de erro.
+3. **Evidências de resiliência:** `evidence/resiliency/*.json` com falhas simuladas e janelas de recuperação.
+4. **Métricas determinísticas locais:** agregadas em TypeScript antes da invocação do modelo.
+5. **Contexto de PR:** diff relevante, riscos mapeados no catálogo e resumo de controles do Playwright.
+
+### Correlação determinística antes da IA
+
+[LAB] A LLM não realiza cálculos aritméticos nem deduções numéricas. O módulo `tools/ai/journey-evidence-loader.ts` calcula deterministicamente:
+- contagem total de jornadas e conformidade (`passed` / `failed`);
+- contadores de SLA sintético (`MET` / `BREACHED`);
+- estatísticas de latência de aceitação da API (`min`, `max`, `avg`);
+- estatísticas de duração E2E completa (`min`, `max`, `avg`);
+- estatísticas de duração de recuperação pós-falha (`min`, `max`, `avg`);
+- total acumulado de retries de cliente e redeliveries do broker;
+- identificação unívoca da jornada mais lenta e sua duração;
+- catálogo consolidado de riscos e controles exercitados;
+- lista unificada de `traceIds` e `correlationIds` associados;
+- correlação entre cada jornada e eventuais spans em `ERROR` ou falhas simuladas;
+- detecção de variações anormais de latência ou retries se houver múltiplos registros da mesma jornada.
+
+### Regras rígidas e guardrails anti-alucinação
+
+- **Classificação obrigatória por item (`OBSERVED`, `INFERRED`, `GAP`):**
+  - **`OBSERVED`**: Evidência direta e mensurada nos JSONs (ex: `apiLatencyMs = 43ms`, `slaAssessment = MET`, span `nats.publish` com erro).
+  - **`INFERRED`**: Hipótese provável sustentada pela correlação lógica de múltiplos sinais (ex: maior duração associada à recuperação da conexão NATS).
+  - **`GAP`**: Ausência de métrica, baseline histórico ou cenário de teste.
+- **Vedação de afirmações genéricas de desempenho:** A IA está proibida de afirmar que "o sistema está performático" ou que "atende SLA de produção". Deve utilizar formulações circunscritas: *"as N jornadas sintéticas executadas ficaram dentro dos limites [LAB] definidos"*.
+- **Proibição de causa raiz definitiva sem evidência direta:** Hipóteses de gargalo devem ser sempre qualificadas como `INFERRED`.
+- **Diferença entre SLA sintético e SLA real:** Os SLAs do laboratório (`LAB_SYNTHETIC_SLA`) são limites simulados locais para detecção de anomalias na suíte de testes, não correspondendo a SLAs contratuais de produção da TOTVS.
+- **Sem autoridade de release:** A análise é puramente consultiva e não bloqueia o Quality Gate (`AI_JOURNEY_ADVISORY_UNAVAILABLE` em caso de indisponibilidade).
+
+### Exemplo de advisory gerado
+
+```json
+{
+  "executiveSummary": "As 4 jornadas sintéticas executadas ficaram dentro dos limites [LAB] definidos, com convergência atômica após retentativas e falhas simuladas.",
+  "degradedJourneys": [],
+  "slaFindings": [
+    {
+      "subject": "Conformidade integral de SLA nominal",
+      "rationale": "Todas as jornadas cumpriram os limites máximos de 500ms de API e 5000ms de E2E",
+      "evidence": ["journey-1-successful-provisioning.json", "apiLatencyMs <= 43"],
+      "classification": "OBSERVED"
+    }
+  ],
+  "probableBottlenecks": [
+    {
+      "subject": "Recuperação do worker publisher sob partição NATS",
+      "rationale": "A jornada com falha transitória do broker apresentou a maior duração E2E (198ms)",
+      "evidence": ["journey-3-transient-nats-failure-recovery.json"],
+      "classification": "INFERRED"
+    }
+  ],
+  "affectedRisks": [
+    {
+      "subject": "RISK-JOURNEY-001",
+      "rationale": "Ciclo completo de provisionamento validado de ponta a ponta",
+      "evidence": ["CTRL-JOURNEY-PROVISIONING-001"],
+      "classification": "OBSERVED"
+    }
+  ],
+  "traceCorrelations": [
+    {
+      "subject": "Propagação unificada do traceId W3C",
+      "rationale": "Os 6 spans da esteira conectaram-se causalmente mantendo o mesmo identificador",
+      "evidence": ["traceId: a50d17714183daecaf379897b3527ebb"],
+      "classification": "OBSERVED"
+    }
+  ],
+  "resilienceCorrelations": [
+    {
+      "subject": "Convergência após redelivery com NAK",
+      "rationale": "O consumidor rejeitou mensagem com erro simulado e concluiu com sucesso na reentrega",
+      "evidence": ["journey-4-consumer-failure-redelivery.json"],
+      "classification": "OBSERVED"
+    }
+  ],
+  "coverageGaps": [
+    {
+      "subject": "Ausência de baseline histórico persistido",
+      "rationale": "Não há repositório temporal de métricas para calcular desvio padrão entre commits",
+      "evidence": ["docs/08-synthetic-journeys.md"],
+      "classification": "GAP"
+    }
+  ],
+  "recommendedInvestigations": [
+    {
+      "subject": "Avaliar tempo de reconexão NATS com latências intermediárias",
+      "rationale": "Medir comportamento do publisher com Toxiproxy sob latência gradual",
+      "evidence": ["tests/helpers/toxiproxy.ts"],
+      "classification": "INFERRED"
+    }
+  ],
+  "recommendedTests": [
+    {
+      "subject": "Jornada combinada de falha simultânea de publisher e consumer",
+      "rationale": "Validar idempotência e integridade quando ambas as pontas sofrem degradação concorrente",
+      "evidence": ["CTRL-JOURNEY-BROKER-RECOVERY-001", "CTRL-JOURNEY-CONSUMER-REDELIVERY-001"],
+      "classification": "GAP"
+    }
+  ],
+  "humanQuestions": [
+    {
+      "subject": "Qual o percentual de variação aceitável em E2E antes de considerar regressão?",
+      "rationale": "Importante para configurar regras de alerta em execuções contínuas de CI",
+      "evidence": ["LAB_SYNTHETIC_SLA"],
+      "classification": "GAP"
+    }
+  ],
+  "confidence": "HIGH"
+}
+```
+
 ## Governança
 
 - [LAB] O Quality Gate usa somente build, typecheck, OpenAPI e testes determinísticos.
 - [LAB] Nenhum nível de impacto ou confiança da LLM muda status de job bloqueante.
-- [LAB] O summary identifica provider, modelo e versão pública do prompt (`qe-advisory-v1`, `qe-failure-advisory-v1`, `qe-telemetry-advisory-v1`) para auditoria humana.
+- [LAB] O summary identifica provider, modelo e versão pública do prompt (`qe-advisory-v1`, `qe-failure-advisory-v1`, `qe-telemetry-advisory-v1`, `qe-journey-advisory-v1`) para auditoria humana.
 - [LAB] Diff e relatórios são entradas não confiáveis: instruções contidas neles devem ser ignoradas pelo modelo.
 - [LAB] A utilidade será avaliada por revisão humana e gaps encontrados, nunca por taxa de “aprovação”.
 - [LAB] Prompts não devem conter segredos; mudanças no prompt curto e público passam por revisão de código.

@@ -2,9 +2,9 @@
   "scenario": "api-timeout-retry-persistence",
   "riskId": "RISK-RES-005",
   "controlId": "CTRL-RES-API-TIMEOUT-RETRY-001",
-  "startedAt": "2026-09-04T06:47:51.923Z",
-  "recoveredAt": "2026-09-04T06:47:51.976Z",
-  "durationMs": 53,
+  "startedAt": "2026-09-04T07:17:57.377Z",
+  "recoveredAt": "2026-09-04T07:17:57.449Z",
+  "durationMs": 72,
   "observedFailure": "CLIENT_HTTP_TIMEOUT_RETRY",
   "finalState": {
     "replayKind": "replayed",

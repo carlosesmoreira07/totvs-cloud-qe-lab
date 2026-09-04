@@ -188,6 +188,9 @@ npm run ai:failure-advisory
 
 # Executar AI telemetry advisory consultivo (Telemetry & Trace Intelligence AI-03)
 npm run ai:telemetry-advisory
+
+# Executar AI journey advisory consultivo (Journey Intelligence AI-04)
+npm run ai:journey-advisory
 ```
 
 ## Comece por aqui

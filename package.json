@@ -26,7 +26,8 @@
     "impact:context": "tsx tools/impact-context.ts",
     "ai:advisory": "tsx tools/ai/advisory-analysis.ts",
     "ai:failure-advisory": "tsx tools/ai/failure-intelligence.ts",
-    "ai:telemetry-advisory": "tsx tools/ai/telemetry-intelligence.ts"
+    "ai:telemetry-advisory": "tsx tools/ai/telemetry-intelligence.ts",
+    "ai:journey-advisory": "tsx tools/ai/journey-intelligence.ts"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "13.0.0",
