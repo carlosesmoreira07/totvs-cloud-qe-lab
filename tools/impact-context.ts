@@ -93,6 +93,12 @@ const rules: ImpactRule[] = [
     question: 'Os thresholds de p95/p99 foram respeitados, houve regressão contra baseline e idempotência concorrente manteve zero duplicidade?',
   },
   {
+    pattern: /^(tools\/scorecard\/|evidence\/scorecard\/|docs\/10-executive-quality-scorecard\.md|tests\/unit\/executive-scorecard\.test\.ts)/,
+    risk: 'status executivo divergente das evidências, regressão visual ou conclusão sem rastreabilidade',
+    tests: ['npm run test:unit', 'npm run scorecard'],
+    question: 'JSON, Markdown, HTML e PDF preservam as mesmas regras, status, tendências, gaps e autoridade de decisão humana?',
+  },
+  {
     pattern: /^tools\/ai\//,
     risk: 'regressão na QE Intelligence Layer ou violação dos guardrails de IA assistiva',
     tests: ['npm run test:unit', 'npm test'],

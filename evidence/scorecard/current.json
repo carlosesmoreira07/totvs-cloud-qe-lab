@@ -1,0 +1,432 @@
+{
+  "schemaVersion": "1.0.0",
+  "rulesVersion": "scorecard-rules-v1",
+  "generatedAt": "2026-09-04T08:16:49.560Z",
+  "commit": "d1a197d8c3e1",
+  "scope": "[LAB] Cloud Control Plane fictício",
+  "decisionAuthority": "HUMAN",
+  "overallStatus": "YELLOW",
+  "overallTrend": "IMPROVING",
+  "summary": {
+    "knownRisks": 34,
+    "exercisedRisks": 22,
+    "riskCoveragePct": 64.7,
+    "controlsPassed": 22,
+    "controlsFailed": 0,
+    "controlsUnknown": 12,
+    "journeysPassed": 4,
+    "journeysTotal": 4,
+    "syntheticSlaMet": 4,
+    "syntheticSlaTotal": 4,
+    "knownGapCount": 3
+  },
+  "dimensions": [
+    {
+      "key": "OVERALL_QUALITY",
+      "label": "Overall Quality",
+      "status": "YELLOW",
+      "trend": "IMPROVING",
+      "evidence": [
+        {
+          "source": "evidence/scorecard/current.json",
+          "kind": "RISK_MAP",
+          "result": "síntese das oito dimensões"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "risk-coverage",
+          "label": "Risk coverage",
+          "value": 64.7,
+          "unit": "%",
+          "status": "YELLOW"
+        },
+        {
+          "key": "failed-controls",
+          "label": "Controles falhos",
+          "value": 0,
+          "status": "GREEN"
+        },
+        {
+          "key": "failed-journeys",
+          "label": "Jornadas falhas",
+          "value": 0,
+          "status": "GREEN"
+        },
+        {
+          "key": "known-gaps",
+          "label": "Gaps conhecidos",
+          "value": 3,
+          "status": "YELLOW"
+        }
+      ],
+      "explanation": "Pior status determinístico entre as dimensões; UNKNOWN é preservado quando não há evidência operacional suficiente.",
+      "risks": [
+        "RISK-API-001",
+        "RISK-API-002",
+        "RISK-API-003",
+        "RISK-API-004",
+        "RISK-API-005",
+        "RISK-API-006",
+        "RISK-API-007",
+        "RISK-OUTBOX-001",
+        "RISK-OUTBOX-002",
+        "RISK-OUTBOX-003",
+        "RISK-EVENT-001",
+        "RISK-CONSUMER-001"
+      ]
+    },
+    {
+      "key": "RISK_COVERAGE",
+      "label": "Risk Coverage",
+      "status": "YELLOW",
+      "trend": "UNKNOWN",
+      "evidence": [
+        {
+          "source": "docs/04-quality-risk-map.md",
+          "kind": "RISK_MAP",
+          "result": "22/34 riscos exercitados"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "known-risks",
+          "label": "Riscos conhecidos",
+          "value": 34,
+          "status": "GREEN"
+        },
+        {
+          "key": "exercised-risks",
+          "label": "Riscos exercitados",
+          "value": 22,
+          "status": "YELLOW"
+        },
+        {
+          "key": "coverage-pct",
+          "label": "Cobertura",
+          "value": 64.7,
+          "unit": "%",
+          "status": "YELLOW"
+        }
+      ],
+      "explanation": "Cobertura calculada por risco conhecido com ao menos um controle presente nas evidências serializadas desta coleta.",
+      "risks": [
+        "RISK-API-001",
+        "RISK-API-002",
+        "RISK-API-003",
+        "RISK-API-004",
+        "RISK-API-005",
+        "RISK-API-006",
+        "RISK-API-007",
+        "RISK-OUTBOX-001",
+        "RISK-OUTBOX-002",
+        "RISK-OUTBOX-003",
+        "RISK-EVENT-001",
+        "RISK-CONSUMER-001"
+      ]
+    },
+    {
+      "key": "CONTROLS",
+      "label": "Controls",
+      "status": "YELLOW",
+      "trend": "UNKNOWN",
+      "evidence": [
+        {
+          "source": "evidence/{resiliency,observability,journeys,performance}",
+          "kind": "RISK_MAP",
+          "result": "22 controles com resultado"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "controls-passed",
+          "label": "Aprovados",
+          "value": 22,
+          "status": "GREEN"
+        },
+        {
+          "key": "controls-failed",
+          "label": "Falhos",
+          "value": 0,
+          "status": "GREEN"
+        },
+        {
+          "key": "controls-unknown",
+          "label": "Sem evidência",
+          "value": 12,
+          "status": "YELLOW"
+        }
+      ],
+      "explanation": "Consolidação deduplicada por controlId; ausência de arquivo não é convertida em aprovação.",
+      "risks": []
+    },
+    {
+      "key": "CRITICAL_JOURNEYS",
+      "label": "Critical Journeys",
+      "status": "GREEN",
+      "trend": "UNKNOWN",
+      "evidence": [
+        {
+          "source": "evidence/journeys/*.json",
+          "kind": "JOURNEY",
+          "result": "4/4 aprovadas"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "journeys-passed",
+          "label": "Aprovadas",
+          "value": 4,
+          "status": "GREEN"
+        },
+        {
+          "key": "journeys-failed",
+          "label": "Falhas",
+          "value": 0,
+          "status": "GREEN"
+        },
+        {
+          "key": "sla-breached",
+          "label": "SLA violado",
+          "value": 0,
+          "status": "GREEN"
+        },
+        {
+          "key": "journey-e2e-max",
+          "label": "E2E máximo",
+          "value": 176,
+          "unit": "ms",
+          "status": "GREEN"
+        }
+      ],
+      "explanation": "Resultado e SLA sintético são lidos das jornadas ponta a ponta; qualquer falha ou breach torna a dimensão vermelha.",
+      "risks": []
+    },
+    {
+      "key": "RESILIENCE",
+      "label": "Resilience",
+      "status": "GREEN",
+      "trend": "UNKNOWN",
+      "evidence": [
+        {
+          "source": "evidence/resiliency/*.json",
+          "kind": "RESILIENCY",
+          "result": "6/6 cenários recuperados"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "resilience-passed",
+          "label": "Aprovados",
+          "value": 6,
+          "status": "GREEN"
+        },
+        {
+          "key": "recovery-min",
+          "label": "Recovery mínimo",
+          "value": 38,
+          "unit": "ms",
+          "status": "GREEN"
+        },
+        {
+          "key": "recovery-avg",
+          "label": "Recovery médio",
+          "value": 167,
+          "unit": "ms",
+          "status": "GREEN"
+        },
+        {
+          "key": "recovery-max",
+          "label": "Recovery máximo",
+          "value": 341,
+          "unit": "ms",
+          "status": "GREEN"
+        }
+      ],
+      "explanation": "Cenários [LAB] verificam recuperação e consistência nas falhas distribuídas efetivamente exercitadas.",
+      "risks": []
+    },
+    {
+      "key": "OBSERVABILITY",
+      "label": "Observability",
+      "status": "YELLOW",
+      "trend": "UNKNOWN",
+      "evidence": [
+        {
+          "source": "evidence/observability/*.json",
+          "kind": "OBSERVABILITY",
+          "result": "7 traces analisados"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "traces",
+          "label": "Traces",
+          "value": 7,
+          "status": "YELLOW"
+        },
+        {
+          "key": "error-traces",
+          "label": "Traces com erro",
+          "value": 4,
+          "status": "YELLOW"
+        },
+        {
+          "key": "missing-spans",
+          "label": "Cadeias parciais",
+          "value": 1,
+          "status": "YELLOW"
+        },
+        {
+          "key": "obs-failed",
+          "label": "Controles falhos",
+          "value": 0,
+          "status": "YELLOW"
+        }
+      ],
+      "explanation": "Spans ERROR esperados em falhas simuladas não reprovam sozinhos; controles falhos reprovam e cadeias parciais pedem revisão.",
+      "risks": []
+    },
+    {
+      "key": "PERFORMANCE",
+      "label": "Performance",
+      "status": "GREEN",
+      "trend": "IMPROVING",
+      "evidence": [
+        {
+          "source": "evidence/performance/current.json",
+          "kind": "PERFORMANCE",
+          "result": "PASSED"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "p50",
+          "label": "p50",
+          "value": 0,
+          "unit": "ms",
+          "status": "GREEN"
+        },
+        {
+          "key": "p95",
+          "label": "p95",
+          "value": 200.3,
+          "unit": "ms",
+          "status": "GREEN"
+        },
+        {
+          "key": "p99",
+          "label": "p99",
+          "value": 0,
+          "unit": "ms",
+          "status": "GREEN"
+        },
+        {
+          "key": "throughput",
+          "label": "Throughput",
+          "value": 32.6,
+          "unit": "req/s",
+          "status": "GREEN"
+        }
+      ],
+      "explanation": "Thresholds sintéticos: MET; error rate 0; E2E p95 297.7 ms.",
+      "risks": []
+    },
+    {
+      "key": "REGRESSION",
+      "label": "Regression",
+      "status": "GREEN",
+      "trend": "IMPROVING",
+      "evidence": [
+        {
+          "source": "evidence/performance/current.json",
+          "kind": "PERFORMANCE",
+          "result": "IMPROVED"
+        },
+        {
+          "source": "evidence/performance/baseline.json",
+          "kind": "BASELINE",
+          "result": "AVAILABLE"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "comparison",
+          "label": "Comparação",
+          "value": "IMPROVED",
+          "status": "GREEN"
+        },
+        {
+          "key": "regressed-metrics",
+          "label": "Métricas regredidas",
+          "value": 0,
+          "status": "GREEN"
+        },
+        {
+          "key": "tolerance",
+          "label": "Tolerância",
+          "value": 20,
+          "unit": "%",
+          "status": "GREEN"
+        }
+      ],
+      "explanation": "Baseline versus current é uma comparação pontual determinística; não representa tendência histórica.",
+      "risks": []
+    },
+    {
+      "key": "KNOWN_GAPS",
+      "label": "Known Gaps",
+      "status": "YELLOW",
+      "trend": "UNKNOWN",
+      "evidence": [
+        {
+          "source": "scorecard deterministic normalization",
+          "kind": "RISK_MAP",
+          "result": "3 gaps explicitados"
+        }
+      ],
+      "indicators": [
+        {
+          "key": "known-gaps",
+          "label": "Gaps conhecidos",
+          "value": 3,
+          "status": "YELLOW"
+        },
+        {
+          "key": "invalid-files",
+          "label": "Evidências inválidas",
+          "value": 0,
+          "status": "GREEN"
+        },
+        {
+          "key": "missing-sources",
+          "label": "Fontes ausentes",
+          "value": 0,
+          "status": "GREEN"
+        }
+      ],
+      "explanation": "Lacunas permanecem visíveis e nunca são interpretadas como sucesso implícito.",
+      "risks": [
+        "RISK-API-001",
+        "RISK-API-002",
+        "RISK-API-003",
+        "RISK-API-004",
+        "RISK-API-005",
+        "RISK-API-006",
+        "RISK-API-007",
+        "RISK-OUTBOX-001",
+        "RISK-OUTBOX-002",
+        "RISK-OUTBOX-003",
+        "RISK-EVENT-001",
+        "RISK-CONSUMER-001"
+      ]
+    }
+  ],
+  "knownGaps": [
+    "12 riscos conhecidos não possuem evidência serializada nesta coleta.",
+    "1 cenários de observabilidade possuem cadeia parcial de spans e exigem interpretação humana.",
+    "Baseline e current permitem comparação pontual, mas ainda não formam série histórica."
+  ],
+  "trendDisclaimer": "Comparação pontual entre baseline e execução atual; não constitui série histórica.",
+  "syntheticSlaDisclaimer": "SLAs sintéticos do laboratório não representam SLA real da TOTVS."
+}

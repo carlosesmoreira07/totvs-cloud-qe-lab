@@ -27,9 +27,24 @@ jobs:
       - run: npm run verify
       - name: Run performance baseline smoke test
         run: npm run test:performance:smoke
+      - name: Generate deterministic Executive Quality Scorecard
+        if: always()
+        run: npm run scorecard
       - name: Teardown LAB-05/LAB-06/LAB-07 infrastructure
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v
+      - name: Upload deterministic Executive Quality Scorecard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qe-executive-scorecard
+          path: |
+            evidence/scorecard/current.json
+            evidence/scorecard/executive-summary.md
+            evidence/scorecard/executive-scorecard.html
+            evidence/scorecard/executive-scorecard.pdf
+          if-no-files-found: warn
+          retention-days: 14
 
   ai-advisory-control-results:
     if: github.event_name == 'pull_request'
@@ -143,6 +158,36 @@ jobs:
           QE_IMPACT_CONTEXT_PATH: evidence/generated/impact-context.json
           QE_TEST_RESULTS_PATH: evidence/generated/playwright-results.json
         run: npm run ai:advisory >> "$GITHUB_STEP_SUMMARY"
+
+  ai-executive-scorecard-advisory:
+    if: always() && github.event_name == 'pull_request'
+    needs: deterministic-quality-gate
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted analyzer from the PR base
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Download deterministic scorecard
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: qe-executive-scorecard
+          path: evidence/scorecard
+      - name: Publish non-blocking Executive Quality Scorecard advisory
+        continue-on-error: true
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          QE_AI_MODEL: ${{ vars.QE_AI_MODEL }}
+          QE_SCORECARD_PATH: evidence/scorecard/current.json
+        run: npm run ai:scorecard >> "$GITHUB_STEP_SUMMARY"
 
   ai-failure-advisory:
     if: always() && github.event_name == 'pull_request'

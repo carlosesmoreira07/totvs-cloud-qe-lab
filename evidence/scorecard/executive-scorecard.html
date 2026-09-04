@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Executive Quality Scorecard — AI-05</title>
+<style>
+@page{size:A4 landscape;margin:0}*{box-sizing:border-box}body{margin:0;background:#F2F6F9;color:#17243D;font-family:Inter,"Segoe UI",Arial,sans-serif}.page{width:297mm;min-height:210mm;margin:0 auto;padding:14mm 15mm 12mm;page-break-after:always;position:relative;background:#F2F6F9}.page:last-child{page-break-after:auto}.hero{background:#17243D;color:white;margin:-14mm -15mm 9mm;padding:13mm 15mm 9mm;border-left:3mm solid #00A7B5}.eyebrow{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#bfe8ed}.hero h1{margin:4px 0 6px;font-size:27px;line-height:1.05}.hero p{margin:0;color:#dbe7f0;font-size:11px}.status-grid{display:grid;grid-template-columns:1.5fr repeat(4,1fr);gap:4mm;margin-bottom:7mm}.overall,.headline{background:white;border:1px solid #D9E2E9;border-radius:3mm;padding:5mm}.overall{border-top:2mm solid #966400}.overall small,.headline span{display:block;color:#5C687C;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.overall strong{display:block;font-size:31px;color:#966400;margin:2mm 0}.headline strong{display:block;font-size:22px;margin:3mm 0 1mm}.grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}.dimension{background:white;border:1px solid #D9E2E9;border-top:2mm solid var(--status);border-radius:3mm;padding:5mm;min-height:68mm;break-inside:avoid}.dimension-head{display:flex;justify-content:space-between;gap:4mm;align-items:flex-start}.dimension small{font-size:7px;color:#5C687C;letter-spacing:.08em}.dimension h3{font-size:15px;margin:1mm 0}.pill{font-size:8px;font-weight:700;color:var(--status);background:var(--status-bg);padding:2mm 3mm;border-radius:10mm}.trend{font-size:9px;color:#5C687C;margin:2mm 0 3mm}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:2mm}.metric{background:#F2F6F9;padding:2.5mm;border-radius:2mm;display:flex;justify-content:space-between;gap:2mm;font-size:8px}.dimension p{font-size:9px;line-height:1.4;margin:3mm 0}.risk-line{font-size:7.5px;color:#5C687C}.decision{margin-top:5mm;padding:4mm 5mm;border:1px solid #abd7dd;background:#e7f4f6;border-radius:3mm}.decision strong{color:#086A78}.decision p{font-size:9px;margin:2mm 0 0}.section-title{font-size:19px;margin:0 0 5mm}.gaps{background:white;border:1px solid #D9E2E9;border-radius:3mm;padding:6mm}.gaps li{margin:0 0 3mm;font-size:10px;line-height:1.4}.disclaimer{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin-top:6mm}.note{background:#fff;border-left:2mm solid #966400;padding:5mm;font-size:9px;line-height:1.4}.footer{position:absolute;left:15mm;right:15mm;bottom:5mm;border-top:1px solid #D9E2E9;padding-top:2mm;color:#5C687C;font-size:7px;display:flex;justify-content:space-between}@media screen{body{padding:10px}.page{box-shadow:0 4px 22px #1a294026;margin-bottom:12px}}@media print{body{background:white}.page{margin:0;box-shadow:none}}
+</style></head><body>
+<section class="page"><header class="hero"><div class="eyebrow">Quality Engineering · AI-05</div><h1>Executive Quality Scorecard</h1><p>[LAB] Cloud Control Plane fictício · evidências determinísticas · decisão humana</p></header>
+<div class="status-grid"><div class="overall"><small>Status geral</small><strong>YELLOW</strong><span>Tendência pontual: IMPROVING</span></div><div class="headline"><span>Riscos exercitados</span><strong>22/34</strong><span>64.7%</span></div><div class="headline"><span>Controles aprovados</span><strong>22</strong><span>0 falhos</span></div><div class="headline"><span>Jornadas</span><strong>4/4</strong><span>aprovadas</span></div><div class="headline"><span>SLA sintético</span><strong>4/4</strong><span>limites [LAB]</span></div></div>
+<div class="grid"><article class="dimension" style="--status:#966400;--status-bg:#FFF2CC">
+    <div class="dimension-head"><div><small>RISK_COVERAGE</small><h3>Risk Coverage</h3></div><span class="pill">YELLOW</span></div>
+    <div class="trend">Tendência: <strong>UNKNOWN</strong></div>
+    <div class="metrics"><div class="metric"><span>Riscos conhecidos</span><strong style="color:#137A55">34</strong></div><div class="metric"><span>Riscos exercitados</span><strong style="color:#966400">22</strong></div><div class="metric"><span>Cobertura</span><strong style="color:#966400">64.7 %</strong></div></div>
+    <p>Cobertura calculada por risco conhecido com ao menos um controle presente nas evidências serializadas desta coleta.</p>
+    <div class="risk-line">Riscos: RISK-API-001, RISK-API-002, RISK-API-003, RISK-API-004, RISK-API-005, RISK-API-006, RISK-API-007, RISK-OUTBOX-001, RISK-OUTBOX-002, RISK-OUTBOX-003, RISK-EVENT-001, RISK-CONSUMER-001</div>
+  </article><article class="dimension" style="--status:#966400;--status-bg:#FFF2CC">
+    <div class="dimension-head"><div><small>CONTROLS</small><h3>Controls</h3></div><span class="pill">YELLOW</span></div>
+    <div class="trend">Tendência: <strong>UNKNOWN</strong></div>
+    <div class="metrics"><div class="metric"><span>Aprovados</span><strong style="color:#137A55">22</strong></div><div class="metric"><span>Falhos</span><strong style="color:#137A55">0</strong></div><div class="metric"><span>Sem evidência</span><strong style="color:#966400">12</strong></div></div>
+    <p>Consolidação deduplicada por controlId; ausência de arquivo não é convertida em aprovação.</p>
+    <div class="risk-line">Riscos: nenhum risco específico</div>
+  </article><article class="dimension" style="--status:#137A55;--status-bg:#E4F4EC">
+    <div class="dimension-head"><div><small>CRITICAL_JOURNEYS</small><h3>Critical Journeys</h3></div><span class="pill">GREEN</span></div>
+    <div class="trend">Tendência: <strong>UNKNOWN</strong></div>
+    <div class="metrics"><div class="metric"><span>Aprovadas</span><strong style="color:#137A55">4</strong></div><div class="metric"><span>Falhas</span><strong style="color:#137A55">0</strong></div><div class="metric"><span>SLA violado</span><strong style="color:#137A55">0</strong></div><div class="metric"><span>E2E máximo</span><strong style="color:#137A55">176 ms</strong></div></div>
+    <p>Resultado e SLA sintético são lidos das jornadas ponta a ponta; qualquer falha ou breach torna a dimensão vermelha.</p>
+    <div class="risk-line">Riscos: nenhum risco específico</div>
+  </article><article class="dimension" style="--status:#137A55;--status-bg:#E4F4EC">
+    <div class="dimension-head"><div><small>RESILIENCE</small><h3>Resilience</h3></div><span class="pill">GREEN</span></div>
+    <div class="trend">Tendência: <strong>UNKNOWN</strong></div>
+    <div class="metrics"><div class="metric"><span>Aprovados</span><strong style="color:#137A55">6</strong></div><div class="metric"><span>Recovery mínimo</span><strong style="color:#137A55">38 ms</strong></div><div class="metric"><span>Recovery médio</span><strong style="color:#137A55">167 ms</strong></div><div class="metric"><span>Recovery máximo</span><strong style="color:#137A55">341 ms</strong></div></div>
+    <p>Cenários [LAB] verificam recuperação e consistência nas falhas distribuídas efetivamente exercitadas.</p>
+    <div class="risk-line">Riscos: nenhum risco específico</div>
+  </article></div><div class="decision"><strong>Decisão humana obrigatória</strong><p>Este painel sintetiza evidências do laboratório. Não aprova nem reprova release e não substitui revisão profissional.</p></div><footer class="footer"><span>Quality Engineering Lab — NÃO OFICIAL | Evidências do laboratório | Decisão humana obrigatória</span><span>1/2</span></footer></section>
+<section class="page"><h2 class="section-title">Sinais técnicos, regressão e gaps conhecidos</h2><div class="grid"><article class="dimension" style="--status:#966400;--status-bg:#FFF2CC">
+    <div class="dimension-head"><div><small>OBSERVABILITY</small><h3>Observability</h3></div><span class="pill">YELLOW</span></div>
+    <div class="trend">Tendência: <strong>UNKNOWN</strong></div>
+    <div class="metrics"><div class="metric"><span>Traces</span><strong style="color:#966400">7</strong></div><div class="metric"><span>Traces com erro</span><strong style="color:#966400">4</strong></div><div class="metric"><span>Cadeias parciais</span><strong style="color:#966400">1</strong></div><div class="metric"><span>Controles falhos</span><strong style="color:#966400">0</strong></div></div>
+    <p>Spans ERROR esperados em falhas simuladas não reprovam sozinhos; controles falhos reprovam e cadeias parciais pedem revisão.</p>
+    <div class="risk-line">Riscos: nenhum risco específico</div>
+  </article><article class="dimension" style="--status:#137A55;--status-bg:#E4F4EC">
+    <div class="dimension-head"><div><small>PERFORMANCE</small><h3>Performance</h3></div><span class="pill">GREEN</span></div>
+    <div class="trend">Tendência: <strong>IMPROVING</strong></div>
+    <div class="metrics"><div class="metric"><span>p50</span><strong style="color:#137A55">0 ms</strong></div><div class="metric"><span>p95</span><strong style="color:#137A55">200.3 ms</strong></div><div class="metric"><span>p99</span><strong style="color:#137A55">0 ms</strong></div><div class="metric"><span>Throughput</span><strong style="color:#137A55">32.6 req/s</strong></div></div>
+    <p>Thresholds sintéticos: MET; error rate 0; E2E p95 297.7 ms.</p>
+    <div class="risk-line">Riscos: nenhum risco específico</div>
+  </article><article class="dimension" style="--status:#137A55;--status-bg:#E4F4EC">
+    <div class="dimension-head"><div><small>REGRESSION</small><h3>Regression</h3></div><span class="pill">GREEN</span></div>
+    <div class="trend">Tendência: <strong>IMPROVING</strong></div>
+    <div class="metrics"><div class="metric"><span>Comparação</span><strong style="color:#137A55">IMPROVED</strong></div><div class="metric"><span>Métricas regredidas</span><strong style="color:#137A55">0</strong></div><div class="metric"><span>Tolerância</span><strong style="color:#137A55">20 %</strong></div></div>
+    <p>Baseline versus current é uma comparação pontual determinística; não representa tendência histórica.</p>
+    <div class="risk-line">Riscos: nenhum risco específico</div>
+  </article><article class="dimension" style="--status:#966400;--status-bg:#FFF2CC">
+    <div class="dimension-head"><div><small>KNOWN_GAPS</small><h3>Known Gaps</h3></div><span class="pill">YELLOW</span></div>
+    <div class="trend">Tendência: <strong>UNKNOWN</strong></div>
+    <div class="metrics"><div class="metric"><span>Gaps conhecidos</span><strong style="color:#966400">3</strong></div><div class="metric"><span>Evidências inválidas</span><strong style="color:#137A55">0</strong></div><div class="metric"><span>Fontes ausentes</span><strong style="color:#137A55">0</strong></div></div>
+    <p>Lacunas permanecem visíveis e nunca são interpretadas como sucesso implícito.</p>
+    <div class="risk-line">Riscos: RISK-API-001, RISK-API-002, RISK-API-003, RISK-API-004, RISK-API-005, RISK-API-006, RISK-API-007, RISK-OUTBOX-001, RISK-OUTBOX-002, RISK-OUTBOX-003, RISK-EVENT-001, RISK-CONSUMER-001</div>
+  </article></div><div class="gaps"><h3>Limites explicitados</h3><ul><li>12 riscos conhecidos não possuem evidência serializada nesta coleta.</li><li>1 cenários de observabilidade possuem cadeia parcial de spans e exigem interpretação humana.</li><li>Baseline e current permitem comparação pontual, mas ainda não formam série histórica.</li></ul></div><div class="disclaimer"><div class="note"><strong>Tendência</strong><br>Comparação pontual entre baseline e execução atual; não constitui série histórica.</div><div class="note"><strong>SLA</strong><br>SLAs sintéticos do laboratório não representam SLA real da TOTVS.</div></div><footer class="footer"><span>Quality Engineering Lab — NÃO OFICIAL | Evidências do laboratório | Decisão humana obrigatória</span><span>2/2</span></footer></section>
+</body></html>

@@ -34,8 +34,9 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **AI-02:** Failure Intelligence consultivo correlacionando métricas determinísticas e evidências de resiliência distribuída do LAB-06.
 - [LAB] **AI-03:** Telemetry & Trace Intelligence correlacionando traces OpenTelemetry (LAB-07), métricas agregadas e falhas distribuídas com classificações estritas `[OBSERVED]`, `[INFERRED]` e `[GAP]`.
 - [LAB] **AI-04:** Journey Intelligence consultivo correlacionando jornadas sintéticas completas (LAB-08), SLAs sintéticos e evidências distribuídas.
+- [LAB] **AI-05:** Executive Quality Scorecard determinístico em JSON/Markdown/HTML/PDF, com interpretação LLM opcional, estruturada e não bloqueante.
 
-[LAB] LAB-10 e posteriores — segurança avançada, stress testing destrutivo em escala, soak testing de longa duração, dashboards executivos e descoberta de onboarding — permanecem fora desta entrega.
+[LAB] LAB-10 e posteriores — segurança automatizada, stress testing destrutivo em escala, soak testing de longa duração, observabilidade corporativa e descoberta de onboarding — permanecem fora desta entrega.
 
 ## Estrutura
 
@@ -46,6 +47,7 @@ evidence/journeys/             evidências estruturadas em JSON das jornadas sin
 evidence/observability/        evidências estruturadas em JSON dos cenários de telemetria e tracing (LAB-07)
 evidence/performance/          evidências estruturadas em JSON de baselines e comparações de performance (LAB-09)
 evidence/resiliency/           evidências estruturadas em JSON dos cenários de falha e recuperação (LAB-06)
+evidence/scorecard/            scorecard atual em JSON, Markdown, HTML e PDF (AI-05)
 infra/                         docker-compose (PostgreSQL, NATS JetStream, Toxiproxy, OTel Collector, Jaeger) e configs
 performance/                   scripts k6, limiares, orquestrador e comparador de baseline (LAB-09)
 specs/openapi/                 contrato versionado do laboratório
@@ -57,6 +59,7 @@ tests/performance/             controles de baseline de performance e capacidade
 tests/resiliency/              controles de degradação e recuperação distribuída (LAB-06)
 tests/observability/           controles de tracing distribuído e métricas QE (LAB-07)
 tools/                         validação e contexto consultivo de impacto
+tools/scorecard/               normalização, regras determinísticas e renderização do scorecard
 .github/workflows/             gate mínimo, objetivo e determinístico
 ```
 
@@ -203,6 +206,12 @@ npm run ai:telemetry-advisory
 
 # Executar AI journey advisory consultivo (Journey Intelligence AI-04)
 npm run ai:journey-advisory
+
+# Gerar JSON, Markdown, HTML e PDF do scorecard determinístico (AI-05)
+npm run scorecard
+
+# Executar interpretação consultiva do scorecard; sem chave retorna fallback seguro
+npm run ai:scorecard
 ```
 
 ## Comece por aqui
@@ -217,5 +226,6 @@ npm run ai:journey-advisory
 - [Guia LAB-07: Observabilidade e Telemetria](docs/07-observability-telemetry.md)
 - [Guia LAB-08: Jornadas Sintéticas E2E](docs/08-synthetic-journeys.md)
 - [Guia LAB-09: Performance e Baseline](docs/09-performance-baseline.md)
+- [Guia AI-05: Executive Quality Scorecard](docs/10-executive-quality-scorecard.md)
 - [Arquitetura de IA assistiva](docs/ai-assisted-impact-analysis.md)
 - [OpenAPI](specs/openapi/cloud-control-plane.yaml)
