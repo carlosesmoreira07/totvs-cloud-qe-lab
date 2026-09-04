@@ -1,5 +1,6 @@
 export type InstanceStatus = 'PROVISIONING' | 'RUNNING' | 'ERROR';
 export type OperationStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED';
+export type OutboxEventStatus = 'PENDING' | 'PUBLISHED' | 'FAILED';
 
 export interface CreateInstanceRequest {
   name: string;
@@ -33,3 +34,39 @@ export interface ApiError {
   details?: Array<{ field: string; issue: string }>;
 }
 
+export interface InstanceProvisioningRequestedPayload {
+  eventId: string;
+  instanceId: string;
+  operationId: string;
+  correlationId: string;
+  occurredAt: string;
+}
+
+export interface OutboxEvent {
+  id: string;
+  eventType: string;
+  aggregateType: string;
+  aggregateId: string;
+  correlationId: string;
+  payload: InstanceProvisioningRequestedPayload;
+  status: OutboxEventStatus;
+  retryCount: number;
+  lastError?: string | null;
+  createdAt: string;
+  publishedAt?: string | null;
+}
+
+export type CreateResult =
+  | { kind: 'created'; operation: Operation }
+  | { kind: 'replayed'; operation: Operation }
+  | { kind: 'conflict' };
+
+export interface ControlPlaneStoreInterface {
+  createInstance(
+    payload: CreateInstanceRequest,
+    idempotencyKey: string,
+    correlationId: string,
+  ): Promise<CreateResult> | CreateResult;
+  getOperation(id: string): Promise<Operation | undefined> | Operation | undefined;
+  getInstance(id: string): Promise<Instance | undefined> | Instance | undefined;
+}

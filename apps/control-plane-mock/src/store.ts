@@ -1,5 +1,13 @@
 import { createHash, randomUUID } from 'node:crypto';
-import type { CreateInstanceRequest, Instance, Operation } from './domain.js';
+import type {
+  ControlPlaneStoreInterface,
+  CreateInstanceRequest,
+  CreateResult,
+  Instance,
+  Operation,
+} from './domain.js';
+
+export type { CreateResult };
 
 interface IdempotencyRecord {
   fingerprint: string;
@@ -11,12 +19,7 @@ interface StoredOperation {
   completeAt: number;
 }
 
-export type CreateResult =
-  | { kind: 'created'; operation: Operation }
-  | { kind: 'replayed'; operation: Operation }
-  | { kind: 'conflict' };
-
-export class ControlPlaneStore {
+export class ControlPlaneStore implements ControlPlaneStoreInterface {
   private readonly instances = new Map<string, Instance>();
   private readonly operations = new Map<string, StoredOperation>();
   private readonly idempotency = new Map<string, IdempotencyRecord>();

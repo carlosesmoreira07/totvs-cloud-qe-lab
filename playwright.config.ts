@@ -5,7 +5,7 @@ const baseURL = process.env.BASE_URL ?? `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: ['api/**/*.spec.ts', 'contract/**/*.spec.ts'],
+  testMatch: ['api/**/*.spec.ts', 'contract/**/*.spec.ts', 'integration/**/*.spec.ts'],
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,

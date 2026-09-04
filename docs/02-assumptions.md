@@ -26,3 +26,4 @@
 | Data | ID | Decisão |
 |---|---|---|
 | 2026-09-03 | ASM-001..005 | [LAB] Mantidas como `[VALIDAR]`; nenhuma foi usada como fato sobre a TOTVS. |
+| 2026-09-04 | ASM-005 | [LAB] Exercitada no LAB-05 como estudo educacional pessoal; mantida como `[VALIDAR]` quanto a qualquer uso real pela TOTVS. |

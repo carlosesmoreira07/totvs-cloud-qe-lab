@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { ApiError, CreateInstanceRequest } from './domain.js';
+import type { ApiError, ControlPlaneStoreInterface, CreateInstanceRequest } from './domain.js';
 import { ControlPlaneStore } from './store.js';
 
 const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
@@ -110,7 +110,7 @@ function validateCreatePayload(value: unknown): {
   };
 }
 
-export function createRequestHandler(store = new ControlPlaneStore()) {
+export function createRequestHandler(store: ControlPlaneStoreInterface = new ControlPlaneStore()) {
   return async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
     const context = contextFor(request);
     const url = new URL(request.url ?? '/', 'http://localhost');
@@ -166,7 +166,7 @@ export function createRequestHandler(store = new ControlPlaneStore()) {
         return;
       }
 
-      const result = store.createInstance(validation.payload, idempotencyKey, context.correlationId);
+      const result = await store.createInstance(validation.payload, idempotencyKey, context.correlationId);
       if (result.kind === 'conflict') {
         sendError(
           response,
@@ -187,7 +187,7 @@ export function createRequestHandler(store = new ControlPlaneStore()) {
 
     const instanceMatch = url.pathname.match(/^\/v1\/instances\/([^/]+)$/);
     if (request.method === 'GET' && instanceMatch) {
-      const instance = store.getInstance(decodeURIComponent(instanceMatch[1]!));
+      const instance = await store.getInstance(decodeURIComponent(instanceMatch[1]!));
       if (!instance) {
         sendError(response, 404, 'INSTANCE_NOT_FOUND', 'Instance was not found', context);
         return;
@@ -198,7 +198,7 @@ export function createRequestHandler(store = new ControlPlaneStore()) {
 
     const operationMatch = url.pathname.match(/^\/v1\/operations\/([^/]+)$/);
     if (request.method === 'GET' && operationMatch) {
-      const operation = store.getOperation(decodeURIComponent(operationMatch[1]!));
+      const operation = await store.getOperation(decodeURIComponent(operationMatch[1]!));
       if (!operation) {
         sendError(response, 404, 'OPERATION_NOT_FOUND', 'Operation was not found', context);
         return;

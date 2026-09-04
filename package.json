@@ -16,6 +16,7 @@
     "test": "npm run test:unit && npm run test:playwright",
     "test:api": "playwright test tests/api",
     "test:contract": "playwright test tests/contract",
+    "test:integration": "playwright test tests/integration",
     "test:playwright": "playwright test",
     "test:unit": "tsx --test tests/unit/ai-advisory.test.ts",
     "verify": "npm run typecheck && npm run build && npm run validate:openapi && npm test",
@@ -26,13 +27,16 @@
     "@apidevtools/swagger-parser": "13.0.0",
     "@playwright/test": "1.62.1",
     "@types/node": "24.3.0",
+    "@types/pg": "^8.23.1",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "tsx": "4.23.13",
     "typescript": "7.0.2"
   },
   "dependencies": {
+    "nats": "^2.29.3",
     "openai": "7.10.0",
+    "pg": "^8.23.0",
     "zod": "4.5.4"
   }
 }

@@ -20,7 +20,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --fund=false
+      - name: Start LAB-05 infrastructure (PostgreSQL + NATS JetStream)
+        run: docker compose -f infra/docker-compose.yml up -d --wait
       - run: npm run verify
+      - name: Teardown LAB-05 infrastructure
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
 
   ai-advisory-control-results:
     if: github.event_name == 'pull_request'
@@ -34,6 +39,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --fund=false
+      - name: Start LAB-05 infrastructure (PostgreSQL + NATS JetStream)
+        run: docker compose -f infra/docker-compose.yml up -d --wait
       - name: Collect summarized control results
         continue-on-error: true
         env:
@@ -41,6 +48,9 @@ jobs:
         run: |
           mkdir -p evidence/generated
           npm run test:playwright -- --reporter=json
+      - name: Teardown LAB-05 infrastructure
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v
       - name: Upload control results for the advisory
         if: always()
         continue-on-error: true

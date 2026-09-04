@@ -1,0 +1,36 @@
+# [LAB] Docker Compose para o laboratorio LAB-05
+# PostgreSQL + NATS JetStream para estudo de Transactional Outbox
+# Nao representa a infraestrutura ou topologia interna da TOTVS.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: qe-lab-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: control_plane
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d control_plane"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: qe-lab-nats
+    restart: unless-stopped
+    command: ["-js", "-sd", "/data", "-m", "8222"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8222/healthz || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 10

@@ -12,13 +12,14 @@
 - [LAB] LAB-02 oferece um contrato OpenAPI e um mock local para provisionamento assíncrono de instâncias fictícias.
 - [LAB] LAB-03 protege o contrato, validação, ausência de recursos, correlação e idempotência por meio de testes de API.
 - [LAB] LAB-04 aprofunda retry, conflitos de chave, concorrência e prevenção de provisionamento duplicado, preservando estado em memória.
+- [LAB] LAB-05 introduz persistência PostgreSQL, Transactional Outbox e NATS JetStream para estudar consistência transacional e mensageria distribuída.
 
 ## Não objetivos
 
 - [LAB] Não representar, testar, integrar ou inferir sistemas reais da TOTVS.
 - [LAB] Não propor arquitetura alvo, processo de entrega, SLA, modelo operacional ou Quality Gate da TOTVS.
 - [LAB] Não criar uma plataforma de produção, framework genérico, dashboard, Jira ou ambiente cloud real.
-- [LAB] Não implementar nesta etapa performance, segurança, NATS, Outbox, persistência, autenticação ou resiliência distribuída.
+- [LAB] Não implementar nesta etapa performance, segurança, autenticação, observabilidade avançada, Kubernetes ou resiliência distribuída complexa.
 
 ## Princípios de QE
 

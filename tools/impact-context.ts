@@ -8,7 +8,7 @@ const MAX_TOTAL_DIFF_CHARS = 16_000;
 const MAX_OPENAPI_DIFF_CHARS = 5_000;
 
 const sensitivePath = /(^|\/)(\.env(?:\.|$)|.*(?:secret|credential|private[-_]?key|token).*)/i;
-const relevantPath = /^(apps\/|specs\/openapi\/|tests\/|tools\/|docs\/|\.github\/workflows\/|README\.md$|AGENTS\.md$|package(?:-lock)?\.json$|playwright\.config\.ts$|tsconfig.*\.json$)/;
+const relevantPath = /^(apps\/|infra\/|specs\/openapi\/|tests\/|tools\/|docs\/|\.github\/workflows\/|README\.md$|AGENTS\.md$|package(?:-lock)?\.json$|playwright\.config\.ts$|tsconfig.*\.json$)/;
 
 interface ImpactRule {
   pattern: RegExp;
@@ -67,6 +67,12 @@ const rules: ImpactRule[] = [
     risk: 'redução silenciosa de cobertura ou evidência fraca',
     tests: ['npm test'],
     question: 'Cada controle ainda declara o risco e produz diagnóstico útil?',
+  },
+  {
+    pattern: /^(infra\/|apps\/control-plane-mock\/src\/(postgres-store|outbox-publisher|consumer|nats-jetstream)\.ts)/,
+    risk: 'falha de consistência transacional, perda de evento Outbox ou processamento duplicado',
+    tests: ['npm run test:integration', 'npm test'],
+    question: 'A fronteira transacional, at-least-once, retries e idempotência do consumer foram verificados?',
   },
   {
     pattern: /^(docs\/|README\.md$|AGENTS\.md$)/,
@@ -144,11 +150,12 @@ function patchForFile(file: string, range?: string): string {
 
 function relevancePriority(file: string): number {
   if (/^(apps\/|specs\/openapi\/)/.test(file)) return 0;
-  if (file.startsWith('tools/')) return 1;
-  if (file.startsWith('tests/')) return 2;
-  if (file.startsWith('.github/workflows/')) return 3;
-  if (/^(package|tsconfig|playwright)/.test(file)) return 4;
-  return 5;
+  if (file.startsWith('infra/')) return 1;
+  if (file.startsWith('tools/')) return 2;
+  if (file.startsWith('tests/')) return 3;
+  if (file.startsWith('.github/workflows/')) return 4;
+  if (/^(package|tsconfig|playwright)/.test(file)) return 5;
+  return 6;
 }
 
 function readKnownRiskControls(path = 'docs/04-quality-risk-map.md'): KnownRiskControl[] {
