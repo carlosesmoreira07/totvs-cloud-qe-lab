@@ -20,10 +20,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --fund=false
-      - name: Start LAB-05 infrastructure (PostgreSQL + NATS JetStream)
+      - name: Start LAB-05/LAB-06 infrastructure (PostgreSQL + NATS JetStream + Toxiproxy)
         run: docker compose -f infra/docker-compose.yml up -d --wait
       - run: npm run verify
-      - name: Teardown LAB-05 infrastructure
+      - name: Teardown LAB-05/LAB-06 infrastructure
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v
 
@@ -39,7 +39,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --fund=false
-      - name: Start LAB-05 infrastructure (PostgreSQL + NATS JetStream)
+      - name: Start LAB-05/LAB-06 infrastructure (PostgreSQL + NATS JetStream + Toxiproxy)
         run: docker compose -f infra/docker-compose.yml up -d --wait
       - name: Collect summarized control results
         continue-on-error: true

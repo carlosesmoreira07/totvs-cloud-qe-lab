@@ -51,6 +51,9 @@ COMMIT;
 
 [LAB] Essa garantia assegura entrega **at-least-once** (pelo menos uma vez): nenhum evento confirmado na transação do banco é perdido, mas falhas de rede durante o ACK podem causar reenvios.
 
+> [!IMPORTANT]
+> **Janela finita de deduplicação no JetStream (`duplicate_window`)**: A deduplicação nativa do NATS JetStream baseada no cabeçalho `Nats-Msg-Id` (`msgID`) possui janela temporal limitada (default de 2 minutos no stream). Após esse intervalo, o broker descarta o identificador de seu cache. Por essa razão, a deduplicação no broker é apenas uma otimização contra rajadas imediatas; a garantia definitiva de idempotência reside obrigatoriamente no consumidor relacional via `processed_events`.
+
 ---
 
 ## 4. Por que o Consumer deve ser idempotente?

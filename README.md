@@ -26,20 +26,23 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **LAB-03:** controles Playwright de API e contrato focados nos riscos do MVP.
 - [LAB] **LAB-04:** semântica explícita e controles de idempotência, retry e concorrência no provisionamento assíncrono.
 - [LAB] **LAB-05:** PostgreSQL + Transactional Outbox + NATS JetStream com garantias at-least-once, consumer idempotente e controles de falhas simuladas.
+- [LAB] **LAB-06:** Distributed Failure & Recovery Pack com Toxiproxy, controles de degradação e recuperação, consistência final e evidências diagnósticas em JSON.
 - [LAB] **AI-01:** QE Intelligence Layer consultiva com provider OpenAI substituível, saída estruturada e fallback não bloqueante.
 
-[LAB] LAB-06 e posteriores — resiliência distribuída avançada, segurança, performance, evidências executivas e descoberta de onboarding — permanecem fora desta entrega.
+[LAB] LAB-07 e posteriores — segurança avançada, performance/stress testing, cluster multi-nó, AI-02, dashboards executivos e descoberta de onboarding — permanecem fora desta entrega.
 
 ## Estrutura
 
 ```text
 apps/control-plane-mock/       mock local, persistência PostgreSQL, Outbox Publisher e Consumer
-docs/                          charter, mapa público, hipóteses, riscos, Outbox/NATS e IA assistiva
-infra/                         docker-compose e scripts SQL para PostgreSQL e NATS JetStream
+docs/                          charter, mapa público, hipóteses, riscos, Outbox/NATS, resiliência e IA assistiva
+evidence/resiliency/           evidências estruturadas em JSON dos cenários de falha e recuperação
+infra/                         docker-compose (PostgreSQL, NATS JetStream, Toxiproxy) e scripts SQL
 specs/openapi/                 contrato versionado do laboratório
 tests/api/                     controles comportamentais Playwright (HTTP)
 tests/contract/                validação OpenAPI e schemas de resposta
 tests/integration/             controles de integração para Transactional Outbox e NATS JetStream
+tests/resiliency/              controles de degradação e recuperação distribuída (LAB-06)
 tools/                         validação e contexto consultivo de impacto
 .github/workflows/             gate mínimo, objetivo e determinístico
 ```
@@ -66,6 +69,21 @@ PostgreSQL (Transação idempotente)
   └──> processed_events (gravação do eventId processado)
 ```
 
+## Arquitetura LAB-06: Distributed Failure & Recovery Pack
+
+[LAB] O laboratório estende o pipeline assíncrono com validação determinística de resiliência sob falhas distribuídas reais e controladas (via **Toxiproxy** e falhas programáticas de worker):
+
+```text
+Cenário 1: NATS fora do ar durante publish   ──> API responde 202; Outbox PENDING; Publisher reintenta após recovery.
+Cenário 2: Consumer fora do ar               ──> Mensagem retida durável no JetStream; processada uma vez ao voltar.
+Cenário 3: Redelivery da mesma mensagem       ──> processed_events impede mutação duplicada (idempotência atômica).
+Cenário 4: Crash do Publisher em processamento──> Evento reprocessado com segurança; JetStream deduplica msgID.
+Cenário 5: Timeout/retry da API               ──> Persistência ACID garante idempotência do LAB-04 com outbox.
+Cenário 6: Falha no Consumer antes do ACK     ──> Transação sofre rollback, sem ACK prematuro; reentrega converge.
+```
+
+[LAB] **Toxiproxy** roda via Docker Compose na porta `8474` (API HTTP) e expõe a porta `4223` com proxy para `nats:4222`, permitindo injetar partições de rede com zero bibliotecas pesadas de chaos engineering.
+
 ## Execução mínima
 
 [LAB] Pré-requisitos: Node.js 22 ou superior, npm e Docker com Docker Compose.
@@ -79,7 +97,7 @@ npm run verify
 ### Comandos de infraestrutura
 
 ```bash
-# Iniciar PostgreSQL e NATS JetStream
+# Iniciar PostgreSQL, NATS JetStream e Toxiproxy
 docker compose -f infra/docker-compose.yml up -d --wait
 
 # Verificar status dos containers
@@ -92,10 +110,13 @@ docker compose -f infra/docker-compose.yml down -v
 ### Execução de testes
 
 ```bash
-# Executar todos os testes (unitários, api, contrato e integração)
+# Executar todos os testes (unitários, api, contrato, integração e resiliência)
 npm test
 
-# Executar somente os novos controles de integração Outbox/NATS (LAB-05)
+# Executar somente os controles de resiliência distribuída (LAB-06)
+npm run test:resiliency
+
+# Executar somente os controles de integração Outbox/NATS (LAB-05)
 npm run test:integration
 
 # Executar suíte de contrato e API
@@ -103,7 +124,18 @@ npm run test:api
 npm run test:contract
 ```
 
-### Como verificar Outbox e NATS
+### Evidências diagnósticas em JSON (LAB-06)
+
+[LAB] A suíte de resiliência produz artefatos JSON determinísticos em `evidence/resiliency/` para consumo futuro pela QE Intelligence Layer:
+
+- `nats-outage-during-publish.json`: degradação e recuperação sob partição NATS;
+- `consumer-outage-durable-retention.json`: retenção e convergência de consumer;
+- `message-redelivery-idempotency.json`: verificação de deduplicação e idempotência;
+- `publisher-crash-recovery.json`: recuperação de crash entre fetch e ack;
+- `api-timeout-retry-persistence.json`: consistência relacional sob retries HTTP;
+- `consumer-failure-before-ack.json`: rollback e reentrega sem ack prematuro.
+
+### Como verificar Outbox, NATS e Toxiproxy
 
 ```bash
 # Consultar eventos na tabela outbox_events
@@ -115,12 +147,10 @@ docker exec -it qe-lab-postgres psql -U postgres -d control_plane -c "SELECT * F
 # Verificar saúde e monitoramento do NATS JetStream
 curl http://127.0.0.1:8222/healthz
 curl http://127.0.0.1:8222/jsz
+
+# Inspecionar proxies configurados no Toxiproxy
+curl http://127.0.0.1:8474/proxies
 ```
-
-### Como simular falhas no laboratório
-
-- **Falha de envio ao NATS:** no worker `OutboxPublisher`, o parâmetro `{ simulatePublishFailure: true }` simula indisponibilidade de rede/broker. O evento permanece com status `PENDING`, recebe incremento em `retry_count` e registra `last_error = 'SIMULATED_PUBLISH_FAILURE'`. No próximo ciclo com o simulador desativado, o evento é republicado com sucesso.
-- **Consumer duplicado / Replay de evento:** o método `consumer.processPayload(payload)` pode ser executado múltiplas vezes com o mesmo payload. A verificação atômica em `processed_events` identifica a chave duplicada e ignora mutações subsequentes, preservando monotonicidade de estado e timestamps originais.
 
 ### Contexto de impacto e IA assistiva
 
@@ -140,5 +170,6 @@ npm run ai:advisory
 - [Assumption Register](docs/02-assumptions.md)
 - [Mapa de riscos exercitados](docs/04-quality-risk-map.md)
 - [Guia LAB-05: Outbox e NATS](docs/05-outbox-nats.md)
+- [Modelo de Falhas Distribuídas LAB-06](docs/06-distributed-failure-model.md)
 - [Arquitetura de IA assistiva](docs/ai-assisted-impact-analysis.md)
 - [OpenAPI](specs/openapi/cloud-control-plane.yaml)

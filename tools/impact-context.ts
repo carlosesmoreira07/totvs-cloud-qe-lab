@@ -69,10 +69,10 @@ const rules: ImpactRule[] = [
     question: 'Cada controle ainda declara o risco e produz diagnóstico útil?',
   },
   {
-    pattern: /^(infra\/|apps\/control-plane-mock\/src\/(postgres-store|outbox-publisher|consumer|nats-jetstream)\.ts)/,
-    risk: 'falha de consistência transacional, perda de evento Outbox ou processamento duplicado',
-    tests: ['npm run test:integration', 'npm test'],
-    question: 'A fronteira transacional, at-least-once, retries e idempotência do consumer foram verificados?',
+    pattern: /^(infra\/|apps\/control-plane-mock\/src\/(postgres-store|outbox-publisher|consumer|nats-jetstream)\.ts|tests\/resiliency\/)/,
+    risk: 'falha de consistência transacional, perda de evento Outbox, degradação distribuída ou processamento duplicado',
+    tests: ['npm run test:integration', 'npm run test:resiliency', 'npm test'],
+    question: 'A fronteira transacional, at-least-once, retries, idempotência e recuperação sob partição de rede foram verificados?',
   },
   {
     pattern: /^(docs\/|README\.md$|AGENTS\.md$)/,

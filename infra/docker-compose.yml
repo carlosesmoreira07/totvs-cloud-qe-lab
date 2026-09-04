@@ -1,5 +1,5 @@
-# [LAB] Docker Compose para o laboratorio LAB-05
-# PostgreSQL + NATS JetStream para estudo de Transactional Outbox
+# [LAB] Docker Compose para os laboratorios LAB-05 e LAB-06
+# PostgreSQL + NATS JetStream + Toxiproxy para estudo de Transactional Outbox e Resiliencia
 # Nao representa a infraestrutura ou topologia interna da TOTVS.
 
 services:
@@ -34,3 +34,15 @@ services:
       interval: 2s
       timeout: 3s
       retries: 10
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.11.0
+    container_name: qe-lab-toxiproxy
+    restart: unless-stopped
+    command: ["-host=0.0.0.0"]
+    ports:
+      - "8474:8474"
+      - "4223:4223"
+    depends_on:
+      nats:
+        condition: service_healthy

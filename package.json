@@ -17,6 +17,7 @@
     "test:api": "playwright test tests/api",
     "test:contract": "playwright test tests/contract",
     "test:integration": "playwright test tests/integration",
+    "test:resiliency": "playwright test tests/resiliency",
     "test:playwright": "playwright test",
     "test:unit": "tsx --test tests/unit/ai-advisory.test.ts",
     "verify": "npm run typecheck && npm run build && npm run validate:openapi && npm test",

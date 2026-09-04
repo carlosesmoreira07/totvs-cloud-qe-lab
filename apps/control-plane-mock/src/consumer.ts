@@ -24,6 +24,7 @@ export type ConsumerProcessResult =
 
 export interface ProcessOptions {
   simulateDuplicate?: boolean;
+  simulateFailureDuringProcessing?: boolean;
 }
 
 export class EventConsumer {
@@ -31,26 +32,38 @@ export class EventConsumer {
   private readonly nc: NatsConnection;
   private subscription?: JetStreamSubscription | undefined;
   private isRunning = false;
+  private simulateFailure = false;
 
   constructor(pool: pg.Pool, nc: NatsConnection) {
     this.pool = pool;
     this.nc = nc;
   }
 
+  setSimulateFailure(simulate: boolean): void {
+    this.simulateFailure = simulate;
+  }
+
   async processPayload(
     payload: InstanceProvisioningRequestedPayload,
-    _options?: ProcessOptions,
+    options?: ProcessOptions,
   ): Promise<ConsumerProcessResult> {
+    const shouldFail = options?.simulateFailureDuringProcessing ?? this.simulateFailure;
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
 
-      const existingCheck = await client.query<{ event_id: string }>(
-        `SELECT event_id FROM processed_events WHERE event_id = $1 FOR UPDATE`,
+      // [LAB] Deduplicação atômica via PK: INSERT ON CONFLICT DO NOTHING
+      // Previne race condition se dois consumers tentarem processar concorrentemente
+      // um evento ainda não registrado.
+      const insertResult = await client.query<{ event_id: string }>(
+        `INSERT INTO processed_events (event_id, consumer_name, processed_at)
+         VALUES ($1, 'instance-provisioning-consumer', NOW())
+         ON CONFLICT (event_id) DO NOTHING
+         RETURNING event_id`,
         [payload.eventId],
       );
 
-      if (existingCheck.rows.length > 0) {
+      if (insertResult.rows.length === 0) {
         await client.query('COMMIT');
         return {
           kind: 'already_processed',
@@ -58,6 +71,10 @@ export class EventConsumer {
           instanceId: payload.instanceId,
           operationId: payload.operationId,
         };
+      }
+
+      if (shouldFail) {
+        throw new Error('SIMULATED_CONSUMER_PROCESSING_FAILURE');
       }
 
       await client.query(
@@ -74,12 +91,6 @@ export class EventConsumer {
              updated_at = NOW()
          WHERE id = $1 AND status = 'PROVISIONING'`,
         [payload.instanceId],
-      );
-
-      await client.query(
-        `INSERT INTO processed_events (event_id, consumer_name, processed_at)
-         VALUES ($1, 'instance-provisioning-consumer', NOW())`,
-        [payload.eventId],
       );
 
       await client.query('COMMIT');
@@ -119,10 +130,11 @@ export class EventConsumer {
             const rawData = sc.decode(msg.data);
             const payload = JSON.parse(rawData) as InstanceProvisioningRequestedPayload;
             await this.processPayload(payload);
+            // [LAB] Confirma ACK somente após conclusão transacional bem-sucedida
             msg.ack();
           } catch (error) {
-            console.error('[LAB EventConsumer] error processing message:', error);
-            // In case of transient processing error, do not ack so it can be redelivered
+            console.error('[LAB EventConsumer] error processing message, not acking:', error);
+            // [LAB] Em caso de erro, não confirma ACK para permitir reentrega segura
           }
         }
       } catch (error) {

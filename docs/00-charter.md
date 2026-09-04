@@ -13,13 +13,14 @@
 - [LAB] LAB-03 protege o contrato, validação, ausência de recursos, correlação e idempotência por meio de testes de API.
 - [LAB] LAB-04 aprofunda retry, conflitos de chave, concorrência e prevenção de provisionamento duplicado, preservando estado em memória.
 - [LAB] LAB-05 introduz persistência PostgreSQL, Transactional Outbox e NATS JetStream para estudar consistência transacional e mensageria distribuída.
+- [LAB] LAB-06 adiciona um pacote de resiliência e recuperação distribuída (Distributed Failure & Recovery Pack) cobrindo falhas de broker, parada de consumer, redeliveries, crashes de publisher, timeouts de API e erros transacionais antes de ACK.
 
 ## Não objetivos
 
 - [LAB] Não representar, testar, integrar ou inferir sistemas reais da TOTVS.
 - [LAB] Não propor arquitetura alvo, processo de entrega, SLA, modelo operacional ou Quality Gate da TOTVS.
 - [LAB] Não criar uma plataforma de produção, framework genérico, dashboard, Jira ou ambiente cloud real.
-- [LAB] Não implementar nesta etapa performance, segurança, autenticação, observabilidade avançada, Kubernetes ou resiliência distribuída complexa.
+- [LAB] Não implementar nesta etapa performance, segurança, autenticação, observabilidade distribuída avançada, Kubernetes, clusters NATS de 3 nós ou DLQ automática.
 
 ## Princípios de QE
 
