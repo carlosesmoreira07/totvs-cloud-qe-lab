@@ -24,9 +24,10 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **LAB-01:** charter, mapa público do produto e registro de hipóteses.
 - [LAB] **LAB-02:** OpenAPI 3.1 e mock executável de um Cloud Control Plane fictício.
 - [LAB] **LAB-03:** controles Playwright de API e contrato focados nos riscos do MVP.
+- [LAB] **LAB-04:** semântica explícita e controles de idempotência, retry e concorrência no provisionamento assíncrono.
 - [LAB] **IA assistiva:** coletor determinístico de contexto de mudança e arquitetura para futura análise por modelo; sempre consultiva.
 
-[LAB] LAB-04 e posteriores — resiliência, segurança, performance, mensageria, evidências executivas e descoberta de onboarding — permanecem fora desta entrega.
+[LAB] LAB-05 e posteriores — resiliência distribuída, segurança, performance, mensageria, evidências executivas e descoberta de onboarding — permanecem fora desta entrega.
 
 ## Estrutura
 
@@ -70,5 +71,6 @@ npm run impact:context
 - [Charter](docs/00-charter.md)
 - [Mapa público do produto](docs/01-public-product-map.md)
 - [Assumption Register](docs/02-assumptions.md)
+- [Mapa de riscos exercitados](docs/04-quality-risk-map.md)
 - [Arquitetura de IA assistiva](docs/ai-assisted-impact-analysis.md)
 - [OpenAPI](specs/openapi/cloud-control-plane.yaml)

@@ -29,7 +29,12 @@ export class ControlPlaneStore {
     correlationId: string,
   ): CreateResult {
     const fingerprint = createHash('sha256')
-      .update(JSON.stringify(payload))
+      .update(JSON.stringify({
+        name: payload.name,
+        region: payload.region,
+        image: payload.image,
+        flavor: payload.flavor,
+      }))
       .digest('hex');
     const existing = this.idempotency.get(idempotencyKey);
 
@@ -59,6 +64,8 @@ export class ControlPlaneStore {
       correlationId,
     };
 
+    // [LAB] This synchronous section is the atomic boundary for the in-memory mock.
+    // Node executes it without interleaving another request handler.
     this.instances.set(instance.id, instance);
     this.operations.set(operation.id, {
       operation,
@@ -98,4 +105,3 @@ export class ControlPlaneStore {
     }
   }
 }
-

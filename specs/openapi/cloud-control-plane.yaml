@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Cloud Control Plane Lab API
-  version: 0.1.0
+  version: 0.2.0
   description: >-
     [LAB] API ficticia e nao oficial para exercicios de Quality Engineering.
     Nao representa contratos, arquitetura ou produtos internos da TOTVS.
@@ -37,6 +37,16 @@ paths:
       tags: [Instances]
       operationId: createInstance
       summary: Solicita o provisionamento assincrono de uma instancia ficticia
+      description: |-
+        [LAB] A primeira tentativa valida cria uma operacao e uma instancia.
+        Mesma chave e mesmo payload reutilizam os IDs e retornam o estado atual da operacao.
+        Mesma chave e payload diferente retornam 409 sem criar novos recursos.
+        Tentativas concorrentes sao serializadas pelo store em memoria deste processo.
+      x-lab-idempotency-semantics:
+        scope: single-process-memory
+        same-key-same-payload: replay-current-operation
+        same-key-different-payload: conflict
+        concurrent-same-key: one-create-remaining-replay
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -59,10 +69,10 @@ paths:
             X-Request-Id:
               $ref: '#/components/headers/RequestId'
             Idempotency-Replayed:
-              description: Indica que a resposta reutilizou uma solicitacao anterior
+              description: Indica se a resposta reutilizou uma solicitacao anterior
               schema:
                 type: string
-                enum: ['true']
+                enum: ['true', 'false']
           content:
             application/json:
               schema:
@@ -139,7 +149,9 @@ components:
       name: Idempotency-Key
       in: header
       required: true
-      description: Chave que torna repeticoes do mesmo provisionamento idempotentes
+      description: >-
+        Chave com escopo no processo atual. O mesmo payload reutiliza a operacao;
+        payload diferente produz 409.
       schema:
         type: string
         minLength: 8
@@ -200,7 +212,7 @@ components:
           const: cloud-control-plane-mock
         version:
           type: string
-          const: 0.1.0
+          const: 0.2.0
         timestamp:
           type: string
           format: date-time
@@ -274,6 +286,7 @@ components:
           format: date-time
         correlationId:
           type: string
+          description: Correlation ID da primeira tentativa aceita; permanece estavel nos retries
     Error:
       type: object
       additionalProperties: false

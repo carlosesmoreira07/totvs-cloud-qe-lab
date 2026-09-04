@@ -122,7 +122,7 @@ export function createRequestHandler(store = new ControlPlaneStore()) {
         {
           status: 'ok',
           service: 'cloud-control-plane-mock',
-          version: '0.1.0',
+          version: '0.2.0',
           timestamp: new Date().toISOString(),
         },
         context,
@@ -180,7 +180,7 @@ export function createRequestHandler(store = new ControlPlaneStore()) {
 
       sendJson(response, 202, result.operation, context, {
         location: `/v1/operations/${result.operation.id}`,
-        ...(result.kind === 'replayed' ? { 'idempotency-replayed': 'true' } : {}),
+        'idempotency-replayed': result.kind === 'replayed' ? 'true' : 'false',
       });
       return;
     }
@@ -210,4 +210,3 @@ export function createRequestHandler(store = new ControlPlaneStore()) {
     sendError(response, 404, 'ROUTE_NOT_FOUND', 'Route was not found', context);
   };
 }
-

@@ -1,10 +1,36 @@
-import { expect, type APIResponse, type TestInfo } from '@playwright/test';
+import { expect, type APIRequestContext, type APIResponse, type TestInfo } from '@playwright/test';
 
-export function declareControl(testInfo: TestInfo, risk: string, control: string): void {
+interface QualityControl {
+  riskId: string;
+  risk: string;
+  controlId: string;
+  control: string;
+}
+
+export function declareControl(testInfo: TestInfo, metadata: QualityControl): void {
   testInfo.annotations.push(
-    { type: 'risk', description: risk },
-    { type: 'control', description: control },
+    { type: 'risk_id', description: metadata.riskId },
+    { type: 'risk', description: metadata.risk },
+    { type: 'control_id', description: metadata.controlId },
+    { type: 'control', description: metadata.control },
   );
+}
+
+export async function waitForOperation(
+  request: APIRequestContext,
+  operationId: string,
+  expectedStatus = 'SUCCEEDED',
+): Promise<Record<string, unknown>> {
+  let lastOperation: Record<string, unknown> = {};
+  await expect
+    .poll(async () => {
+      const response = await request.get(`/v1/operations/${operationId}`);
+      expect(response.status()).toBe(200);
+      lastOperation = await response.json() as Record<string, unknown>;
+      return lastOperation.status;
+    })
+    .toBe(expectedStatus);
+  return lastOperation;
 }
 
 export async function expectJsonError(
@@ -27,4 +53,3 @@ export const validInstanceRequest = {
   image: 'linux-lab-image',
   flavor: 'lab-small',
 };
-

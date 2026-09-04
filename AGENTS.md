@@ -6,12 +6,13 @@
 - Este é um laboratório pessoal, público e não oficial. Nunca apresente uma decisão `[LAB]` ou hipótese `[VALIDAR]` como fato sobre a TOTVS.
 - Use exatamente `[PUB]`, `[VAGA]`, `[LAB]` e `[VALIDAR]` ao registrar informações de domínio. Toda afirmação `[PUB]` deve citar uma fonte pública; toda afirmação `[VAGA]` deve apontar para o texto público da vaga.
 - Não invente arquitetura, APIs, SLAs, topologias, processos, nomes internos, dados, clientes ou controles da TOTVS.
-- Preserve o recorte LAB-01 a LAB-03 até que uma demanda explícita autorize a próxima etapa. Não antecipe NATS, Outbox, performance, segurança, dashboards ou ambientes reais.
+- Preserve o recorte LAB-01 a LAB-04 até que uma demanda explícita autorize a próxima etapa. Não antecipe NATS, Outbox, performance, segurança, dashboards ou ambientes reais.
 
 ## Forma de trabalhar
 
 - Mantenha a cadeia `Risco -> Controle -> Evidência -> Decisão` visível nas mudanças de qualidade.
-- Cada teste deve declarar, por annotations Playwright `risk` e `control`, o modo de falha observado e o sinal produzido.
+- Cada teste deve declarar, por annotations Playwright `risk_id`, `risk`, `control_id` e `control`, o modo de falha observado e o sinal produzido.
+- Use `docs/04-quality-risk-map.md` como catálogo pequeno dos riscos efetivamente exercitados. Não registre risco sem controle executável atual.
 - Prefira controles pequenos, determinísticos e diagnosticáveis. Não aumente contagem de testes sem ampliar sinal de risco.
 - Mantenha a OpenAPI como contrato do laboratório. Alterações de comportamento devem atualizar especificação, mock e testes na mesma mudança.
 - Preserve a implementação mínima em TypeScript e o estado em memória até existir risco concreto que exija outra arquitetura.
@@ -33,4 +34,3 @@
 - Sinalize idempotência que possa criar dois recursos para a mesma chave e o mesmo payload.
 - Sinalize testes que não expressem risco e controle ou que dependam de ordem/estado compartilhado.
 - Sinalize qualquer tentativa de usar resultado probabilístico de IA como Quality Gate.
-

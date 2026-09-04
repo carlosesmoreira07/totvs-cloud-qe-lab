@@ -10,11 +10,12 @@ const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url))
 const specPath = path.join(repositoryRoot, 'specs/openapi/cloud-control-plane.yaml');
 
 test('a especificação OpenAPI é válida e resolvível', async ({}, testInfo) => {
-  declareControl(
-    testInfo,
-    'Um contrato inválido pode impedir geração de clientes e esconder divergências.',
-    'Validar a OpenAPI 3.1 e resolver todas as referências locais.',
-  );
+  declareControl(testInfo, {
+    riskId: 'RISK-API-001',
+    risk: 'Um contrato inválido pode impedir geração de clientes e esconder divergências.',
+    controlId: 'CTRL-CONTRACT-001',
+    control: 'Validar a OpenAPI 3.1 e resolver todas as referências locais.',
+  });
 
   const api = (await SwaggerParser.validate(specPath)) as {
     openapi: string;
@@ -22,18 +23,19 @@ test('a especificação OpenAPI é válida e resolvível', async ({}, testInfo) 
     paths?: Record<string, unknown>;
   };
   expect(api.openapi).toBe('3.1.0');
-  expect(api.info.version).toBe('0.1.0');
+  expect(api.info.version).toBe('0.2.0');
   expect(Object.keys(api.paths ?? {})).toEqual(
     expect.arrayContaining(['/health', '/v1/instances', '/v1/instances/{id}', '/v1/operations/{id}']),
   );
 });
 
 test('respostas centrais obedecem aos schemas publicados', async ({ request }, testInfo) => {
-  declareControl(
-    testInfo,
-    'O mock pode retornar corpos incompatíveis apesar de status HTTP corretos.',
-    'Validar respostas reais de Health, Operation, Instance e Error contra os schemas OpenAPI.',
-  );
+  declareControl(testInfo, {
+    riskId: 'RISK-API-001',
+    risk: 'O mock pode retornar corpos incompatíveis apesar de status HTTP corretos.',
+    controlId: 'CTRL-CONTRACT-001',
+    control: 'Validar respostas reais de Health, Operation, Instance e Error contra os schemas OpenAPI.',
+  });
 
   const api = (await SwaggerParser.dereference(specPath)) as {
     components: { schemas: Record<string, AnySchema> };
@@ -56,6 +58,7 @@ test('respostas centrais obedecem aos schemas publicados', async ({ request }, t
   });
   expect(createResponse.status()).toBe(202);
   const operation = await createResponse.json();
+  expect(createResponse.headers()['idempotency-replayed']).toBe('false');
   validate('Operation', operation);
 
   await expect
