@@ -2,9 +2,9 @@
   "scenario": "nats-outage-during-publish",
   "riskId": "RISK-RES-001",
   "controlId": "CTRL-RES-NATS-OUTAGE-001",
-  "startedAt": "2026-09-04T06:20:45.595Z",
-  "recoveredAt": "2026-09-04T06:20:45.740Z",
-  "durationMs": 145,
+  "startedAt": "2026-09-04T06:47:51.306Z",
+  "recoveredAt": "2026-09-04T06:47:51.367Z",
+  "durationMs": 62,
   "observedFailure": "SIMULATED_PUBLISH_FAILURE",
   "finalState": {
     "operationStatus": "SUCCEEDED",

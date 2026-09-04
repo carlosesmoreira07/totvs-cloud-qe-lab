@@ -2,9 +2,9 @@
   "scenario": "consumer-outage-durable-retention",
   "riskId": "RISK-RES-002",
   "controlId": "CTRL-RES-CONSUMER-OUTAGE-001",
-  "startedAt": "2026-09-04T06:20:45.813Z",
-  "recoveredAt": "2026-09-04T06:20:46.310Z",
-  "durationMs": 497,
+  "startedAt": "2026-09-04T06:47:51.405Z",
+  "recoveredAt": "2026-09-04T06:47:51.640Z",
+  "durationMs": 235,
   "observedFailure": "CONSUMER_UNAVAILABLE",
   "finalState": {
     "operationStatus": "SUCCEEDED",

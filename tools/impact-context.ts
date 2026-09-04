@@ -81,6 +81,12 @@ const rules: ImpactRule[] = [
     question: 'Os spans cobrem as 6 etapas do ciclo assíncrono, traceId propaga sem cortes e métricas refletem com precisão o comportamento?',
   },
   {
+    pattern: /^(tests\/journeys\/|evidence\/journeys\/|docs\/08-synthetic-journeys\.md)/,
+    risk: 'regressão na jornada ponta a ponta do usuário, violação de SLA sintético ou inconsistência assíncrona',
+    tests: ['npm run test:journeys', 'npm test'],
+    question: 'A jornada completa funciona de ponta a ponta, atende aos SLAs sintéticos e preserva a rastreabilidade e idempotência?',
+  },
+  {
     pattern: /^tools\/ai\//,
     risk: 'regressão na QE Intelligence Layer ou violação dos guardrails de IA assistiva',
     tests: ['npm run test:unit', 'npm test'],

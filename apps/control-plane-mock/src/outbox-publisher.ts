@@ -185,8 +185,9 @@ export class OutboxPublisher {
     };
   }
 
-  start(): void {
+  start(intervalMs?: number): void {
     if (this.timer) return;
+    const interval = intervalMs ?? this.pollIntervalMs;
     this.timer = setInterval(async () => {
       if (this.isProcessing) return;
       this.isProcessing = true;
@@ -198,7 +199,7 @@ export class OutboxPublisher {
       } finally {
         this.isProcessing = false;
       }
-    }, this.pollIntervalMs);
+    }, interval);
   }
 
   stop(): void {

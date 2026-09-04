@@ -15,6 +15,7 @@
 - [LAB] LAB-05 introduz persistência PostgreSQL, Transactional Outbox e NATS JetStream para estudar consistência transacional e mensageria distribuída.
 - [LAB] LAB-06 adiciona um pacote de resiliência e recuperação distribuída (Distributed Failure & Recovery Pack) cobrindo falhas de broker, parada de consumer, redeliveries, crashes de publisher, timeouts de API e erros transacionais antes de ACK.
 - [LAB] LAB-07 introduz observabilidade e telemetria distribuída com OpenTelemetry cobrindo os 6 spans do ciclo assíncrono, métricas QE de baixa cardinalidade, OpenTelemetry Collector e Jaeger local.
+- [LAB] LAB-08 introduz jornadas sintéticas de ponta a ponta (Synthetic & End-to-End Control Plane Journeys), validando o fluxo integral do usuário sob SLAs didáticos [LAB] e gerando evidências estruturadas em JSON.
 - [LAB] AI-01, AI-02 e AI-03 introduzem a QE Intelligence Layer consultiva (análise de impacto de PR, Failure Intelligence e Telemetry & Trace Intelligence), com guardrails estritos e autoridade humana preservada.
 
 ## Não objetivos

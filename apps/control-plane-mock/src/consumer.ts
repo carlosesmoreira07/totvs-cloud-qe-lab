@@ -193,8 +193,13 @@ export class EventConsumer {
             // [LAB] Confirma ACK somente após conclusão transacional bem-sucedida
             msg.ack();
           } catch (error) {
-            console.error('[LAB EventConsumer] error processing message, not acking:', error);
-            // [LAB] Em caso de erro, não confirma ACK para permitir reentrega segura
+            console.error('[LAB EventConsumer] error processing message, naking for redelivery:', error);
+            // [LAB] Em caso de erro, envia NAK com backoff curto para permitir reentrega segura e rápida
+            try {
+              msg.nak(100);
+            } catch {
+              // ignore nak error if subscription was already closing
+            }
           }
         }
       } catch (error) {

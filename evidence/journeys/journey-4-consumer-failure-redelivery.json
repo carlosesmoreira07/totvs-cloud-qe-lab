@@ -1,0 +1,34 @@
+{
+  "journey": "journey-4-consumer-failure-redelivery",
+  "riskId": "RISK-JOURNEY-004",
+  "controlId": "CTRL-JOURNEY-CONSUMER-REDELIVERY-001",
+  "startedAt": "2026-09-04T06:47:50.028Z",
+  "acceptedAt": "2026-09-04T06:47:50.047Z",
+  "completedAt": "2026-09-04T06:47:50.234Z",
+  "apiLatencyMs": 19,
+  "endToEndDurationMs": 206,
+  "recoveryDurationMs": 175,
+  "traceId": "a6e7503d8fcb290701841a511384853b",
+  "correlationId": "corr-consumer-fail-c6b1dc90-713d-497c-bbec-971461375320",
+  "retries": 0,
+  "redeliveries": 1,
+  "finalState": {
+    "instanceId": "8ad00460-bdbd-49a6-ab64-4c72bc043900",
+    "operationId": "5dd3ec44-6d75-4071-bb27-9343611f507a",
+    "instanceStatus": "RUNNING",
+    "operationStatus": "SUCCEEDED",
+    "processedEventCount": 1
+  },
+  "slaAssessment": {
+    "apiLatencyMet": true,
+    "endToEndMet": true,
+    "recoveryMet": true,
+    "status": "MET",
+    "targetSla": {
+      "maxApiLatencyMs": 500,
+      "maxEndToEndDurationMs": 5000,
+      "maxRecoveryDurationMs": 5000
+    }
+  },
+  "result": "PASSED"
+}

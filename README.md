@@ -28,17 +28,19 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **LAB-05:** PostgreSQL + Transactional Outbox + NATS JetStream com garantias at-least-once, consumer idempotente e controles de falhas simuladas.
 - [LAB] **LAB-06:** Distributed Failure & Recovery Pack com Toxiproxy, controles de degradação e recuperação, consistência final e evidências diagnósticas em JSON.
 - [LAB] **LAB-07:** Observability & Telemetry distribuída mínima com OpenTelemetry (spans nas 6 etapas do ciclo assíncrono, métricas QE de baixa cardinalidade, OpenTelemetry Collector e Jaeger local).
+- [LAB] **LAB-08:** Synthetic & End-to-End Control Plane Journeys validando o fluxo ponta a ponta do usuário, idempotência em voo, tolerância a falhas transitórias e SLAs sintéticos com evidências em JSON.
 - [LAB] **AI-01:** QE Intelligence Layer consultiva com provider OpenAI substituível, saída estruturada e fallback não bloqueante.
 - [LAB] **AI-02:** Failure Intelligence consultivo correlacionando métricas determinísticas e evidências de resiliência distribuída do LAB-06.
 - [LAB] **AI-03:** Telemetry & Trace Intelligence correlacionando traces OpenTelemetry (LAB-07), métricas agregadas e falhas distribuídas com classificações estritas `[OBSERVED]`, `[INFERRED]` e `[GAP]`.
 
-[LAB] LAB-08 e posteriores — segurança avançada, performance/stress testing, cluster multi-nó, dashboards executivos e descoberta de onboarding — permanecem fora desta entrega.
+[LAB] LAB-09 e posteriores — segurança avançada, performance/stress testing, cluster multi-nó, dashboards executivos e descoberta de onboarding — permanecem fora desta entrega.
 
 ## Estrutura
 
 ```text
 apps/control-plane-mock/       mock local, persistência PostgreSQL, Outbox Publisher, Consumer e Telemetria
 docs/                          charter, mapa público, hipóteses, riscos, Outbox/NATS, resiliência, observabilidade e IA assistiva
+evidence/journeys/             evidências estruturadas em JSON das jornadas sintéticas E2E (LAB-08)
 evidence/observability/        evidências estruturadas em JSON dos cenários de telemetria e tracing (LAB-07)
 evidence/resiliency/           evidências estruturadas em JSON dos cenários de falha e recuperação (LAB-06)
 infra/                         docker-compose (PostgreSQL, NATS JetStream, Toxiproxy, OTel Collector, Jaeger) e configs
@@ -46,6 +48,7 @@ specs/openapi/                 contrato versionado do laboratório
 tests/api/                     controles comportamentais Playwright (HTTP)
 tests/contract/                validação OpenAPI e schemas de resposta
 tests/integration/             controles de integração para Transactional Outbox e NATS JetStream
+tests/journeys/                controles de jornadas sintéticas ponta a ponta e SLAs (LAB-08)
 tests/resiliency/              controles de degradação e recuperação distribuída (LAB-06)
 tests/observability/           controles de tracing distribuído e métricas QE (LAB-07)
 tools/                         validação e contexto consultivo de impacto
@@ -115,8 +118,11 @@ docker compose -f infra/docker-compose.yml down -v
 ### Execução de testes
 
 ```bash
-# Executar todos os testes (unitários, api, contrato, integração, resiliência e observabilidade)
+# Executar todos os testes (unitários, api, contrato, integração, resiliência, observabilidade e jornadas)
 npm test
+
+# Executar somente as jornadas sintéticas ponta a ponta (LAB-08)
+npm run test:journeys
 
 # Executar somente os controles de observabilidade e telemetria (LAB-07)
 npm run test:observability
@@ -132,10 +138,11 @@ npm run test:api
 npm run test:contract
 ```
 
-### Evidências diagnósticas em JSON (LAB-06 e LAB-07)
+### Evidências diagnósticas em JSON (LAB-06, LAB-07 e LAB-08)
 
 [LAB] As suítes produzem artefatos JSON determinísticos para consumo futuro pela QE Intelligence Layer:
 
+- `evidence/journeys/*.json`: jornadas sintéticas ponta a ponta, latência de aceitação, duração E2E, tempo de recuperação e conformidade com SLA;
 - `evidence/resiliency/*.json`: cenários de degradação, recuperação e consistência distribuída;
 - `evidence/observability/*.json`: árvore de 6 spans, propagação de traceId, separação de IDs, visibilidade de erros e exatidão de métricas.
 
@@ -193,5 +200,6 @@ npm run ai:telemetry-advisory
 - [Guia LAB-05: Outbox e NATS](docs/05-outbox-nats.md)
 - [Modelo de Falhas Distribuídas LAB-06](docs/06-distributed-failure-model.md)
 - [Guia LAB-07: Observabilidade e Telemetria](docs/07-observability-telemetry.md)
+- [Guia LAB-08: Jornadas Sintéticas E2E](docs/08-synthetic-journeys.md)
 - [Arquitetura de IA assistiva](docs/ai-assisted-impact-analysis.md)
 - [OpenAPI](specs/openapi/cloud-control-plane.yaml)

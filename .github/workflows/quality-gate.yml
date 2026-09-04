@@ -78,6 +78,15 @@ jobs:
           path: evidence/observability/*.json
           if-no-files-found: warn
           retention-days: 1
+      - name: Upload synthetic journey evidence
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: qe-journey-evidence
+          path: evidence/journeys/*.json
+          if-no-files-found: warn
+          retention-days: 1
 
   ai-quality-advisory:
     if: always() && github.event_name == 'pull_request'

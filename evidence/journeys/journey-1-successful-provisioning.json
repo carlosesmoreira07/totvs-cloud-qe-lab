@@ -1,0 +1,33 @@
+{
+  "journey": "journey-1-successful-provisioning",
+  "riskId": "RISK-JOURNEY-001",
+  "controlId": "CTRL-JOURNEY-PROVISIONING-001",
+  "startedAt": "2026-09-04T06:47:49.431Z",
+  "acceptedAt": "2026-09-04T06:47:49.474Z",
+  "completedAt": "2026-09-04T06:47:49.569Z",
+  "apiLatencyMs": 43,
+  "endToEndDurationMs": 138,
+  "recoveryDurationMs": null,
+  "traceId": "a50d17714183daecaf379897b3527ebb",
+  "correlationId": "corr-journey-5d7d6451-c045-4496-9c7d-0e4dc5043bc7",
+  "retries": 0,
+  "redeliveries": 0,
+  "finalState": {
+    "instanceId": "3e74b39d-f3c6-40a0-8414-915bf38bfea3",
+    "operationId": "f2ca8276-cc26-4564-b9b2-8ce8644ba8b8",
+    "instanceStatus": "RUNNING",
+    "operationStatus": "SUCCEEDED"
+  },
+  "slaAssessment": {
+    "apiLatencyMet": true,
+    "endToEndMet": true,
+    "recoveryMet": true,
+    "status": "MET",
+    "targetSla": {
+      "maxApiLatencyMs": 500,
+      "maxEndToEndDurationMs": 5000,
+      "maxRecoveryDurationMs": 5000
+    }
+  },
+  "result": "PASSED"
+}

@@ -19,6 +19,7 @@
     "test:integration": "playwright test tests/integration",
     "test:resiliency": "playwright test tests/resiliency",
     "test:observability": "playwright test tests/observability",
+    "test:journeys": "playwright test tests/journeys",
     "test:playwright": "playwright test",
     "test:unit": "tsx --test tests/unit/*.test.ts",
     "verify": "npm run typecheck && npm run build && npm run validate:openapi && npm test",
