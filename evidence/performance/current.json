@@ -1,0 +1,82 @@
+{
+  "scenario": "smoke-performance",
+  "startedAt": "2026-09-04T07:42:13.402Z",
+  "completedAt": "2026-09-04T07:42:18.854Z",
+  "vus": 3,
+  "duration": "2s",
+  "totalRequests": 68,
+  "throughput": 32.6,
+  "successRate": 1,
+  "errorRate": 0,
+  "latency": {
+    "p50": 0,
+    "p95": 200.3,
+    "p99": 0,
+    "max": 264.3
+  },
+  "e2eLatency": {
+    "p50": 133.5,
+    "p95": 297.7
+  },
+  "duplicates": {
+    "duplicateResources": 0,
+    "duplicateOperations": 0
+  },
+  "thresholds": {
+    "p95Met": true,
+    "p99Met": true,
+    "errorRateMet": true,
+    "duplicatesMet": true,
+    "e2eP95Met": true,
+    "status": "MET"
+  },
+  "baselineComparison": {
+    "status": "IMPROVED",
+    "tolerancePct": 0.2,
+    "differences": {
+      "p95": {
+        "current": 200.3,
+        "baseline": 350,
+        "diff": -149.7,
+        "pctChange": -42.8,
+        "regressed": false
+      },
+      "p99": {
+        "current": 0,
+        "baseline": 600,
+        "diff": -600,
+        "pctChange": -100,
+        "regressed": false
+      },
+      "errorRate": {
+        "current": 0,
+        "baseline": 0,
+        "diff": 0,
+        "pctChange": 0,
+        "regressed": false
+      },
+      "requestsPerSecond": {
+        "current": 32.6,
+        "baseline": 15,
+        "diff": 17.6,
+        "pctChange": 117.3,
+        "regressed": false
+      },
+      "e2eP95": {
+        "current": 297.7,
+        "baseline": 3000,
+        "diff": -2702.3,
+        "pctChange": -90.1,
+        "regressed": false
+      }
+    },
+    "regressedMetrics": [],
+    "improvedMetrics": [
+      "p95",
+      "p99",
+      "requestsPerSecond",
+      "e2eP95"
+    ]
+  },
+  "result": "PASSED"
+}

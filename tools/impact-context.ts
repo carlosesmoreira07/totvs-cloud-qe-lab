@@ -87,6 +87,12 @@ const rules: ImpactRule[] = [
     question: 'A jornada completa funciona de ponta a ponta, atende aos SLAs sintéticos e preserva a rastreabilidade e idempotência?',
   },
   {
+    pattern: /^(performance\/|tests\/performance\/|evidence\/performance\/|docs\/09-performance-baseline\.md)/,
+    risk: 'degradação de latência sob concorrência, aumento de erros, quebra de idempotência ou regressão contra baseline',
+    tests: ['npm run test:performance:smoke', 'npm test'],
+    question: 'Os thresholds de p95/p99 foram respeitados, houve regressão contra baseline e idempotência concorrente manteve zero duplicidade?',
+  },
+  {
     pattern: /^tools\/ai\//,
     risk: 'regressão na QE Intelligence Layer ou violação dos guardrails de IA assistiva',
     tests: ['npm run test:unit', 'npm test'],

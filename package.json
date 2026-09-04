@@ -20,6 +20,8 @@
     "test:resiliency": "playwright test tests/resiliency",
     "test:observability": "playwright test tests/observability",
     "test:journeys": "playwright test tests/journeys",
+    "test:performance": "tsx performance/runner.ts",
+    "test:performance:smoke": "tsx performance/runner.ts --smoke",
     "test:playwright": "playwright test",
     "test:unit": "tsx --test tests/unit/*.test.ts",
     "verify": "npm run typecheck && npm run build && npm run validate:openapi && npm test",

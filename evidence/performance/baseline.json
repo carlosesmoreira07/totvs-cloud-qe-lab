@@ -1,0 +1,17 @@
+{
+  "scenario": "api-and-journey-baseline",
+  "generatedAt": "2026-09-04T00:00:00.000Z",
+  "environment": "lab-docker",
+  "metrics": {
+    "api_p50_ms": 50.0,
+    "api_p95_ms": 350.0,
+    "api_p99_ms": 600.0,
+    "api_throughput_rps": 15.0,
+    "api_error_rate": 0.0,
+    "idempotency_duplicate_resources": 0,
+    "idempotency_duplicate_operations": 0,
+    "journey_p50_e2e_ms": 500.0,
+    "journey_p95_e2e_ms": 3000.0,
+    "journey_success_rate": 1.0
+  }
+}

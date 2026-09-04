@@ -22,7 +22,11 @@ jobs:
       - run: npm ci --no-audit --fund=false
       - name: Start LAB-05/LAB-06/LAB-07 infrastructure (PostgreSQL + NATS JetStream + Toxiproxy + OTel Collector + Jaeger)
         run: docker compose -f infra/docker-compose.yml up -d --wait
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
       - run: npm run verify
+      - name: Run performance baseline smoke test
+        run: npm run test:performance:smoke
       - name: Teardown LAB-05/LAB-06/LAB-07 infrastructure
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v
@@ -85,6 +89,15 @@ jobs:
         with:
           name: qe-journey-evidence
           path: evidence/journeys/*.json
+          if-no-files-found: warn
+          retention-days: 1
+      - name: Upload performance evidence
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: qe-performance-evidence
+          path: evidence/performance/*.json
           if-no-files-found: warn
           retention-days: 1
 

@@ -2,78 +2,78 @@
   "scenario": "scenario-3-id-separation",
   "riskId": "RISK-OBS-003",
   "controlId": "CTRL-OBS-ID-SEPARATION-001",
-  "traceId": "649b1ba58e32d3c93d1e3faf0ea5077b",
+  "traceId": "b0850685aa01a25a3b1a1843a53d8c68",
   "correlationId": "corr-biz-customer-order-8812",
   "spansObserved": [
     {
       "name": "outbox.create_event",
-      "spanId": "7a6b483a8d2a1c03",
-      "parentSpanId": "91ecb344f6d362d3",
+      "spanId": "ce3a3976f3815043",
+      "parentSpanId": "6935e1ee1c2915a0",
       "status": "OK",
       "attributes": {
         "event.type": "instance.provisioning.requested",
-        "event.id": "9538bccf-7664-4ed6-996d-f4b424e48900",
+        "event.id": "505adf19-2209-40c1-a139-e1293ee790a6",
         "correlation_id": "corr-biz-customer-order-8812"
       }
     },
     {
       "name": "db.transaction.create_instance",
-      "spanId": "91ecb344f6d362d3",
-      "parentSpanId": "b832e39e0e777535",
+      "spanId": "6935e1ee1c2915a0",
+      "parentSpanId": "c5cbf0b3378c8dfd",
       "status": "OK",
       "attributes": {
         "db.system": "postgresql",
         "db.operation": "create_instance",
         "correlation_id": "corr-biz-customer-order-8812",
-        "idempotency_key": "idemp-f11fa4b2-b464-4505-b48a-d9fbad4981e8"
+        "idempotency_key": "idemp-1c3ac98e-ab8f-4144-bbb5-672eb7a3da69"
       }
     },
     {
       "name": "http.request",
-      "spanId": "b832e39e0e777535",
+      "spanId": "c5cbf0b3378c8dfd",
       "status": "OK",
       "attributes": {
         "http.method": "POST",
         "http.route": "/v1/instances",
         "correlation_id": "corr-biz-customer-order-8812",
-        "x_request_id": "7865bbe4-17de-492a-bd79-f8ef5214f5ca",
+        "x_request_id": "28f09fa2-3da8-42de-844e-9ddb19ad0ffa",
         "http.status_code": 202
       }
     },
     {
       "name": "nats.publish",
-      "spanId": "f3f79809d2d3d958",
-      "parentSpanId": "7a6b483a8d2a1c03",
+      "spanId": "5affcacec3c4d6d5",
+      "parentSpanId": "ce3a3976f3815043",
       "status": "OK",
       "attributes": {
         "messaging.system": "nats",
         "messaging.destination": "instance.provisioning.requested",
-        "event.id": "9538bccf-7664-4ed6-996d-f4b424e48900",
+        "event.id": "505adf19-2209-40c1-a139-e1293ee790a6",
         "correlation_id": "corr-biz-customer-order-8812"
       }
     },
     {
       "name": "db.transaction.update_state",
-      "spanId": "e8f92bd3c48eea8c",
-      "parentSpanId": "6b43c2946a7489a7",
+      "spanId": "375f51bf9d068599",
+      "parentSpanId": "8e67c22e669c0256",
       "status": "OK",
       "attributes": {
         "db.system": "postgresql",
         "db.operation": "update_state",
-        "event.id": "9538bccf-7664-4ed6-996d-f4b424e48900",
-        "instance_id": "f39a0dc9-373d-4a1b-925e-9cd11546040a",
-        "operation_id": "c4438984-cfbf-46c1-9457-bfa6a4459cdd"
+        "event.id": "505adf19-2209-40c1-a139-e1293ee790a6",
+        "instance_id": "d900f0b7-492a-43d3-9644-caeec17c7395",
+        "operation_id": "ab2e36f3-dbc9-48ed-ae00-518c8b0fbc5f"
       }
     },
     {
       "name": "nats.consume",
-      "spanId": "6b43c2946a7489a7",
-      "parentSpanId": "7a6b483a8d2a1c03",
+      "spanId": "8e67c22e669c0256",
+      "parentSpanId": "ce3a3976f3815043",
       "status": "OK",
       "attributes": {
         "messaging.system": "nats",
         "messaging.operation": "process",
-        "event.id": "9538bccf-7664-4ed6-996d-f4b424e48900",
+        "event.id": "505adf19-2209-40c1-a139-e1293ee790a6",
         "correlation_id": "corr-biz-customer-order-8812"
       }
     }
@@ -82,13 +82,13 @@
     "http_requests_total": 18,
     "outbox_pending_count": 3,
     "outbox_publish_failures_total": 3,
-    "messages_processed_total": 15,
+    "messages_processed_total": 14,
     "message_redeliveries_total": 1
   },
   "finalState": {
     "correlationId": "corr-biz-customer-order-8812",
-    "traceId": "649b1ba58e32d3c93d1e3faf0ea5077b",
-    "spanId": "b832e39e0e777535",
+    "traceId": "b0850685aa01a25a3b1a1843a53d8c68",
+    "spanId": "c5cbf0b3378c8dfd",
     "separated": true
   },
   "result": "PASSED"
