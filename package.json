@@ -1,0 +1,31 @@
+{
+  "name": "totvs-cloud-qe-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Laboratorio pessoal e nao oficial de Quality Engineering aplicado a Cloud.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx apps/control-plane-mock/src/server.ts",
+    "start": "node dist/apps/control-plane-mock/src/server.js",
+    "typecheck": "tsc --noEmit",
+    "validate:openapi": "tsx tools/validate-openapi.ts",
+    "test": "playwright test",
+    "test:api": "playwright test tests/api",
+    "test:contract": "playwright test tests/contract",
+    "verify": "npm run typecheck && npm run build && npm run validate:openapi && npm test",
+    "impact:context": "tsx tools/impact-context.ts"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "13.0.0",
+    "@playwright/test": "1.62.1",
+    "@types/node": "24.3.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2"
+  }
+}
