@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm ci --no-audit --fund=false
       - run: npm run verify
 
   advisory-impact-context:
@@ -35,7 +35,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm ci --no-audit --fund=false
       - name: Generate advisory context
         env:
           QE_IMPACT_BASE_REF: origin/${{ github.base_ref }}
