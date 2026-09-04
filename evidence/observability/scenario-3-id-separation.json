@@ -2,91 +2,93 @@
   "scenario": "scenario-3-id-separation",
   "riskId": "RISK-OBS-003",
   "controlId": "CTRL-OBS-ID-SEPARATION-001",
-  "traceId": "a2520876b2c99e3609aab432427957f2",
+  "traceId": "70ea9306d7eea0550dab2555b001c6d4",
   "correlationId": "corr-biz-customer-order-8812",
   "spansObserved": [
     {
       "name": "outbox.create_event",
-      "spanId": "208e1059f9ff5be6",
-      "parentSpanId": "2618a8db2a7a129c",
+      "spanId": "ba881e8f5e20c38c",
+      "parentSpanId": "dfbef0c422f5029a",
       "status": "OK",
       "attributes": {
         "event.type": "instance.provisioning.requested",
-        "event.id": "b2a3d862-bc2b-4d45-a348-5873ea66fce2",
+        "event.id": "b84ac2d9-f5d3-439d-8f08-1d6ae320b9d5",
         "correlation_id": "corr-biz-customer-order-8812"
       }
     },
     {
       "name": "db.transaction.create_instance",
-      "spanId": "2618a8db2a7a129c",
-      "parentSpanId": "928a97db0b82f3b0",
+      "spanId": "dfbef0c422f5029a",
+      "parentSpanId": "7e704fa18def8a66",
       "status": "OK",
       "attributes": {
         "db.system": "postgresql",
         "db.operation": "create_instance",
         "correlation_id": "corr-biz-customer-order-8812",
-        "idempotency_key": "idemp-24673a06-3517-4e4d-b6e2-1477356a0662"
+        "idempotency_key": "idemp-e5d340aa-a8a7-4520-ba77-b7b3974dabf8"
       }
     },
     {
       "name": "http.request",
-      "spanId": "928a97db0b82f3b0",
+      "spanId": "7e704fa18def8a66",
       "status": "OK",
       "attributes": {
         "http.method": "POST",
         "http.route": "/v1/instances",
         "correlation_id": "corr-biz-customer-order-8812",
-        "x_request_id": "14de8f1b-2a8c-4abb-bd40-99bc911be02c",
+        "x_request_id": "41e6efcb-72e2-4faf-afd6-ec1f203be961",
         "http.status_code": 202
       }
     },
     {
       "name": "nats.publish",
-      "spanId": "e5c4b2791176d61a",
-      "parentSpanId": "208e1059f9ff5be6",
+      "spanId": "9a91e6fcef41a257",
+      "parentSpanId": "ba881e8f5e20c38c",
       "status": "OK",
       "attributes": {
         "messaging.system": "nats",
         "messaging.destination": "instance.provisioning.requested",
-        "event.id": "b2a3d862-bc2b-4d45-a348-5873ea66fce2",
+        "event.id": "b84ac2d9-f5d3-439d-8f08-1d6ae320b9d5",
         "correlation_id": "corr-biz-customer-order-8812"
       }
     },
     {
       "name": "db.transaction.update_state",
-      "spanId": "85e9d13b42222fe2",
-      "parentSpanId": "2ea0efb436f42812",
+      "spanId": "6a77b721adbfd859",
+      "parentSpanId": "11ceb8c8eb15e62b",
       "status": "OK",
       "attributes": {
         "db.system": "postgresql",
         "db.operation": "update_state",
-        "event.id": "b2a3d862-bc2b-4d45-a348-5873ea66fce2",
-        "instance_id": "b9951363-1bf1-4e9c-b17e-6c97ab73c200",
-        "operation_id": "d7bba131-ba66-41ab-827e-4450d5c888f1"
+        "event.id": "b84ac2d9-f5d3-439d-8f08-1d6ae320b9d5",
+        "instance_id": "f4c9cce8-3c6b-450d-ac2d-bb01791b9fdb",
+        "operation_id": "e4eaed2c-b17a-4555-b053-f63717419b09"
       }
     },
     {
       "name": "nats.consume",
-      "spanId": "2ea0efb436f42812",
-      "parentSpanId": "208e1059f9ff5be6",
+      "spanId": "11ceb8c8eb15e62b",
+      "parentSpanId": "ba881e8f5e20c38c",
       "status": "OK",
       "attributes": {
         "messaging.system": "nats",
         "messaging.operation": "process",
-        "event.id": "b2a3d862-bc2b-4d45-a348-5873ea66fce2",
+        "event.id": "b84ac2d9-f5d3-439d-8f08-1d6ae320b9d5",
         "correlation_id": "corr-biz-customer-order-8812"
       }
     }
   ],
   "metricsObserved": {
     "http_requests_total": 3,
-    "outbox_pending_count": 0,
-    "messages_processed_total": 3
+    "outbox_pending_count": 3,
+    "outbox_publish_failures_total": 2,
+    "messages_processed_total": 11,
+    "message_redeliveries_total": 1
   },
   "finalState": {
     "correlationId": "corr-biz-customer-order-8812",
-    "traceId": "a2520876b2c99e3609aab432427957f2",
-    "spanId": "928a97db0b82f3b0",
+    "traceId": "70ea9306d7eea0550dab2555b001c6d4",
+    "spanId": "7e704fa18def8a66",
     "separated": true
   },
   "result": "PASSED"

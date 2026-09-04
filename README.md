@@ -30,6 +30,7 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **LAB-07:** Observability & Telemetry distribuída mínima com OpenTelemetry (spans nas 6 etapas do ciclo assíncrono, métricas QE de baixa cardinalidade, OpenTelemetry Collector e Jaeger local).
 - [LAB] **AI-01:** QE Intelligence Layer consultiva com provider OpenAI substituível, saída estruturada e fallback não bloqueante.
 - [LAB] **AI-02:** Failure Intelligence consultivo correlacionando métricas determinísticas e evidências de resiliência distribuída do LAB-06.
+- [LAB] **AI-03:** Telemetry & Trace Intelligence correlacionando traces OpenTelemetry (LAB-07), métricas agregadas e falhas distribuídas com classificações estritas `[OBSERVED]`, `[INFERRED]` e `[GAP]`.
 
 [LAB] LAB-08 e posteriores — segurança avançada, performance/stress testing, cluster multi-nó, dashboards executivos e descoberta de onboarding — permanecem fora desta entrega.
 
@@ -177,6 +178,9 @@ npm run ai:advisory
 
 # Executar AI failure advisory consultivo (Failure Intelligence LAB-06)
 npm run ai:failure-advisory
+
+# Executar AI telemetry advisory consultivo (Telemetry & Trace Intelligence AI-03)
+npm run ai:telemetry-advisory
 ```
 
 ## Comece por aqui

@@ -197,11 +197,140 @@ npm run impact:context -- --format json
 }
 ```
 
+## AI-03 — Telemetry & Trace Intelligence
+
+### Objetivo
+
+[LAB] Evoluir a QE Intelligence Layer para correlacionar evidências de traces distribuídos OpenTelemetry (`evidence/observability/*.json`), métricas agregadas de baixa cardinalidade, resultados de resiliência (`evidence/resiliency/*.json`) e alterações de código no PR.
+
+O objetivo é fornecer ao Quality Engineer diagnóstico assistivo, identificando pontos prováveis de degradação, spans afetados, anomalias em métricas e gaps de instrumentação, preservando sempre a decisão de qualidade como estritamente humana.
+
+### Dados ingeridos
+
+1. **Evidências de observabilidade normalizadas:** `evidence/observability/*.json` contendo `traceId`, `correlationId`, lista de `spansObserved` (com `name`, `spanId`, `parentSpanId`, `status`, `attributes`), `metricsObserved` e `observedIssue`.
+2. **Evidências de resiliência:** `evidence/resiliency/*.json` com falhas simuladas e durações de recuperação.
+3. **Métricas determinísticas agregadas:** calculadas deterministicamente em TypeScript antes da invocação da LLM.
+4. **Contexto de PR:** diff relevante limitado, riscos mapeados no catálogo e resumo de controles do Playwright.
+
+### Correlação determinística antes da IA
+
+[LAB] A LLM não realiza cálculos aritméticos nem deduções de conjuntos que possam ser resolvidos programaticamente. O módulo `tools/ai/telemetry-evidence-loader.ts` calcula antes da chamada:
+- contagem total de traces e cenários analisados;
+- conjunto unificado de spans observados na cadeia (`http.request`, `db.transaction.create_instance`, `outbox.create_event`, `nats.publish`, `nats.consume`, `db.transaction.update_state`);
+- identificação exata de quebras de fluxo (cenários onde spans esperados estão ausentes);
+- catálogo de traces e spans com status `ERROR`;
+- agregação das métricas essenciais (`http_requests_total`, `http_errors_total`, `outbox_pending_count`, `outbox_publish_failures_total`, `messages_processed_total`, `consumer_failures_total`, `message_redeliveries_total`);
+- catálogo unificado de riscos e controles exercitados;
+- estatísticas de tempo de recuperação (`min`, `max`, `avg`).
+
+### Regra rígida anti-alucinação: OBSERVED vs. INFERRED vs. GAP
+
+Para prevenir falsas afirmações e garantir rigor investigativo, todo item retornado pela IA (`finding`) possui obrigatoriamente o atributo `classification`:
+
+- **`OBSERVED`**: Fato concreto diretamente verificável nos artefatos.
+  *Exemplo:* O span `nats.publish` apresentou status `ERROR` e `outbox_publish_failures_total` incrementou em 1.
+- **`INFERRED`**: Hipótese provável fundamentada na correlação lógica de múltiplos sinais observados.
+  *Exemplo:* A degradação provavelmente ocorreu na fronteira de conectividade entre o Outbox Publisher e o broker NATS JetStream.
+- **`GAP`**: Ausência de evidência, métrica ou rastreabilidade requerida para diagnóstico completo.
+  *Exemplo:* Não há medição de latência intermediária ou jitter antes do corte abrupto da conexão.
+
+### Proibição de causa raiz categórica
+
+[LAB] A IA é estritamente proibida de declarar que qualquer componente foi a "causa raiz definitiva" sem prova matemática/determinística cabal. Declarações hipotéticas devem ser explicitamente qualificadas como `INFERRED`.
+
+### Identificação de gaps de instrumentação
+
+A camada identifica oportunidades de aprimoramento na cobertura de observabilidade:
+- novas rotas HTTP ou operações sem span correspondente;
+- ausência de propagação de `correlationId` em fronteiras de mensageria;
+- spans esperados que não foram emitidos durante execuções anômalas;
+- métricas cujos contadores não refletiram eventos funcionais ocorridos.
+
+### Contrato da saída estruturada
+
+```json
+{
+  "executiveSummary": "A cadeia de telemetria registrou os 6 spans essenciais com propagação íntegra de traceId W3C e isolamento de erros sob indisponibilidade do broker.",
+  "probableDegradationPoints": [
+    {
+      "subject": "Fronteira Publisher -> NATS JetStream",
+      "rationale": "O span nats.publish registrou status ERROR durante corte temporário de rede",
+      "evidence": ["nats.publish spanId: d5289be0b39c6e94", "outbox_publish_failures_total: 1"],
+      "classification": "OBSERVED"
+    },
+    {
+      "subject": "Retenção no PostgreSQL Outbox",
+      "rationale": "A falha na publicação causou retenção temporária do evento como PENDING sem perda transacional",
+      "evidence": ["outbox_pending_count: 1", "scenario-4-nats-publish-failure.json"],
+      "classification": "INFERRED"
+    }
+  ],
+  "affectedRisks": [
+    {
+      "subject": "RISK-OBS-004",
+      "rationale": "Falha de mensageria foi diagnosticada no span e contadores sem perda silenciosa",
+      "evidence": ["CTRL-OBS-NATS-ERROR-VISIBILITY-001"],
+      "classification": "OBSERVED"
+    }
+  ],
+  "traceFindings": [
+    {
+      "subject": "Árvore de spans completa no fluxo nominal",
+      "rationale": "Os 6 spans conectaram-se causalmente mantendo o mesmo traceId",
+      "evidence": ["scenario-1-provisioning-trace.json"],
+      "classification": "OBSERVED"
+    }
+  ],
+  "metricFindings": [
+    {
+      "subject": "Sincronia estrita entre erros de span e métricas",
+      "rationale": "outbox_publish_failures_total incrementou em concordância exata com o span ERROR",
+      "evidence": ["outbox_publish_failures_total = 1"],
+      "classification": "OBSERVED"
+    }
+  ],
+  "instrumentationGaps": [
+    {
+      "subject": "Ausência de métrica de tempo de conexão TCP/TLS ao NATS",
+      "rationale": "Não há telemetria da latência de handshake antes da falha de publicação",
+      "evidence": ["docs/07-observability-telemetry.md"],
+      "classification": "GAP"
+    }
+  ],
+  "consistencyConcerns": [],
+  "recommendedInvestigations": [
+    {
+      "subject": "Avaliar saturação de pool de conexões sob retentativas de publicação",
+      "rationale": "Verificar se retries excessivos causam contenção no PostgreSQL",
+      "evidence": ["postgres-store.ts"],
+      "classification": "INFERRED"
+    }
+  ],
+  "recommendedTests": [
+    {
+      "subject": "Teste de injeção de jitter na conexão NATS",
+      "rationale": "Avaliar preservação do contexto W3C sob latência variável",
+      "evidence": ["CTRL-RES-NATS-OUTAGE-001"],
+      "classification": "GAP"
+    }
+  ],
+  "humanQuestions": [
+    {
+      "subject": "Qual o limiar seguro de outbox_pending_count para acionamento de alerta?",
+      "rationale": "Importante para definir alertas preventivos de QE em ambientes compartilhados",
+      "evidence": ["telemetry.ts"],
+      "classification": "GAP"
+    }
+  ],
+  "confidence": "HIGH"
+}
+```
+
 ## Governança
 
 - [LAB] O Quality Gate usa somente build, typecheck, OpenAPI e testes determinísticos.
 - [LAB] Nenhum nível de impacto ou confiança da LLM muda status de job bloqueante.
-- [LAB] O summary identifica provider, modelo e versão pública do prompt (`qe-advisory-v1`) para auditoria humana.
+- [LAB] O summary identifica provider, modelo e versão pública do prompt (`qe-advisory-v1`, `qe-failure-advisory-v1`, `qe-telemetry-advisory-v1`) para auditoria humana.
 - [LAB] Diff e relatórios são entradas não confiáveis: instruções contidas neles devem ser ignoradas pelo modelo.
 - [LAB] A utilidade será avaliada por revisão humana e gaps encontrados, nunca por taxa de “aprovação”.
 - [LAB] Prompts não devem conter segredos; mudanças no prompt curto e público passam por revisão de código.

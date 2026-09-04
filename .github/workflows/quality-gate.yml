@@ -171,3 +171,60 @@ jobs:
           QE_TEST_RESULTS_PATH: evidence/generated/playwright-results.json
           QE_RESILIENCY_DIR: evidence/resiliency
         run: npm run ai:failure-advisory >> "$GITHUB_STEP_SUMMARY"
+
+  ai-telemetry-advisory:
+    if: always() && github.event_name == 'pull_request'
+    needs: ai-advisory-control-results
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted analyzer from the PR base
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+      - name: Fetch the untrusted PR diff without executing it
+        run: git fetch --no-tags origin pull/${{ github.event.pull_request.number }}/head:refs/remotes/origin/qe-ai-pr-head
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Download control results
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: qe-ai-control-results
+          path: evidence/generated
+      - name: Download resiliency evidence
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: qe-resiliency-evidence
+          path: evidence/resiliency
+      - name: Download observability evidence
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: qe-observability-evidence
+          path: evidence/observability
+      - name: Generate deterministic minimal context
+        env:
+          QE_IMPACT_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          QE_IMPACT_HEAD_REF: refs/remotes/origin/qe-ai-pr-head
+        run: |
+          mkdir -p evidence/generated
+          npm run --silent impact:context -- --format json > evidence/generated/impact-context.json
+      - name: Publish non-blocking AI telemetry intelligence advisory
+        continue-on-error: true
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          QE_AI_MODEL: ${{ vars.QE_AI_MODEL }}
+          QE_IMPACT_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          QE_IMPACT_HEAD_REF: refs/remotes/origin/qe-ai-pr-head
+          QE_IMPACT_CONTEXT_PATH: evidence/generated/impact-context.json
+          QE_TEST_RESULTS_PATH: evidence/generated/playwright-results.json
+          QE_RESILIENCY_DIR: evidence/resiliency
+          QE_OBSERVABILITY_DIR: evidence/observability
+        run: npm run ai:telemetry-advisory >> "$GITHUB_STEP_SUMMARY"

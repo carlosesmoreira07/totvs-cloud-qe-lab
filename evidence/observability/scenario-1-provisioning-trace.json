@@ -2,90 +2,92 @@
   "scenario": "scenario-1-provisioning-trace",
   "riskId": "RISK-OBS-001",
   "controlId": "CTRL-OBS-TRACE-TREE-001",
-  "traceId": "1b258768bad4fbec6d91b798e63a8862",
-  "correlationId": "corr-9d780f75-53f6-446e-89e3-37bd3070ed1d",
+  "traceId": "f6f275e162963906ccae30b1767e0fb0",
+  "correlationId": "corr-27cdc8b8-d635-4240-9456-e4075cdddaec",
   "spansObserved": [
     {
       "name": "outbox.create_event",
-      "spanId": "fc2c54f2166d9f35",
-      "parentSpanId": "f5b01afc70ca8ec6",
+      "spanId": "04dcd64ae6146708",
+      "parentSpanId": "470559fb66f836af",
       "status": "OK",
       "attributes": {
         "event.type": "instance.provisioning.requested",
-        "event.id": "20bca7c3-acf3-4328-aab5-ce95aefeb4bf",
-        "correlation_id": "corr-9d780f75-53f6-446e-89e3-37bd3070ed1d"
+        "event.id": "a08333b2-cd84-410d-9606-481a0270cb5c",
+        "correlation_id": "corr-27cdc8b8-d635-4240-9456-e4075cdddaec"
       }
     },
     {
       "name": "db.transaction.create_instance",
-      "spanId": "f5b01afc70ca8ec6",
-      "parentSpanId": "f8c05a3857fa2b33",
+      "spanId": "470559fb66f836af",
+      "parentSpanId": "114e88f91763bb77",
       "status": "OK",
       "attributes": {
         "db.system": "postgresql",
         "db.operation": "create_instance",
-        "correlation_id": "corr-9d780f75-53f6-446e-89e3-37bd3070ed1d",
-        "idempotency_key": "idemp-ef48482a-9167-46ba-98c7-122cd70461e6"
+        "correlation_id": "corr-27cdc8b8-d635-4240-9456-e4075cdddaec",
+        "idempotency_key": "idemp-37d18107-a0b0-4917-89e2-bfaf6743685c"
       }
     },
     {
       "name": "http.request",
-      "spanId": "f8c05a3857fa2b33",
+      "spanId": "114e88f91763bb77",
       "status": "OK",
       "attributes": {
         "http.method": "POST",
         "http.route": "/v1/instances",
-        "correlation_id": "corr-9d780f75-53f6-446e-89e3-37bd3070ed1d",
-        "x_request_id": "9577bdcb-ca29-4462-a0c6-10e4b615f06e",
+        "correlation_id": "corr-27cdc8b8-d635-4240-9456-e4075cdddaec",
+        "x_request_id": "9fe9b53d-942b-405f-9d37-61e7a8a27837",
         "http.status_code": 202
       }
     },
     {
       "name": "nats.publish",
-      "spanId": "a593f49fc59b1aec",
-      "parentSpanId": "fc2c54f2166d9f35",
+      "spanId": "e682d408cc04d799",
+      "parentSpanId": "04dcd64ae6146708",
       "status": "OK",
       "attributes": {
         "messaging.system": "nats",
         "messaging.destination": "instance.provisioning.requested",
-        "event.id": "20bca7c3-acf3-4328-aab5-ce95aefeb4bf",
-        "correlation_id": "corr-9d780f75-53f6-446e-89e3-37bd3070ed1d"
+        "event.id": "a08333b2-cd84-410d-9606-481a0270cb5c",
+        "correlation_id": "corr-27cdc8b8-d635-4240-9456-e4075cdddaec"
       }
     },
     {
       "name": "db.transaction.update_state",
-      "spanId": "77f466fd726fa6b6",
-      "parentSpanId": "57bc8e6f5ee79599",
+      "spanId": "dd68100180e1fdd5",
+      "parentSpanId": "6aa04480b715ea23",
       "status": "OK",
       "attributes": {
         "db.system": "postgresql",
         "db.operation": "update_state",
-        "event.id": "20bca7c3-acf3-4328-aab5-ce95aefeb4bf",
-        "instance_id": "3e564e19-406f-4588-9d73-84da48fab519",
-        "operation_id": "49d8dd75-2595-4622-8e13-eab2d07bf055"
+        "event.id": "a08333b2-cd84-410d-9606-481a0270cb5c",
+        "instance_id": "ac9a8055-8884-4a06-8de3-5858c3d3049a",
+        "operation_id": "6d424b2a-f421-4d6b-9d58-00927fbc8778"
       }
     },
     {
       "name": "nats.consume",
-      "spanId": "57bc8e6f5ee79599",
-      "parentSpanId": "fc2c54f2166d9f35",
+      "spanId": "6aa04480b715ea23",
+      "parentSpanId": "04dcd64ae6146708",
       "status": "OK",
       "attributes": {
         "messaging.system": "nats",
         "messaging.operation": "process",
-        "event.id": "20bca7c3-acf3-4328-aab5-ce95aefeb4bf",
-        "correlation_id": "corr-9d780f75-53f6-446e-89e3-37bd3070ed1d"
+        "event.id": "a08333b2-cd84-410d-9606-481a0270cb5c",
+        "correlation_id": "corr-27cdc8b8-d635-4240-9456-e4075cdddaec"
       }
     }
   ],
   "metricsObserved": {
     "http_requests_total": 1,
-    "outbox_pending_count": 0,
-    "messages_processed_total": 1
+    "outbox_pending_count": 3,
+    "outbox_publish_failures_total": 2,
+    "messages_processed_total": 9,
+    "message_redeliveries_total": 1
   },
   "finalState": {
-    "operationId": "49d8dd75-2595-4622-8e13-eab2d07bf055",
-    "instanceId": "3e564e19-406f-4588-9d73-84da48fab519",
+    "operationId": "6d424b2a-f421-4d6b-9d58-00927fbc8778",
+    "instanceId": "ac9a8055-8884-4a06-8de3-5858c3d3049a",
     "status": "RUNNING"
   },
   "result": "PASSED"

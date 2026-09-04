@@ -3,86 +3,88 @@
   "riskId": "RISK-OBS-002",
   "controlId": "CTRL-OBS-CONTEXT-PROPAGATION-001",
   "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
-  "correlationId": "corr-71f4c216-f82d-497b-a94d-236cef867f3a",
+  "correlationId": "corr-f35e5e48-714d-4b92-b801-3d47bb47df68",
   "spansObserved": [
     {
       "name": "outbox.create_event",
-      "spanId": "8889ad17f1447ffa",
-      "parentSpanId": "87d30a9784f91599",
+      "spanId": "5da439d47fb1ef74",
+      "parentSpanId": "2fc39e1d981e3fa1",
       "status": "OK",
       "attributes": {
         "event.type": "instance.provisioning.requested",
-        "event.id": "a853dd10-d3c1-4377-8ef8-67b262861b51",
-        "correlation_id": "corr-71f4c216-f82d-497b-a94d-236cef867f3a"
+        "event.id": "606ebaab-a5c6-4f50-8d6e-bd501878e175",
+        "correlation_id": "corr-f35e5e48-714d-4b92-b801-3d47bb47df68"
       }
     },
     {
       "name": "db.transaction.create_instance",
-      "spanId": "87d30a9784f91599",
-      "parentSpanId": "03d4e80ccfc8597c",
+      "spanId": "2fc39e1d981e3fa1",
+      "parentSpanId": "464512376773e543",
       "status": "OK",
       "attributes": {
         "db.system": "postgresql",
         "db.operation": "create_instance",
-        "correlation_id": "corr-71f4c216-f82d-497b-a94d-236cef867f3a",
-        "idempotency_key": "idemp-cf6a8f54-a599-41b2-8a7b-0d488cd654b0"
+        "correlation_id": "corr-f35e5e48-714d-4b92-b801-3d47bb47df68",
+        "idempotency_key": "idemp-ac32a08b-732a-4790-b0ac-3b784f8c5c95"
       }
     },
     {
       "name": "http.request",
-      "spanId": "03d4e80ccfc8597c",
+      "spanId": "464512376773e543",
       "parentSpanId": "00f067aa0ba902b7",
       "status": "OK",
       "attributes": {
         "http.method": "POST",
         "http.route": "/v1/instances",
-        "correlation_id": "corr-71f4c216-f82d-497b-a94d-236cef867f3a",
-        "x_request_id": "b8a97bc9-616c-42c8-ba2b-91be02483109",
+        "correlation_id": "corr-f35e5e48-714d-4b92-b801-3d47bb47df68",
+        "x_request_id": "467e431a-cf2e-447f-a0ab-52affb832d30",
         "http.status_code": 202
       }
     },
     {
       "name": "nats.publish",
-      "spanId": "0d6e1ee9e763ac36",
-      "parentSpanId": "8889ad17f1447ffa",
+      "spanId": "87691f4ac1eda072",
+      "parentSpanId": "5da439d47fb1ef74",
       "status": "OK",
       "attributes": {
         "messaging.system": "nats",
         "messaging.destination": "instance.provisioning.requested",
-        "event.id": "a853dd10-d3c1-4377-8ef8-67b262861b51",
-        "correlation_id": "corr-71f4c216-f82d-497b-a94d-236cef867f3a"
+        "event.id": "606ebaab-a5c6-4f50-8d6e-bd501878e175",
+        "correlation_id": "corr-f35e5e48-714d-4b92-b801-3d47bb47df68"
       }
     },
     {
       "name": "db.transaction.update_state",
-      "spanId": "3e7fe05041329cb6",
-      "parentSpanId": "327389b0241bc3e2",
+      "spanId": "6e35d6cec0f01fd1",
+      "parentSpanId": "4f20ce1346754b91",
       "status": "OK",
       "attributes": {
         "db.system": "postgresql",
         "db.operation": "update_state",
-        "event.id": "a853dd10-d3c1-4377-8ef8-67b262861b51",
-        "instance_id": "dbc6fd11-b309-4b08-aaee-18649b186522",
-        "operation_id": "fe0460b3-4de7-4a31-a502-11d112f2c5ca"
+        "event.id": "606ebaab-a5c6-4f50-8d6e-bd501878e175",
+        "instance_id": "4cb6594e-7e2e-46aa-8fff-342f72a232d5",
+        "operation_id": "b1723a83-b4a1-4efd-b931-f3e09fbfc888"
       }
     },
     {
       "name": "nats.consume",
-      "spanId": "327389b0241bc3e2",
-      "parentSpanId": "8889ad17f1447ffa",
+      "spanId": "4f20ce1346754b91",
+      "parentSpanId": "5da439d47fb1ef74",
       "status": "OK",
       "attributes": {
         "messaging.system": "nats",
         "messaging.operation": "process",
-        "event.id": "a853dd10-d3c1-4377-8ef8-67b262861b51",
-        "correlation_id": "corr-71f4c216-f82d-497b-a94d-236cef867f3a"
+        "event.id": "606ebaab-a5c6-4f50-8d6e-bd501878e175",
+        "correlation_id": "corr-f35e5e48-714d-4b92-b801-3d47bb47df68"
       }
     }
   ],
   "metricsObserved": {
     "http_requests_total": 2,
-    "outbox_pending_count": 0,
-    "messages_processed_total": 2
+    "outbox_pending_count": 3,
+    "outbox_publish_failures_total": 2,
+    "messages_processed_total": 10,
+    "message_redeliveries_total": 1
   },
   "finalState": {
     "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",

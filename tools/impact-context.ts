@@ -8,7 +8,7 @@ const MAX_TOTAL_DIFF_CHARS = 16_000;
 const MAX_OPENAPI_DIFF_CHARS = 5_000;
 
 const sensitivePath = /(^|\/)(\.env(?:\.|$)|.*(?:secret|credential|private[-_]?key|token).*)/i;
-const relevantPath = /^(apps\/|infra\/|specs\/openapi\/|tests\/|tools\/|docs\/|\.github\/workflows\/|README\.md$|AGENTS\.md$|package(?:-lock)?\.json$|playwright\.config\.ts$|tsconfig.*\.json$)/;
+const relevantPath = /^(apps\/|infra\/|specs\/openapi\/|tests\/|tools\/|evidence\/|docs\/|\.github\/workflows\/|README\.md$|AGENTS\.md$|package(?:-lock)?\.json$|playwright\.config\.ts$|tsconfig.*\.json$)/;
 
 interface ImpactRule {
   pattern: RegExp;
@@ -75,7 +75,7 @@ const rules: ImpactRule[] = [
     question: 'A fronteira transacional, at-least-once, retries, idempotência e recuperação sob partição de rede foram verificados?',
   },
   {
-    pattern: /^(apps\/control-plane-mock\/src\/telemetry\.ts|tests\/observability\/|infra\/otel-collector)/,
+    pattern: /^(apps\/control-plane-mock\/src\/telemetry\.ts|tests\/observability\/|evidence\/observability\/|infra\/otel-collector)/,
     risk: 'perda de rastreabilidade distribuída, quebra de contexto W3C traceId, métricas divergentes ou indisponibilidade da telemetria',
     tests: ['npm run test:observability', 'npm test'],
     question: 'Os spans cobrem as 6 etapas do ciclo assíncrono, traceId propaga sem cortes e métricas refletem com precisão o comportamento?',
