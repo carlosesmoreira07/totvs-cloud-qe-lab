@@ -6,7 +6,7 @@
 - Este é um laboratório pessoal, público e não oficial. Nunca apresente uma decisão `[LAB]` ou hipótese `[VALIDAR]` como fato sobre a TOTVS.
 - Use exatamente `[PUB]`, `[VAGA]`, `[LAB]` e `[VALIDAR]` ao registrar informações de domínio. Toda afirmação `[PUB]` deve citar uma fonte pública; toda afirmação `[VAGA]` deve apontar para o texto público da vaga.
 - Não invente arquitetura, APIs, SLAs, topologias, processos, nomes internos, dados, clientes ou controles da TOTVS.
-- Preserve o recorte LAB-01 a LAB-10 e AI-01 a AI-05 até que uma demanda explícita autorize a próxima etapa. Não antecipe DAST ativo, pentest, IAM fictício, Kubernetes, ambientes reais, auto-remediação, RAG, embeddings ou vector database.
+- Preserve o recorte LAB-01 a LAB-10 e AI-01 a AI-06 até que uma demanda explícita autorize a próxima etapa. Não antecipe DAST ativo, pentest, IAM fictício, Kubernetes, ambientes reais, auto-remediação, RAG, embeddings ou vector database.
 
 ## Forma de trabalhar
 

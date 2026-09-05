@@ -36,6 +36,7 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **AI-03:** Telemetry & Trace Intelligence correlacionando traces OpenTelemetry (LAB-07), métricas agregadas e falhas distribuídas com classificações estritas `[OBSERVED]`, `[INFERRED]` e `[GAP]`.
 - [LAB] **AI-04:** Journey Intelligence consultivo correlacionando jornadas sintéticas completas (LAB-08), SLAs sintéticos e evidências distribuídas.
 - [LAB] **AI-05:** Executive Quality Scorecard determinístico em JSON/Markdown/HTML/PDF, com interpretação LLM opcional, estruturada e não bloqueante.
+- [LAB] **AI-06:** Security Intelligence consultiva, com métricas determinísticas do LAB-10, priorização estruturada, guardrails anti-alucinação e fallback seguro.
 
 [LAB] LAB-11 e posteriores — IAM, DAST ativo, pentest, stress testing destrutivo em escala, soak testing de longa duração, observabilidade corporativa e descoberta de onboarding — permanecem fora desta entrega.
 
@@ -221,6 +222,9 @@ npm run scorecard
 
 # Executar interpretação consultiva do scorecard; sem chave retorna fallback seguro
 npm run ai:scorecard
+
+# Interpretar findings determinísticos do LAB-10; sem chave retorna fallback seguro
+npm run ai:security-advisory
 ```
 
 ## Comece por aqui

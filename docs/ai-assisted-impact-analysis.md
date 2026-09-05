@@ -457,11 +457,115 @@ A inteligência de jornadas visa responder ao Quality Engineer:
 }
 ```
 
+## AI-06 — Security Intelligence
+
+### Objetivo
+
+[LAB] O AI-06 interpreta os findings produzidos pelos controles determinísticos do LAB-10 e sugere prioridades, investigações, ações humanas e perguntas para revisão. A LLM não detecta vulnerabilidades, não recalcula métricas e não altera o `Security Status`.
+
+```text
+evidence/security/{summary,findings}.json
+            + recortes de journeys/scorecard
+                         ↓
+     correlação determinística TypeScript
+                         ↓
+  AiProvider -> OpenAiProvider -> Structured Outputs
+                         ↓
+       schema Zod + guardrails de linguagem
+                         ↓
+         advisory consultivo ou fallback
+```
+
+### Entrada mínima e rastreável
+
+- `summary.json`: status, severidades, scanners, controles e gaps;
+- `findings.json`: findings já normalizados, sem logs brutos ou conteúdo sensível;
+- `evidence/journeys/*.json`: somente nome, risco, controle e resultado quando o finding toca a API; essa relação é marcada como candidata `INFERRED`, nunca como impacto comprovado;
+- `evidence/scorecard/current.json`: somente status geral, Security, jornadas críticas e observabilidade.
+
+[LAB] Arquivos possuem limites de tamanho e o contexto limita findings e jornadas. O código não envia o repositório, logs de scanner, requests, responses, traces completos ou secrets.
+
+### Métricas determinísticas antes da LLM
+
+`computeSecurityIntelligenceMetrics` calcula:
+
+- total e severidades dos findings;
+- contagem por `SAST`, `DAST`, `DEPENDENCY` e `SECRET`;
+- contagem por `OPEN`, `FIXED`, `ACCEPTED_LAB` e `NOT_APPLICABLE`;
+- riscos exercitados, controles executados e scanners executados;
+- gaps conhecidos e `Security Status` atual;
+- concentração de findings por componente derivado da localização normalizada.
+
+[LAB] A correlação source → risco/controle também é determinística. A LLM recebe esses valores prontos e não deve reinterpretá-los como métricas próprias.
+
+### Saída estruturada
+
+O schema `aiSecurityAdvisorySchema` exige:
+
+- `executiveSummary`;
+- `topSecurityPriorities[]`;
+- `businessImpact[]`;
+- `technicalFindings[]`;
+- `affectedJourneys[]`;
+- `securityGaps[]`;
+- `recommendedInvestigations[]`;
+- `recommendedActions[]`;
+- `humanQuestions[]`;
+- `confidence` (`LOW`, `MEDIUM` ou `HIGH`).
+
+Cada item exige `subject`, `rationale`, `evidence[]` e `classification` (`OBSERVED`, `INFERRED` ou `GAP`). Structured Outputs reduz variações de formato; Zod e os guardrails locais continuam sendo a validação final.
+
+### Guardrails e fallback
+
+- scanners determinísticos são a fonte objetiva;
+- proibido declarar “o sistema está seguro”, “não há vulnerabilidades” ou “release aprovado”;
+- proibido inventar CVSS, criticidade, exploração, impacto de produção ou contexto da TOTVS;
+- proibidas instruções ofensivas, execução de comandos e auto-remediation;
+- recomendações não alteram código, risco, controle, scorecard ou Quality Gate;
+- chave ausente, timeout, falha do provider, evidência inválida ou resposta fora do schema produzem `AI_SECURITY_ADVISORY_UNAVAILABLE` sem falhar o gate.
+
+### Pipeline e custo
+
+[LAB] O job `ai-security-advisory` roda somente em Pull Request, após a produção da evidência normalizada de segurança, com `continue-on-error: true`. Ele executa o analisador confiável da base do PR, baixa `qe-security-evidence` e publica a leitura no `GITHUB_STEP_SUMMARY`. Não existe dependência inversa do gate para o advisory.
+
+[LAB] O provider, modelo e prompt permanecem substituíveis. `QE_AI_MODEL` reutiliza o default econômico existente (`gpt-5.4-mini`); `store: false`, contexto resumido e limite de saída reduzem custo e exposição.
+
+### Exemplo de advisory
+
+```json
+{
+  "executiveSummary": "Nenhum finding crítico foi identificado nos controles executados; o gap IAM exige revisão humana.",
+  "topSecurityPriorities": [
+    {
+      "subject": "Cobertura de identidade e autorização",
+      "rationale": "O gap IAM está explícito e impede uma conclusão sobre essa superfície.",
+      "evidence": ["SECURITY_GAP_IAM_NOT_IMPLEMENTED", "Security Status=YELLOW"],
+      "classification": "GAP"
+    }
+  ],
+  "businessImpact": [],
+  "technicalFindings": [
+    {
+      "subject": "Alerta passivo aceito no laboratório",
+      "rationale": "O finding DAST médio possui justificativa registrada e requer manutenção da decisão humana.",
+      "evidence": ["DAST:10049", "status=ACCEPTED_LAB"],
+      "classification": "OBSERVED"
+    }
+  ],
+  "affectedJourneys": [],
+  "securityGaps": [],
+  "recommendedInvestigations": [],
+  "recommendedActions": [],
+  "humanQuestions": [],
+  "confidence": "HIGH"
+}
+```
+
 ## Governança
 
 - [LAB] O Quality Gate usa somente build, typecheck, OpenAPI e testes determinísticos.
 - [LAB] Nenhum nível de impacto ou confiança da LLM muda status de job bloqueante.
-- [LAB] O summary identifica provider, modelo e versão pública do prompt (`qe-advisory-v1`, `qe-failure-advisory-v1`, `qe-telemetry-advisory-v1`, `qe-journey-advisory-v1`) para auditoria humana.
+- [LAB] O summary identifica provider, modelo e versão pública do prompt (`qe-advisory-v1`, `qe-failure-advisory-v1`, `qe-telemetry-advisory-v1`, `qe-journey-advisory-v1`, `qe-executive-scorecard-v1`, `qe-security-advisory-v1`) para auditoria humana.
 - [LAB] Diff e relatórios são entradas não confiáveis: instruções contidas neles devem ser ignoradas pelo modelo.
 - [LAB] A utilidade será avaliada por revisão humana e gaps encontrados, nunca por taxa de “aprovação”.
 - [LAB] Prompts não devem conter segredos; mudanças no prompt curto e público passam por revisão de código.

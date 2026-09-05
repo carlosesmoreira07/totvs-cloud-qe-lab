@@ -212,6 +212,39 @@ jobs:
           QE_SCORECARD_PATH: evidence/scorecard/current.json
         run: npm run ai:scorecard >> "$GITHUB_STEP_SUMMARY"
 
+  ai-security-advisory:
+    if: always() && github.event_name == 'pull_request'
+    needs: security-quality-gate
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted analyzer from the PR base
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Download normalized security evidence
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: qe-security-evidence
+          path: evidence/security
+      - name: Publish non-blocking Security Intelligence advisory
+        continue-on-error: true
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          QE_AI_MODEL: ${{ vars.QE_AI_MODEL }}
+          QE_SECURITY_SUMMARY_PATH: evidence/security/summary.json
+          QE_SECURITY_FINDINGS_PATH: evidence/security/findings.json
+          QE_JOURNEY_DIR: evidence/journeys
+          QE_SCORECARD_PATH: evidence/scorecard/current.json
+        run: npm run ai:security-advisory >> "$GITHUB_STEP_SUMMARY"
+
   ai-failure-advisory:
     if: always() && github.event_name == 'pull_request'
     needs: ai-advisory-control-results

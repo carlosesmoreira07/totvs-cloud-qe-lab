@@ -31,6 +31,7 @@
     "ai:failure-advisory": "tsx tools/ai/failure-intelligence.ts",
     "ai:telemetry-advisory": "tsx tools/ai/telemetry-intelligence.ts",
     "ai:journey-advisory": "tsx tools/ai/journey-intelligence.ts",
+    "ai:security-advisory": "tsx tools/ai/security-intelligence.ts",
     "scorecard": "tsx tools/scorecard/scorecard-builder.ts",
     "ai:scorecard": "tsx tools/ai/executive-scorecard-intelligence.ts",
     "security:scan": "tsx tools/security/security-runner.ts"
