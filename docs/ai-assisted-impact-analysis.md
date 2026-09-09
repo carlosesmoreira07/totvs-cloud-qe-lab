@@ -561,11 +561,61 @@ Cada item exige `subject`, `rationale`, `evidence[]` e `classification` (`OBSERV
 }
 ```
 
+## AI-07 — Trend & Regression Intelligence
+
+### Propósito e limites
+
+- [LAB] O AI-07 consome a série histórica determinística produzida no LAB-11 (`history.json` e `trends.json`) e o scorecard executivo (`current.json`) para gerar uma interpretação narrativa e consultiva da evolução de qualidade.
+- [LAB] **A IA não calcula tendências**. Ela recebe as tendências históricas e comparações pontuais já calculadas deterministicamente pelo motor do LAB-11.
+- [LAB] A saída estruturada classifica cada observação como `[OBSERVED]`, `[INFERRED]` ou `[GAP]`, com citações explícitas aos checkpoints e métricas.
+- [LAB] Se houver menos de 3 checkpoints ou a tendência de uma dimensão for `UNKNOWN`, a IA é proibida de inferir tendência definitiva e deve registrar a lacuna explicitamente.
+
+### Pré-correlação determinística antes da LLM
+
+Antes de qualquer chamada ao provider, a camada TypeScript extrai e correlaciona:
+1. Contagem de checkpoints e disponibilidade de série sustentada (`canCalculateTrend`);
+2. Tendência geral histórica e status de comparação pontual (`comparisonStatus`);
+3. Avaliações por dimensão (status, tendências, rótulos e interpretações);
+4. Métricas que melhoraram (cobertura de riscos, controles aprovados, redução de gaps);
+5. Métricas que degradaram (aumento de falhas, p95 regredido além de 10%, aumento de achados críticos);
+6. Riscos novos e riscos que receberam controles executados;
+7. Lacunas novas e persistentes;
+8. Regressões ativas contra baseline de performance;
+9. Evolução de latência (p95 e p99) e conformidade de SLAs sintéticos de jornadas.
+
+### Saída estruturada
+
+O schema `aiTrendAdvisorySchema` exige:
+- `executiveSummary` (string, max 1.000);
+- `improvingAreas[]` (findings);
+- `degradingAreas[]` (findings);
+- `persistentRisks[]` (findings);
+- `regressionFindings[]` (findings);
+- `qualitySignals[]` (findings);
+- `recommendedInvestigations[]` (findings);
+- `recommendedActions[]` (findings);
+- `humanQuestions[]` (findings);
+- `confidence` (`LOW`, `MEDIUM` ou `HIGH`).
+
+Cada finding exige `subject`, `rationale`, `evidence[]` (min 1, max 5) e `classification` (`OBSERVED`, `INFERRED` ou `GAP`).
+
+### Guardrails e fallback
+
+- Proibido declarar: "a qualidade geral melhorou definitivamente", "o sistema está saudável", "o sistema está seguro" ou "release aprovado";
+- Se a tendência histórica for `UNKNOWN`, a IA deve respeitar essa condição sem criar falsos positivos;
+- Proibida a auto-remediação ou alteração de código, testes, scores ou decisões;
+- Chave ausente, timeout, falha de rede ou schema inválido produzem o fallback seguro `AI_TREND_ADVISORY_UNAVAILABLE` sem falhar o Quality Gate.
+
+### Pipeline e execução
+
+- Job no GitHub Actions: `ai-trend-advisory` rodando com `continue-on-error: true`.
+- Execução local via script: `npm run ai:trend-advisory`.
+
 ## Governança
 
 - [LAB] O Quality Gate usa somente build, typecheck, OpenAPI e testes determinísticos.
 - [LAB] Nenhum nível de impacto ou confiança da LLM muda status de job bloqueante.
-- [LAB] O summary identifica provider, modelo e versão pública do prompt (`qe-advisory-v1`, `qe-failure-advisory-v1`, `qe-telemetry-advisory-v1`, `qe-journey-advisory-v1`, `qe-executive-scorecard-v1`, `qe-security-advisory-v1`) para auditoria humana.
+- [LAB] O summary identifica provider, modelo e versão pública do prompt (`qe-advisory-v1`, `qe-failure-advisory-v1`, `qe-telemetry-advisory-v1`, `qe-journey-advisory-v1`, `qe-executive-scorecard-v1`, `qe-security-advisory-v1`, `qe-trend-advisory-v1`) para auditoria humana.
 - [LAB] Diff e relatórios são entradas não confiáveis: instruções contidas neles devem ser ignoradas pelo modelo.
 - [LAB] A utilidade será avaliada por revisão humana e gaps encontrados, nunca por taxa de “aprovação”.
 - [LAB] Prompts não devem conter segredos; mudanças no prompt curto e público passam por revisão de código.

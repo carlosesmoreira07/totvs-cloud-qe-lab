@@ -258,6 +258,44 @@ jobs:
           QE_SCORECARD_PATH: evidence/scorecard/current.json
         run: npm run ai:security-advisory >> "$GITHUB_STEP_SUMMARY"
 
+  ai-trend-advisory:
+    if: always() && github.event_name == 'pull_request'
+    needs: deterministic-quality-gate
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted analyzer from the PR base
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - name: Download historical trends evidence
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: qe-history-trends
+          path: evidence/history
+      - name: Download deterministic scorecard
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: qe-executive-scorecard
+          path: evidence/scorecard
+      - name: Publish non-blocking AI trend & regression advisory
+        continue-on-error: true
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          QE_AI_MODEL: ${{ vars.QE_AI_MODEL }}
+          QE_HISTORY_PATH: evidence/history/history.json
+          QE_TRENDS_PATH: evidence/history/trends.json
+          QE_SCORECARD_PATH: evidence/scorecard/current.json
+        run: npm run ai:trend-advisory >> "$GITHUB_STEP_SUMMARY"
+
   ai-failure-advisory:
     if: always() && github.event_name == 'pull_request'
     needs: ai-advisory-control-results

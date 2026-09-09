@@ -351,22 +351,18 @@ function listItems(items: string[]): string {
   return items.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
 }
 
-export function renderExecutiveSummaryMarkdown(scorecard: ExecutiveScorecard): string {
+export function renderExecutiveSummaryMarkdown(scorecard: ExecutiveScorecard, advisoryMarkdown?: string): string {
   const view = buildExecutiveScorecardView(scorecard);
-  const dimensions = view.dimensions.flatMap((dimension) => [
-    `### ${dimension.label} - ${dimension.statusLabel}`,
-    '',
-    `**${dimension.metric}.** ${dimension.interpretation} Direção: ${dimension.trendLabel}.`,
-    '',
-  ]);
-  const attention = view.attention.map((item) => `- **${item.title}.** Impacto: ${item.impact} Evidência: ${item.evidence}`);
+  const attention = view.attention.map((item) => `- **${item.title}:** ${item.impact} (${item.evidence})`);
+  const dimensions = view.dimensions.map((d) => `- **${d.label}:** ${d.statusLabel} | Métrica: ${d.metric} | Tendência: ${d.trendLabel}\n  *${d.interpretation}*`);
+
   return [
     `# ${view.title}`,
     '',
     `> ${view.subtitle}`,
     '',
-    `- **Status geral:** ${view.statusLabel} - ${view.statusMeaning}`,
-    `- **Tendência:** ${view.trendLabel}${view.hasHistoricalTrend ? ` (${view.checkpointsAnalyzed} checkpoints)` : ' (mínimo 3 checkpoints)'}`,
+    `- **Status Geral:** ${view.statusLabel} (${view.statusMeaning})`,
+    `- **Tendência Geral:** ${view.trendLabel}${view.hasHistoricalTrend ? ` (${view.checkpointsAnalyzed} checkpoints)` : ''}`,
     `- **Gerado em:** ${view.generatedAt}`,
     `- **Commit analisado:** \`${view.commit}\``,
     '- **Contexto:** Personal & Non-Official [LAB]',
@@ -378,6 +374,7 @@ export function renderExecutiveSummaryMarkdown(scorecard: ExecutiveScorecard): s
     '## Visão por Dimensão',
     '',
     ...dimensions,
+    '',
     '## Principais Pontos de Atenção',
     '',
     ...(attention.length > 0 ? attention : ['- Nenhum ponto de atenção adicional foi identificado nesta coleta.']),
@@ -397,6 +394,10 @@ export function renderExecutiveSummaryMarkdown(scorecard: ExecutiveScorecard): s
     '',
     ...view.actions,
     '',
+    ...(advisoryMarkdown ? [
+      advisoryMarkdown.trim(),
+      '',
+    ] : []),
     '> Este scorecard apoia a decisão profissional. A decisão humana é obrigatória e nenhuma leitura automatizada aprova ou reprova uma release.',
     '',
     '**TOTVS Cloud QE Lab — Personal & Non-Official [LAB]**',

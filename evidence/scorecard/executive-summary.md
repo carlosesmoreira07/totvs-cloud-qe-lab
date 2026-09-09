@@ -2,10 +2,10 @@
 
 > Visão executiva da qualidade do laboratório Cloud Control Plane [LAB]
 
-- **Status geral:** AMARELO - Requer atenção
-- **Tendência:** Em melhoria (3 checkpoints)
-- **Gerado em:** 09/09/2026, 19:59
-- **Commit analisado:** `343843e0cf7e`
+- **Status Geral:** AMARELO (Requer atenção)
+- **Tendência Geral:** Em melhoria (3 checkpoints)
+- **Gerado em:** 09/09/2026, 20:17
+- **Commit analisado:** `a67fa8ac7fec`
 - **Contexto:** Personal & Non-Official [LAB]
 
 ## Resumo Executivo
@@ -18,47 +18,30 @@
 
 ## Visão por Dimensão
 
-### Cobertura de Riscos - AMARELO
-
-**63,4% cobertos.** 15 riscos ainda aguardam evidência nesta coleta. Direção: Em melhoria.
-
-### Controles - AMARELO
-
-**26 aprovados.** Nenhum controle exercitado apresentou falha. Direção: Em melhoria.
-
-### Jornadas Críticas - VERDE
-
-**4/4 aprovadas.** As jornadas avaliadas atenderam aos limites sintéticos [LAB]. Direção: Estável.
-
-### Resiliência - VERDE
-
-**6 cenários aprovados.** Os cenários exercitados recuperaram o fluxo esperado. Direção: Estável.
-
-### Observabilidade - AMARELO
-
-**7 rastros analisados.** 1 cadeia parcial reduz a confiança no diagnóstico. Direção: Estável.
-
-### Desempenho - VERDE
-
-**p95 de 200,3 ms.** Os limites sintéticos foram atendidos na execução registrada. Direção: Estável.
-
-### Regressão - VERDE
-
-**Melhorou.** Comparação pontual favorável; ainda não há série histórica. Direção: Estável.
-
-### Segurança - AMARELO
-
-**1 findings.** Scanners locais ativos; o gap IAM mantém revisão humana obrigatória. Direção: Estável.
-
-### Lacunas Conhecidas - AMARELO
-
-**3 lacunas explícitas.** As lacunas seguem visíveis e não contam como sucesso. Direção: Estável.
+- **Cobertura de Riscos:** AMARELO | Métrica: 63,4% cobertos | Tendência: Em melhoria
+  *15 riscos ainda aguardam evidência nesta coleta.*
+- **Controles:** AMARELO | Métrica: 26 aprovados | Tendência: Em melhoria
+  *Nenhum controle exercitado apresentou falha.*
+- **Jornadas Críticas:** VERDE | Métrica: 4/4 aprovadas | Tendência: Estável
+  *As jornadas avaliadas atenderam aos limites sintéticos [LAB].*
+- **Resiliência:** VERDE | Métrica: 6 cenários aprovados | Tendência: Estável
+  *Os cenários exercitados recuperaram o fluxo esperado.*
+- **Observabilidade:** AMARELO | Métrica: 7 rastros analisados | Tendência: Estável
+  *1 cadeia parcial reduz a confiança no diagnóstico.*
+- **Desempenho:** VERDE | Métrica: p95 de 200,3 ms | Tendência: Estável
+  *Os limites sintéticos foram atendidos na execução registrada.*
+- **Regressão:** VERDE | Métrica: Melhorou | Tendência: Estável
+  *Comparação pontual favorável; ainda não há série histórica.*
+- **Segurança:** AMARELO | Métrica: 1 findings | Tendência: Estável
+  *Scanners locais ativos; o gap IAM mantém revisão humana obrigatória.*
+- **Lacunas Conhecidas:** AMARELO | Métrica: 3 lacunas explícitas | Tendência: Estável
+  *As lacunas seguem visíveis e não contam como sucesso.*
 
 ## Principais Pontos de Atenção
 
-- **Cobertura de evidência parcial.** Impacto: A leitura não permite o mesmo nível de confiança para todo o mapa de riscos. Evidência: 15 de 41 riscos conhecidos não possuem evidência nesta coleta.
-- **Rastreabilidade incompleta.** Impacto: Uma investigação de falha pode exigir correlação manual adicional. Evidência: 1 cenário de observabilidade possui cadeia parcial.
-- **Limite de evidência.** Impacto: A lacuna reduz a confiança executiva da leitura. Evidência: Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED.
+- **Cobertura de evidência parcial:** A leitura não permite o mesmo nível de confiança para todo o mapa de riscos. (15 de 41 riscos conhecidos não possuem evidência nesta coleta.)
+- **Rastreabilidade incompleta:** Uma investigação de falha pode exigir correlação manual adicional. (1 cenário de observabilidade possui cadeia parcial.)
+- **Limite de evidência:** A lacuna reduz a confiança executiva da leitura. (Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED.)
 
 ## O que está sob controle
 
@@ -83,6 +66,14 @@
 2. Completar a cadeia de rastreabilidade do cenário parcial.
 3. Acumular execuções comparáveis antes de declarar tendência histórica.
 4. Submeter lacunas e sinais amarelos à revisão humana antes de qualquer decisão.
+
+## Parecer Consultivo de Tendências e Regressões — AI-07
+
+**AI_TREND_ADVISORY_UNAVAILABLE**
+
+Parecer consultivo de tendências e regressões de IA indisponível — Quality Gate não afetado.
+
+Motivo técnico: `MISSING_API_KEY`.
 
 > Este scorecard apoia a decisão profissional. A decisão humana é obrigatória e nenhuma leitura automatizada aprova ou reprova uma release.
 

@@ -597,6 +597,8 @@ function resolveCommit(): string {
 export async function writeScorecardArtifacts(scorecard: ExecutiveScorecard, repositoryRoot = process.cwd()): Promise<string[]> {
   const targetDir = path.join(repositoryRoot, 'evidence', 'scorecard');
   fs.mkdirSync(targetDir, { recursive: true });
+  const advisoryPath = path.join(targetDir, 'ai-trend-advisory.md');
+  const advisoryMarkdown = fs.existsSync(advisoryPath) ? fs.readFileSync(advisoryPath, 'utf8') : undefined;
   const outputs = {
     json: path.join(targetDir, 'current.json'),
     markdown: path.join(targetDir, 'executive-summary.md'),
@@ -604,7 +606,7 @@ export async function writeScorecardArtifacts(scorecard: ExecutiveScorecard, rep
     pdf: path.join(targetDir, 'executive-scorecard.pdf'),
   };
   fs.writeFileSync(outputs.json, `${JSON.stringify(scorecard, null, 2)}\n`, 'utf8');
-  fs.writeFileSync(outputs.markdown, renderExecutiveSummaryMarkdown(scorecard), 'utf8');
+  fs.writeFileSync(outputs.markdown, renderExecutiveSummaryMarkdown(scorecard, advisoryMarkdown), 'utf8');
   fs.writeFileSync(outputs.html, renderScorecardHtml(scorecard), 'utf8');
   fs.writeFileSync(outputs.pdf, await renderScorecardPdf(scorecard));
   return Object.values(outputs);

@@ -37,8 +37,10 @@ Risco -> Controle -> Evidência -> Decisão
 - [LAB] **AI-04:** Journey Intelligence consultivo correlacionando jornadas sintéticas completas (LAB-08), SLAs sintéticos e evidências distribuídas.
 - [LAB] **AI-05:** Executive Quality Scorecard determinístico em JSON/Markdown/HTML/PDF, com interpretação LLM opcional, estruturada e não bloqueante.
 - [LAB] **AI-06:** Security Intelligence consultiva, com métricas determinísticas do LAB-10, priorização estruturada, guardrails anti-alucinação e fallback seguro.
+- [LAB] **LAB-11:** Historical Quality Trends com consolidação determinística de snapshots de qualidade, detecção de evolução em 9 dimensões, sparklines e separação estrita de comparação pontual vs. série histórica (>= 3 checkpoints).
+- [LAB] **AI-07:** Trend & Regression Intelligence consultiva, interpretando a evolução histórica do LAB-11 e scorecard com Structured Outputs Zod, correlação pré-LLM e fallback seguro.
 
-[LAB] LAB-11 e posteriores — IAM, DAST ativo, pentest, stress testing destrutivo em escala, soak testing de longa duração, observabilidade corporativa e descoberta de onboarding — permanecem fora desta entrega.
+[LAB] IAM, DAST ativo, pentest, stress testing destrutivo em escala, soak testing de longa duração, observabilidade corporativa e descoberta de onboarding — permanecem fora desta entrega.
 
 ## Estrutura
 
@@ -234,6 +236,9 @@ npm run ai:scorecard
 
 # Interpretar findings determinísticos do LAB-10; sem chave retorna fallback seguro
 npm run ai:security-advisory
+
+# Interpretar tendências históricas e regressões (AI-07); sem chave retorna fallback seguro
+npm run ai:trend-advisory
 ```
 
 ## Comece por aqui
