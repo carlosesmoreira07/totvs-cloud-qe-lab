@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import type {
   ExecutiveScorecard,
   QualityStatus,
@@ -59,6 +62,8 @@ export interface ExecutiveDimensionView {
   trendLabel: string;
   metric: string;
   interpretation: string;
+  hasHistoricalTrend: boolean;
+  sparklineSvg?: string | undefined;
 }
 
 export interface ExecutiveAttentionView {
@@ -74,6 +79,8 @@ export interface ExecutiveScorecardView {
   statusLabel: string;
   statusMeaning: string;
   trendLabel: string;
+  hasHistoricalTrend: boolean;
+  checkpointsAnalyzed: number;
   generatedAt: string;
   commit: string;
   executiveSummary: string[];
@@ -175,20 +182,67 @@ function dimensionInterpretation(scorecard: ExecutiveScorecard, key: (typeof DIM
   return 'As lacunas seguem visíveis e não contam como sucesso.';
 }
 
+function renderSparklineSvg(points: Array<number | null>): string {
+  const valid = points.filter((p): p is number => typeof p === 'number' && Number.isFinite(p));
+  if (valid.length < 2) return '';
+  const min = Math.min(...valid);
+  const max = Math.max(...valid);
+  const range = max - min || 1;
+  const width = 36;
+  const height = 10;
+  const coords = valid.map((v, i) => {
+    const x = Math.round((i / (valid.length - 1)) * (width - 4) + 2);
+    const y = Math.round(height - ((v - min) / range) * (height - 4) - 2);
+    return `${x},${y}`;
+  });
+  const color = valid[valid.length - 1]! >= valid[0]! ? '#0E8074' : '#E05252';
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="${color}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="${coords.join(' ')}"/><circle cx="${coords[coords.length - 1]!.split(',')[0]}" cy="${coords[coords.length - 1]!.split(',')[1]}" r="1.6" fill="${color}"/></svg>`;
+}
+
 export function buildExecutiveScorecardView(scorecard: ExecutiveScorecard): ExecutiveScorecardView {
   const observability = dimensionByKey(scorecard, 'OBSERVABILITY');
   const partialChains = Number(indicatorValue(observability, 'missing-spans') ?? 0);
+  const hasHistoricalTrend = Boolean(scorecard.history?.canCalculateTrend && scorecard.history.checkpointsAnalyzed >= 3);
+  const checkpointsAnalyzed = scorecard.history?.checkpointsAnalyzed ?? 0;
+
+  let trendDataPointsMap: Record<string, Array<number | null>> = {};
+  if (hasHistoricalTrend) {
+    try {
+      const trendsPath = path.resolve(process.cwd(), 'evidence', 'history', 'trends.json');
+      if (fs.existsSync(trendsPath)) {
+        const parsed = JSON.parse(fs.readFileSync(trendsPath, 'utf8'));
+        if (Array.isArray(parsed.dimensions)) {
+          trendDataPointsMap = Object.fromEntries(
+            parsed.dimensions.map((d: { dimension: string; dataPoints: Array<number | null> }) => [d.dimension, d.dataPoints]),
+          );
+        }
+      }
+    } catch {
+      trendDataPointsMap = {};
+    }
+  }
+
   const dimensions = DIMENSION_ORDER.map((key) => {
     const dimension = dimensionByKey(scorecard, key);
     const status = dimension?.status ?? 'UNKNOWN';
+    const trendLabel = hasHistoricalTrend
+      ? TREND_LABELS[dimension?.trend ?? 'UNKNOWN']
+      : 'Histórico insuficiente';
+    const dataPoints = trendDataPointsMap[key] ?? [];
+    const sparklineSvg = hasHistoricalTrend && dataPoints.length >= 2
+      ? renderSparklineSvg(dataPoints)
+      : undefined;
+
     return {
       key,
       label: DIMENSION_LABELS[key],
       status,
       statusLabel: STATUS_LABELS[status],
-      trendLabel: TREND_LABELS[dimension?.trend ?? 'UNKNOWN'],
+      trendLabel,
       metric: dimensionMetric(scorecard, key),
       interpretation: dimensionInterpretation(scorecard, key),
+      hasHistoricalTrend,
+      sparklineSvg,
     };
   });
 
@@ -262,7 +316,9 @@ export function buildExecutiveScorecardView(scorecard: ExecutiveScorecard): Exec
     status: scorecard.overallStatus,
     statusLabel: STATUS_LABELS[scorecard.overallStatus],
     statusMeaning: STATUS_MEANINGS[scorecard.overallStatus],
-    trendLabel: TREND_LABELS[scorecard.overallTrend],
+    trendLabel: hasHistoricalTrend ? TREND_LABELS[scorecard.overallTrend] : 'Histórico insuficiente',
+    hasHistoricalTrend,
+    checkpointsAnalyzed,
     generatedAt: formatGeneratedAt(scorecard.generatedAt),
     commit: scorecard.commit,
     executiveSummary: [
@@ -287,7 +343,7 @@ function dimensionCard(dimension: ExecutiveDimensionView): string {
     <div class="dimension-head"><h3>${escapeHtml(dimension.label)}</h3><span class="badge">${escapeHtml(dimension.statusLabel)}</span></div>
     <div class="dimension-metric">${escapeHtml(dimension.metric)}</div>
     <p>${escapeHtml(dimension.interpretation)}</p>
-    <div class="dimension-trend">Direção: ${escapeHtml(dimension.trendLabel)}</div>
+    <div class="dimension-trend">Direção: ${escapeHtml(dimension.trendLabel)}${dimension.sparklineSvg ?? ''}</div>
   </article>`;
 }
 
@@ -310,7 +366,7 @@ export function renderExecutiveSummaryMarkdown(scorecard: ExecutiveScorecard): s
     `> ${view.subtitle}`,
     '',
     `- **Status geral:** ${view.statusLabel} - ${view.statusMeaning}`,
-    `- **Tendência:** ${view.trendLabel}`,
+    `- **Tendência:** ${view.trendLabel}${view.hasHistoricalTrend ? ` (${view.checkpointsAnalyzed} checkpoints)` : ' (mínimo 3 checkpoints)'}`,
     `- **Gerado em:** ${view.generatedAt}`,
     `- **Commit analisado:** \`${view.commit}\``,
     '- **Contexto:** Personal & Non-Official [LAB]',
@@ -363,7 +419,7 @@ export function renderScorecardHtml(scorecard: ExecutiveScorecard): string {
 .dimension-grid{grid-template-columns:repeat(3,1fr)}.dimension{min-height:42mm}
 </style></head><body>
 <section class="page"><header class="hero"><div class="eyebrow">AI-05 · Quality Engineering</div><h1>${escapeHtml(view.title)}</h1><p>${escapeHtml(view.subtitle)}</p></header>
-<div class="summary-strip"><div class="summary-cell"><small>Status geral</small><strong class="status">${escapeHtml(view.statusLabel)}</strong><span>${escapeHtml(view.statusMeaning)}</span></div><div class="summary-cell"><small>Tendência</small><strong>${escapeHtml(view.trendLabel)}</strong><span>Leitura pontual</span></div><div class="summary-cell"><small>Data e hora</small><strong>${escapeHtml(view.generatedAt)}</strong><span>Horário de Brasília</span></div><div class="summary-cell"><small>Commit</small><strong>${escapeHtml(view.commit)}</strong><span>Referência analisada</span></div><div class="summary-cell"><small>Contexto</small><strong>Personal &amp; Non-Official</strong><span>[LAB]</span></div></div>
+<div class="summary-strip"><div class="summary-cell"><small>Status geral</small><strong class="status">${escapeHtml(view.statusLabel)}</strong><span>${escapeHtml(view.statusMeaning)}</span></div><div class="summary-cell"><small>Tendência</small><strong>${escapeHtml(view.trendLabel)}</strong><span>${view.hasHistoricalTrend ? `${view.checkpointsAnalyzed} checkpoints` : 'Leitura pontual'}</span></div><div class="summary-cell"><small>Data e hora</small><strong>${escapeHtml(view.generatedAt)}</strong><span>Horário de Brasília</span></div><div class="summary-cell"><small>Commit</small><strong>${escapeHtml(view.commit)}</strong><span>Referência analisada</span></div><div class="summary-cell"><small>Contexto</small><strong>Personal &amp; Non-Official</strong><span>[LAB]</span></div></div>
 <article class="panel executive"><p class="section-kicker">Leitura para decisão</p><h2 class="section-title">Resumo Executivo</h2><ul>${listItems(view.executiveSummary)}</ul></article>
 <div class="quick-read"><article class="quick-card attention"><small>Principal atenção</small><strong>${escapeHtml(view.attention[0]?.title ?? 'Nenhuma atenção adicional')}</strong></article><article class="quick-card control"><small>Sob controle</small><strong>${scorecard.summary.controlsPassed} controles aprovados e ${scorecard.summary.controlsFailed} falhos</strong></article><article class="quick-card action"><small>Prioridade</small><strong>Ampliar cobertura e confiança das evidências</strong></article></div>
 ${footer}<span class="footer-page">1/3</span></footer><span class="legacy-marker" aria-label="Quality Engineering Lab — NÃO OFICIAL">Decisão humana obrigatória</span></section>

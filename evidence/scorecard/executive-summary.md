@@ -3,9 +3,9 @@
 > Visão executiva da qualidade do laboratório Cloud Control Plane [LAB]
 
 - **Status geral:** AMARELO - Requer atenção
-- **Tendência:** Em melhoria
-- **Gerado em:** 04/09/2026, 20:20
-- **Commit analisado:** `2f952096db4e`
+- **Tendência:** Em melhoria (3 checkpoints)
+- **Gerado em:** 09/09/2026, 19:59
+- **Commit analisado:** `343843e0cf7e`
 - **Contexto:** Personal & Non-Official [LAB]
 
 ## Resumo Executivo
@@ -20,45 +20,44 @@
 
 ### Cobertura de Riscos - AMARELO
 
-**63,4% cobertos.** 15 riscos ainda aguardam evidência nesta coleta. Direção: Sem histórico.
+**63,4% cobertos.** 15 riscos ainda aguardam evidência nesta coleta. Direção: Em melhoria.
 
 ### Controles - AMARELO
 
-**26 aprovados.** Nenhum controle exercitado apresentou falha. Direção: Sem histórico.
+**26 aprovados.** Nenhum controle exercitado apresentou falha. Direção: Em melhoria.
 
 ### Jornadas Críticas - VERDE
 
-**4/4 aprovadas.** As jornadas avaliadas atenderam aos limites sintéticos [LAB]. Direção: Sem histórico.
+**4/4 aprovadas.** As jornadas avaliadas atenderam aos limites sintéticos [LAB]. Direção: Estável.
 
 ### Resiliência - VERDE
 
-**6 cenários aprovados.** Os cenários exercitados recuperaram o fluxo esperado. Direção: Sem histórico.
+**6 cenários aprovados.** Os cenários exercitados recuperaram o fluxo esperado. Direção: Estável.
 
 ### Observabilidade - AMARELO
 
-**7 rastros analisados.** 1 cadeia parcial reduz a confiança no diagnóstico. Direção: Sem histórico.
+**7 rastros analisados.** 1 cadeia parcial reduz a confiança no diagnóstico. Direção: Estável.
 
 ### Desempenho - VERDE
 
-**p95 de 200,3 ms.** Os limites sintéticos foram atendidos na execução registrada. Direção: Em melhoria.
+**p95 de 200,3 ms.** Os limites sintéticos foram atendidos na execução registrada. Direção: Estável.
 
 ### Regressão - VERDE
 
-**Melhorou.** Comparação pontual favorável; ainda não há série histórica. Direção: Em melhoria.
+**Melhorou.** Comparação pontual favorável; ainda não há série histórica. Direção: Estável.
 
 ### Segurança - AMARELO
 
-**1 findings.** Scanners locais ativos; o gap IAM mantém revisão humana obrigatória. Direção: Sem histórico.
+**1 findings.** Scanners locais ativos; o gap IAM mantém revisão humana obrigatória. Direção: Estável.
 
 ### Lacunas Conhecidas - AMARELO
 
-**4 lacunas explícitas.** As lacunas seguem visíveis e não contam como sucesso. Direção: Sem histórico.
+**3 lacunas explícitas.** As lacunas seguem visíveis e não contam como sucesso. Direção: Estável.
 
 ## Principais Pontos de Atenção
 
 - **Cobertura de evidência parcial.** Impacto: A leitura não permite o mesmo nível de confiança para todo o mapa de riscos. Evidência: 15 de 41 riscos conhecidos não possuem evidência nesta coleta.
 - **Rastreabilidade incompleta.** Impacto: Uma investigação de falha pode exigir correlação manual adicional. Evidência: 1 cenário de observabilidade possui cadeia parcial.
-- **Tendência ainda pontual.** Impacto: A direção observada não demonstra comportamento sustentado ao longo do tempo. Evidência: Comparação pontual entre baseline e execução atual; não constitui série histórica.
 - **Limite de evidência.** Impacto: A lacuna reduz a confiança executiva da leitura. Evidência: Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED.
 
 ## O que está sob controle
@@ -73,10 +72,9 @@
 
 - 15 riscos conhecidos não possuem evidência serializada nesta coleta.
 - 1 cenário de observabilidade possui cadeia parcial de rastreamento e exige interpretação humana.
-- A comparação entre a referência e a execução atual ainda não forma uma série histórica.
 - Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED.
 
-- Comparação pontual entre baseline e execução atual; não constitui série histórica.
+- Tendência histórica baseada em 3 checkpoints determinísticos; não utiliza projeção probabilística.
 - SLAs sintéticos do laboratório não representam SLA real da TOTVS.
 
 ## Ações Recomendadas

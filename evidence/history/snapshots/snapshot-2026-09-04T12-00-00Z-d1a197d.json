@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-09-04T12:00:00.000Z",
+  "commitSha": "d1a197d6438b",
+  "overallStatus": "YELLOW",
+  "riskCoverage": {
+    "knownRisks": 24,
+    "exercisedRisks": 17,
+    "coveragePct": 70.8
+  },
+  "controlsPassed": 17,
+  "controlsFailed": 0,
+  "journeysPassed": 4,
+  "journeysFailed": 0,
+  "slaMet": 4,
+  "slaBreached": 0,
+  "resiliencePassed": 6,
+  "resilienceFailed": 0,
+  "recoveryDuration": {
+    "minMs": 38,
+    "avgMs": 44,
+    "maxMs": 52
+  },
+  "observabilityStatus": "GREEN",
+  "performanceStatus": "GREEN",
+  "apiP95": 152,
+  "apiP99": 295,
+  "regressionStatus": "GREEN",
+  "securityStatus": "UNKNOWN",
+  "securityFindings": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "info": 0
+  },
+  "knownGaps": [
+    "7 riscos conhecidos não possuem evidência serializada nesta coleta.",
+    "Segurança não instrumentada neste checkpoint."
+  ]
+}

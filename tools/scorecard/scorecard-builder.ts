@@ -8,6 +8,7 @@ import { loadJourneyData } from '../ai/journey-evidence-loader.js';
 import { loadTelemetryData } from '../ai/telemetry-evidence-loader.js';
 import { renderScorecardPdf } from './scorecard-pdf.js';
 import { parseSecuritySummary, type SecuritySummary } from '../security/security-schema.js';
+import { parseTrendsFile, type TrendsFile } from '../history/history-schema.js';
 import { renderExecutiveSummaryMarkdown, renderScorecardHtml } from './scorecard-renderer.js';
 import {
   parseExecutiveScorecard,
@@ -94,6 +95,14 @@ export interface ScorecardSignals {
   };
   hasHistoricalSeries: boolean;
   latestEvidenceAt: string | null;
+  history?: {
+    checkpointsAnalyzed: number;
+    canCalculateTrend: boolean;
+    comparisonStatus: 'IMPROVED' | 'STABLE' | 'REGRESSED' | 'NO_PREVIOUS_CHECKPOINT' | 'NO_BASELINE' | 'UNKNOWN';
+    previousCommit: string | null;
+    overallHistoricalTrend: QualityTrend;
+    dimensionTrends: Record<string, QualityTrend>;
+  } | null;
 }
 
 interface BuildMetadata {
@@ -194,6 +203,7 @@ export function loadScorecardSignals(repositoryRoot = process.cwd()): ScorecardS
   const currentPath = path.join(performanceDir, 'current.json');
   const baselinePath = path.join(performanceDir, 'baseline.json');
   const securityPath = path.join(repositoryRoot, 'evidence', 'security', 'summary.json');
+  const trendsPath = path.join(repositoryRoot, 'evidence', 'history', 'trends.json');
 
   const resiliency = loadResiliencyData(resiliencyDir);
   const telemetry = loadTelemetryData(observabilityDir, resiliencyDir);
@@ -201,12 +211,21 @@ export function loadScorecardSignals(repositoryRoot = process.cwd()): ScorecardS
   const current = readJson<PerformanceCurrent>(currentPath);
   const baseline = readJson<Record<string, unknown>>(baselinePath);
   const rawSecurity = readJson<unknown>(securityPath);
+  const rawTrends = readJson<unknown>(trendsPath);
   let security: SecuritySummary | null = null;
+  let trendsData: TrendsFile | null = null;
   try {
     if (rawSecurity) security = parseSecuritySummary(rawSecurity);
   } catch {
     security = null;
   }
+  try {
+    if (rawTrends) trendsData = parseTrendsFile(rawTrends);
+  } catch {
+    trendsData = null;
+  }
+
+  const hasHistoricalSeries = Boolean(trendsData && trendsData.canCalculateTrend && trendsData.checkpointsAnalyzed >= 3);
 
   const controlExecutions: ControlExecutionSignal[] = [
     ...resiliency.evidences.map((item) => ({
@@ -315,13 +334,21 @@ export function loadScorecardSignals(repositoryRoot = process.cwd()): ScorecardS
       controlsUnknown: security?.controlsUnknown ?? 4,
       knownGaps: security?.knownGaps ?? [],
     },
-    hasHistoricalSeries: false,
+    hasHistoricalSeries,
     latestEvidenceAt: latestIso([
       ...resiliency.evidences.flatMap((item) => [item.startedAt, item.recoveredAt]),
       ...journey.journeyEvidences.flatMap((item) => [item.startedAt, item.completedAt]),
       current?.startedAt,
       current?.completedAt,
     ]),
+    history: trendsData ? {
+      checkpointsAnalyzed: trendsData.checkpointsAnalyzed,
+      canCalculateTrend: trendsData.canCalculateTrend,
+      comparisonStatus: trendsData.comparisonStatus,
+      previousCommit: null,
+      overallHistoricalTrend: trendsData.overallTrend,
+      dimensionTrends: Object.fromEntries(trendsData.dimensions.map((d) => [d.dimension, d.historicalTrend])),
+    } : null,
   };
 }
 
@@ -346,11 +373,11 @@ function overallStatus(dimensions: ScorecardDimension[]): QualityStatus {
   return 'GREEN';
 }
 
-function comparisonTrend(status: ScorecardSignals['performance']['comparisonStatus']): QualityTrend {
-  if (status === 'IMPROVED') return 'IMPROVING';
-  if (status === 'STABLE') return 'STABLE';
-  if (status === 'REGRESSED') return 'DEGRADING';
-  return 'UNKNOWN';
+function dimensionHistoricalTrend(signals: ScorecardSignals, dimensionKey: string): QualityTrend {
+  if (!signals.hasHistoricalSeries || !signals.history?.canCalculateTrend) {
+    return 'UNKNOWN';
+  }
+  return signals.history.dimensionTrends[dimensionKey] ?? 'UNKNOWN';
 }
 
 export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: BuildMetadata = {}): ExecutiveScorecard {
@@ -391,11 +418,10 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
     : signals.performance.comparisonStatus === 'REGRESSED' ? 'RED' : 'GREEN';
   const gapStatus: QualityStatus = knownGaps.length > 0 ? 'YELLOW' : 'GREEN';
   const securityStatus = signals.security.status;
-  const performanceTrend = comparisonTrend(signals.performance.comparisonStatus);
 
   const dimensions: ScorecardDimension[] = [
     {
-      key: 'RISK_COVERAGE', label: 'Risk Coverage', status: coverageStatus, trend: 'UNKNOWN',
+      key: 'RISK_COVERAGE', label: 'Risk Coverage', status: coverageStatus, trend: dimensionHistoricalTrend(signals, 'RISK_COVERAGE'),
       evidence: [evidence('docs/04-quality-risk-map.md', 'RISK_MAP', `${exercisedRiskIds.size}/${knownRisks} riscos exercitados`)],
       indicators: [
         indicator('known-risks', 'Riscos conhecidos', knownRisks, knownRisks > 0 ? 'GREEN' : 'UNKNOWN'),
@@ -406,7 +432,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
       risks: [...knownRiskIds].filter((riskId) => !exercisedRiskIds.has(riskId)),
     },
     {
-      key: 'CONTROLS', label: 'Controls', status: controlsStatus, trend: 'UNKNOWN',
+      key: 'CONTROLS', label: 'Controls', status: controlsStatus, trend: dimensionHistoricalTrend(signals, 'CONTROLS'),
       evidence: [evidence('evidence/{resiliency,observability,journeys,performance}', 'RISK_MAP', `${uniqueExecutions.size} controles com resultado`)],
       indicators: [
         indicator('controls-passed', 'Aprovados', passed, passed > 0 ? 'GREEN' : 'UNKNOWN'),
@@ -417,7 +443,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
       risks: [...uniqueExecutions.values()].filter((item) => item.result === 'FAILED').map((item) => item.riskId),
     },
     {
-      key: 'CRITICAL_JOURNEYS', label: 'Critical Journeys', status: journeyStatus, trend: 'UNKNOWN',
+      key: 'CRITICAL_JOURNEYS', label: 'Critical Journeys', status: journeyStatus, trend: dimensionHistoricalTrend(signals, 'CRITICAL_JOURNEYS'),
       evidence: [evidence('evidence/journeys/*.json', 'JOURNEY', `${signals.journeys.passed}/${signals.journeys.total} aprovadas`)],
       indicators: [
         indicator('journeys-passed', 'Aprovadas', signals.journeys.passed, journeyStatus),
@@ -429,7 +455,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
       risks: signals.controlExecutions.filter((item) => item.kind === 'JOURNEY' && item.result === 'FAILED').map((item) => item.riskId),
     },
     {
-      key: 'RESILIENCE', label: 'Resilience', status: resilienceStatus, trend: 'UNKNOWN',
+      key: 'RESILIENCE', label: 'Resilience', status: resilienceStatus, trend: dimensionHistoricalTrend(signals, 'RESILIENCE'),
       evidence: [evidence('evidence/resiliency/*.json', 'RESILIENCY', `${signals.resilience.passed}/${signals.resilience.total} cenários recuperados`)],
       indicators: [
         indicator('resilience-passed', 'Aprovados', signals.resilience.passed, resilienceStatus),
@@ -441,7 +467,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
       risks: signals.controlExecutions.filter((item) => item.kind === 'RESILIENCY' && item.result === 'FAILED').map((item) => item.riskId),
     },
     {
-      key: 'OBSERVABILITY', label: 'Observability', status: observabilityStatus, trend: 'UNKNOWN',
+      key: 'OBSERVABILITY', label: 'Observability', status: observabilityStatus, trend: dimensionHistoricalTrend(signals, 'OBSERVABILITY'),
       evidence: [evidence('evidence/observability/*.json', 'OBSERVABILITY', `${signals.observability.traces} traces analisados`)],
       indicators: [
         indicator('traces', 'Traces', signals.observability.traces, observabilityStatus),
@@ -453,7 +479,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
       risks: signals.controlExecutions.filter((item) => item.kind === 'OBSERVABILITY' && item.result === 'FAILED').map((item) => item.riskId),
     },
     {
-      key: 'PERFORMANCE', label: 'Performance', status: performanceStatus, trend: performanceTrend,
+      key: 'PERFORMANCE', label: 'Performance', status: performanceStatus, trend: dimensionHistoricalTrend(signals, 'PERFORMANCE'),
       evidence: [evidence('evidence/performance/current.json', 'PERFORMANCE', signals.performance.result)],
       indicators: [
         indicator('p50', 'p50', signals.performance.p50Ms ?? 'N/D', performanceStatus, signals.performance.p50Ms === null ? undefined : 'ms'),
@@ -465,7 +491,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
       risks: signals.performance.result === 'FAILED' ? PERFORMANCE_CONTROLS.map((item) => item.riskId) : [],
     },
     {
-      key: 'REGRESSION', label: 'Regression', status: regressionStatus, trend: performanceTrend,
+      key: 'REGRESSION', label: 'Regression', status: regressionStatus, trend: dimensionHistoricalTrend(signals, 'REGRESSION'),
       evidence: [
         evidence('evidence/performance/current.json', 'PERFORMANCE', signals.performance.comparisonStatus),
         evidence('evidence/performance/baseline.json', 'BASELINE', signals.sources.performanceBaseline ? 'AVAILABLE' : 'MISSING'),
@@ -479,7 +505,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
       risks: signals.performance.regressedMetrics.length > 0 ? ['RISK-PERF-005'] : [],
     },
     {
-      key: 'SECURITY', label: 'Security', status: securityStatus, trend: 'UNKNOWN',
+      key: 'SECURITY', label: 'Security', status: securityStatus, trend: dimensionHistoricalTrend(signals, 'SECURITY'),
       evidence: [evidence('evidence/security/summary.json', 'SECURITY', securityStatus)],
       indicators: [
         indicator('security-findings', 'Findings', signals.security.findings, securityStatus),
@@ -491,7 +517,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
       risks: signals.controlExecutions.filter((item) => item.kind === 'SECURITY' && item.result === 'FAILED').map((item) => item.riskId),
     },
     {
-      key: 'KNOWN_GAPS', label: 'Known Gaps', status: gapStatus, trend: 'UNKNOWN',
+      key: 'KNOWN_GAPS', label: 'Known Gaps', status: gapStatus, trend: dimensionHistoricalTrend(signals, 'KNOWN_GAPS'),
       evidence: [evidence('scorecard deterministic normalization', 'RISK_MAP', `${knownGaps.length} gaps explicitados`)],
       indicators: [
         indicator('known-gaps', 'Gaps conhecidos', knownGaps.length, gapStatus),
@@ -504,7 +530,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
   ];
 
   const calculatedOverall = overallStatus(dimensions);
-  const overallTrend = performanceTrend;
+  const overallTrend = dimensionHistoricalTrend(signals, 'OVERALL_QUALITY');
   const overallDimension: ScorecardDimension = {
     key: 'OVERALL_QUALITY', label: 'Overall Quality', status: calculatedOverall, trend: overallTrend,
     evidence: [evidence('evidence/scorecard/current.json', 'RISK_MAP', 'síntese das nove dimensões')],
@@ -517,6 +543,10 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
     explanation: 'Pior status determinístico entre as dimensões; UNKNOWN é preservado quando não há evidência operacional suficiente.',
     risks: dimensions.flatMap((dimension) => dimension.risks).filter((riskId, index, values) => values.indexOf(riskId) === index),
   };
+
+  const trendDisclaimer = signals.hasHistoricalSeries && signals.history?.canCalculateTrend
+    ? `Tendência histórica baseada em ${signals.history.checkpointsAnalyzed} checkpoints determinísticos; não utiliza projeção probabilística.`
+    : 'Comparação pontual entre baseline e execução atual; não constitui série histórica.';
 
   return parseExecutiveScorecard({
     schemaVersion: '1.0.0',
@@ -542,8 +572,17 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
     },
     dimensions: [overallDimension, ...dimensions],
     knownGaps,
-    trendDisclaimer: 'Comparação pontual entre baseline e execução atual; não constitui série histórica.',
+    trendDisclaimer,
     syntheticSlaDisclaimer: 'SLAs sintéticos do laboratório não representam SLA real da TOTVS.',
+    ...(signals.history ? {
+      history: {
+        checkpointsAnalyzed: signals.history.checkpointsAnalyzed,
+        canCalculateTrend: signals.history.canCalculateTrend,
+        comparisonStatus: signals.history.comparisonStatus,
+        previousCommit: signals.history.previousCommit,
+        overallHistoricalTrend: signals.history.overallHistoricalTrend,
+      },
+    } : {}),
   });
 }
 

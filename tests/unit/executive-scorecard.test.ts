@@ -128,14 +128,15 @@ test('violação de SLA sintético torna Critical Journeys RED', () => {
   assert.equal(scorecard.dimensions.find((item) => item.key === 'CRITICAL_JOURNEYS')?.status, 'RED');
 });
 
-test('regressão de performance torna Regression RED e tendência DEGRADING', () => {
+test('regressão pontual de performance torna Regression RED e preserva status pontual', () => {
   const signals = greenSignals();
   signals.performance.comparisonStatus = 'REGRESSED';
   signals.performance.regressedMetrics = ['p95'];
   const scorecard = buildExecutiveScorecard(signals, metadata);
   const regression = scorecard.dimensions.find((item) => item.key === 'REGRESSION');
   assert.equal(regression?.status, 'RED');
-  assert.equal(regression?.trend, 'DEGRADING');
+  assert.equal(regression?.trend, 'UNKNOWN');
+  assert.equal(regression?.indicators.find((item) => item.key === 'comparison')?.value, 'REGRESSED');
 });
 
 test('falha em jornada torna Critical Journeys e Overall RED', () => {
@@ -172,14 +173,38 @@ test('gap IAM mantém a dimensão Security YELLOW sem criar falha fictícia', ()
   assert.equal(scorecard.overallStatus, 'YELLOW');
 });
 
-test('tendência STABLE é preservada para comparação pontual estável', () => {
+test('sem histórico >= 3 checkpoints, tendência é estritamente UNKNOWN', () => {
   const scorecard = buildExecutiveScorecard(greenSignals(), metadata);
-  assert.equal(scorecard.overallTrend, 'STABLE');
+  assert.equal(scorecard.overallTrend, 'UNKNOWN');
 });
 
-test('tendência DEGRADING é preservada quando a baseline regride', () => {
+test('com histórico >= 3 checkpoints, tendência STABLE é calculada', () => {
   const signals = greenSignals();
-  signals.performance.comparisonStatus = 'REGRESSED';
+  signals.hasHistoricalSeries = true;
+  signals.history = {
+    checkpointsAnalyzed: 3,
+    canCalculateTrend: true,
+    comparisonStatus: 'STABLE',
+    previousCommit: 'prev123',
+    overallHistoricalTrend: 'STABLE',
+    dimensionTrends: { OVERALL_QUALITY: 'STABLE', REGRESSION: 'STABLE' },
+  };
+  const scorecard = buildExecutiveScorecard(signals, metadata);
+  assert.equal(scorecard.overallTrend, 'STABLE');
+  assert.equal(scorecard.dimensions.find((item) => item.key === 'REGRESSION')?.trend, 'STABLE');
+});
+
+test('com histórico >= 3 checkpoints, tendência DEGRADING é calculada quando a série regride', () => {
+  const signals = greenSignals();
+  signals.hasHistoricalSeries = true;
+  signals.history = {
+    checkpointsAnalyzed: 3,
+    canCalculateTrend: true,
+    comparisonStatus: 'REGRESSED',
+    previousCommit: 'prev123',
+    overallHistoricalTrend: 'DEGRADING',
+    dimensionTrends: { OVERALL_QUALITY: 'DEGRADING', REGRESSION: 'DEGRADING' },
+  };
   assert.equal(buildExecutiveScorecard(signals, metadata).overallTrend, 'DEGRADING');
 });
 

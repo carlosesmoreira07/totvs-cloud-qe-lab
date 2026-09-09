@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-09-09T22:59:37.038Z",
+  "checkpointsAnalyzed": 3,
+  "canCalculateTrend": true,
+  "comparisonStatus": "STABLE",
+  "overallTrend": "IMPROVING",
+  "dimensions": [
+    {
+      "dimension": "OVERALL_QUALITY",
+      "label": "Qualidade Geral",
+      "historicalTrend": "IMPROVING",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "YELLOW",
+      "interpretation": "Evolução positiva consistente (2 dimensões em melhoria, sem degradação crítica).",
+      "dataPoints": [
+        70.8,
+        77.4,
+        77.4
+      ]
+    },
+    {
+      "dimension": "RISK_COVERAGE",
+      "label": "Cobertura de Riscos",
+      "historicalTrend": "IMPROVING",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "YELLOW",
+      "interpretation": "Cobertura de riscos aumentou de 70.8% para 77.4%.",
+      "dataPoints": [
+        70.8,
+        77.4,
+        77.4
+      ]
+    },
+    {
+      "dimension": "CONTROLS",
+      "label": "Controles",
+      "historicalTrend": "IMPROVING",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "GREEN",
+      "interpretation": "Mais controles foram implementados e aprovados (17 -> 24) sem falhas.",
+      "dataPoints": [
+        17,
+        24,
+        24
+      ]
+    },
+    {
+      "dimension": "CRITICAL_JOURNEYS",
+      "label": "Jornadas Críticas",
+      "historicalTrend": "STABLE",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "GREEN",
+      "interpretation": "Jornadas mantidas com 4 aprovadas e zero violações de SLA.",
+      "dataPoints": [
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "dimension": "RESILIENCE",
+      "label": "Resiliência",
+      "historicalTrend": "STABLE",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "GREEN",
+      "interpretation": "Recuperação distribuída estável (média 42 ms).",
+      "dataPoints": [
+        44,
+        43,
+        42
+      ]
+    },
+    {
+      "dimension": "OBSERVABILITY",
+      "label": "Observabilidade",
+      "historicalTrend": "STABLE",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "GREEN",
+      "interpretation": "Observabilidade e rastreabilidade estáveis em GREEN.",
+      "dataPoints": [
+        100,
+        100,
+        100
+      ]
+    },
+    {
+      "dimension": "PERFORMANCE",
+      "label": "Desempenho",
+      "historicalTrend": "STABLE",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "GREEN",
+      "interpretation": "Desempenho com p95 de 146 ms dentro das tolerâncias sintéticas.",
+      "dataPoints": [
+        152,
+        148,
+        146
+      ]
+    },
+    {
+      "dimension": "REGRESSION",
+      "label": "Regressão",
+      "historicalTrend": "STABLE",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "GREEN",
+      "interpretation": "Sem regressão observada contra baseline nos checkpoints.",
+      "dataPoints": [
+        100,
+        100,
+        100
+      ]
+    },
+    {
+      "dimension": "SECURITY",
+      "label": "Segurança",
+      "historicalTrend": "STABLE",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "YELLOW",
+      "interpretation": "Postura de segurança estável com 1 finding(s) (zero CRITICAL/HIGH).",
+      "dataPoints": [
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "dimension": "KNOWN_GAPS",
+      "label": "Lacunas Conhecidas",
+      "historicalTrend": "STABLE",
+      "comparisonStatus": "STABLE",
+      "latestStatus": "YELLOW",
+      "interpretation": "2 gaps conhecidos sob monitoramento estável.",
+      "dataPoints": [
+        2,
+        2,
+        2
+      ]
+    }
+  ],
+  "disclaimer": "Tendência histórica baseada em 3 checkpoints comparáveis; não utiliza projeção probabilística ou score arbitrário."
+}

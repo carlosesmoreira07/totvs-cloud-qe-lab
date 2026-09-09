@@ -45,6 +45,7 @@ Risco -> Controle -> Evidência -> Decisão
 ```text
 apps/control-plane-mock/       mock local, persistência PostgreSQL, Outbox Publisher, Consumer e Telemetria
 docs/                          charter, mapa público, hipóteses, riscos, Outbox/NATS, resiliência, observabilidade e IA assistiva
+evidence/history/             snapshots versionados, histórico consolidado e tendências (LAB-11)
 evidence/journeys/             evidências estruturadas em JSON das jornadas sintéticas E2E (LAB-08)
 evidence/observability/        evidências estruturadas em JSON dos cenários de telemetria e tracing (LAB-07)
 evidence/performance/          evidências estruturadas em JSON de baselines e comparações de performance (LAB-09)
@@ -63,6 +64,7 @@ tests/resiliency/              controles de degradação e recuperação distrib
 tests/observability/           controles de tracing distribuído e métricas QE (LAB-07)
 tests/security/                controles de segurança comportamental da API local (LAB-10)
 tools/                         validação e contexto consultivo de impacto
+tools/history/                 snapshots, calculador de tendências determinísticas e consolidador (LAB-11)
 tools/scorecard/               normalização, regras determinísticas e renderização do scorecard
 tools/security/                adapters, schemas e regras determinísticas do Security Quality Pack
 .github/workflows/             gate mínimo, objetivo e determinístico
@@ -165,6 +167,7 @@ npm run security:scan
 
 [LAB] As suítes produzem artefatos JSON determinísticos para consumo futuro pela QE Intelligence Layer:
 
+- `evidence/history/*.json`: snapshots versionados, histórico consolidado e tendências determinísticas (LAB-11);
 - `evidence/journeys/*.json`: jornadas sintéticas ponta a ponta, latência de aceitação, duração E2E, tempo de recuperação e conformidade com SLA;
 - `evidence/performance/*.json`: linha de base de performance, métricas p50/p95/p99, vazão, integridade concorrente e status de regressão;
 - `evidence/resiliency/*.json`: cenários de degradação, recuperação e consistência distribuída;
@@ -199,9 +202,18 @@ curl http://127.0.0.1:8222/jsz
 curl http://127.0.0.1:8474/proxies
 ```
 
-### Contexto de impacto e IA assistiva
+### Contexto de impacto, scorecard e histórico
 
 ```bash
+# Registrar snapshot determinístico do estado atual de qualidade (LAB-11)
+npm run history:snapshot
+
+# Consolidar snapshots e calcular tendências históricas determinísticas (LAB-11)
+npm run history:build
+
+# Gerar JSON, Markdown, HTML e PDF do scorecard determinístico (AI-05)
+npm run scorecard
+
 # Gerar contexto determinístico de impacto
 npm run impact:context
 
@@ -216,9 +228,6 @@ npm run ai:telemetry-advisory
 
 # Executar AI journey advisory consultivo (Journey Intelligence AI-04)
 npm run ai:journey-advisory
-
-# Gerar JSON, Markdown, HTML e PDF do scorecard determinístico (AI-05)
-npm run scorecard
 
 # Executar interpretação consultiva do scorecard; sem chave retorna fallback seguro
 npm run ai:scorecard
@@ -241,5 +250,6 @@ npm run ai:security-advisory
 - [Guia LAB-09: Performance e Baseline](docs/09-performance-baseline.md)
 - [Guia AI-05: Executive Quality Scorecard](docs/10-executive-quality-scorecard.md)
 - [Guia LAB-10: Security Quality Pack](docs/11-security-quality-pack.md)
+- [Guia LAB-11: Historical Quality Trends](docs/12-historical-quality-trends.md)
 - [Arquitetura de IA assistiva](docs/ai-assisted-impact-analysis.md)
 - [OpenAPI](specs/openapi/cloud-control-plane.yaml)

@@ -140,7 +140,7 @@ export async function renderScorecardPdf(scorecard: ExecutiveScorecard): Promise
   const cellWidths = [150, 135, 160, 125, 163];
   const cells = [
     ['Status geral', view.statusLabel, view.statusMeaning, statusColor(view.status)],
-    ['Tendência', view.trendLabel, 'Leitura pontual', undefined],
+    ['Tendência', view.trendLabel, view.hasHistoricalTrend ? `${view.checkpointsAnalyzed} checkpoints` : 'Leitura pontual', undefined],
     ['Data e hora', view.generatedAt, 'Horário de Brasília', undefined],
     ['Commit', view.commit, 'Referência analisada', undefined],
     ['Contexto', 'Personal & Non-Official', '[LAB]', undefined],

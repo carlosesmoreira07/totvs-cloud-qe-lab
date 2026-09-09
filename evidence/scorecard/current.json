@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0.0",
   "rulesVersion": "scorecard-rules-v1",
-  "generatedAt": "2026-09-04T23:20:37.153Z",
-  "commit": "2f952096db4e",
+  "generatedAt": "2026-09-09T22:59:42.890Z",
+  "commit": "343843e0cf7e",
   "scope": "[LAB] Cloud Control Plane fictício",
   "decisionAuthority": "HUMAN",
   "overallStatus": "YELLOW",
@@ -18,7 +18,7 @@
     "journeysTotal": 4,
     "syntheticSlaMet": 4,
     "syntheticSlaTotal": 4,
-    "knownGapCount": 4
+    "knownGapCount": 3
   },
   "dimensions": [
     {
@@ -56,7 +56,7 @@
         {
           "key": "known-gaps",
           "label": "Gaps conhecidos",
-          "value": 4,
+          "value": 3,
           "status": "YELLOW"
         }
       ],
@@ -83,7 +83,7 @@
       "key": "RISK_COVERAGE",
       "label": "Risk Coverage",
       "status": "YELLOW",
-      "trend": "UNKNOWN",
+      "trend": "IMPROVING",
       "evidence": [
         {
           "source": "docs/04-quality-risk-map.md",
@@ -135,7 +135,7 @@
       "key": "CONTROLS",
       "label": "Controls",
       "status": "YELLOW",
-      "trend": "UNKNOWN",
+      "trend": "IMPROVING",
       "evidence": [
         {
           "source": "evidence/{resiliency,observability,journeys,performance}",
@@ -170,7 +170,7 @@
       "key": "CRITICAL_JOURNEYS",
       "label": "Critical Journeys",
       "status": "GREEN",
-      "trend": "UNKNOWN",
+      "trend": "STABLE",
       "evidence": [
         {
           "source": "evidence/journeys/*.json",
@@ -212,7 +212,7 @@
       "key": "RESILIENCE",
       "label": "Resilience",
       "status": "GREEN",
-      "trend": "UNKNOWN",
+      "trend": "STABLE",
       "evidence": [
         {
           "source": "evidence/resiliency/*.json",
@@ -256,7 +256,7 @@
       "key": "OBSERVABILITY",
       "label": "Observability",
       "status": "YELLOW",
-      "trend": "UNKNOWN",
+      "trend": "STABLE",
       "evidence": [
         {
           "source": "evidence/observability/*.json",
@@ -297,7 +297,7 @@
       "key": "PERFORMANCE",
       "label": "Performance",
       "status": "GREEN",
-      "trend": "IMPROVING",
+      "trend": "STABLE",
       "evidence": [
         {
           "source": "evidence/performance/current.json",
@@ -342,7 +342,7 @@
       "key": "REGRESSION",
       "label": "Regression",
       "status": "GREEN",
-      "trend": "IMPROVING",
+      "trend": "STABLE",
       "evidence": [
         {
           "source": "evidence/performance/current.json",
@@ -383,7 +383,7 @@
       "key": "SECURITY",
       "label": "Security",
       "status": "YELLOW",
-      "trend": "UNKNOWN",
+      "trend": "STABLE",
       "evidence": [
         {
           "source": "evidence/security/summary.json",
@@ -424,19 +424,19 @@
       "key": "KNOWN_GAPS",
       "label": "Known Gaps",
       "status": "YELLOW",
-      "trend": "UNKNOWN",
+      "trend": "STABLE",
       "evidence": [
         {
           "source": "scorecard deterministic normalization",
           "kind": "RISK_MAP",
-          "result": "4 gaps explicitados"
+          "result": "3 gaps explicitados"
         }
       ],
       "indicators": [
         {
           "key": "known-gaps",
           "label": "Gaps conhecidos",
-          "value": 4,
+          "value": 3,
           "status": "YELLOW"
         },
         {
@@ -475,9 +475,15 @@
   "knownGaps": [
     "15 riscos conhecidos não possuem evidência serializada nesta coleta.",
     "1 cenários de observabilidade possuem cadeia parcial de spans e exigem interpretação humana.",
-    "Baseline e current permitem comparação pontual, mas ainda não formam série histórica.",
     "Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED."
   ],
-  "trendDisclaimer": "Comparação pontual entre baseline e execução atual; não constitui série histórica.",
-  "syntheticSlaDisclaimer": "SLAs sintéticos do laboratório não representam SLA real da TOTVS."
+  "trendDisclaimer": "Tendência histórica baseada em 3 checkpoints determinísticos; não utiliza projeção probabilística.",
+  "syntheticSlaDisclaimer": "SLAs sintéticos do laboratório não representam SLA real da TOTVS.",
+  "history": {
+    "checkpointsAnalyzed": 3,
+    "canCalculateTrend": true,
+    "comparisonStatus": "STABLE",
+    "previousCommit": null,
+    "overallHistoricalTrend": "IMPROVING"
+  }
 }

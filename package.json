@@ -34,7 +34,9 @@
     "ai:security-advisory": "tsx tools/ai/security-intelligence.ts",
     "scorecard": "tsx tools/scorecard/scorecard-builder.ts",
     "ai:scorecard": "tsx tools/ai/executive-scorecard-intelligence.ts",
-    "security:scan": "tsx tools/security/security-runner.ts"
+    "security:scan": "tsx tools/security/security-runner.ts",
+    "history:snapshot": "tsx tools/history/history-snapshot.ts",
+    "history:build": "tsx tools/history/history-builder.ts"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "13.0.0",

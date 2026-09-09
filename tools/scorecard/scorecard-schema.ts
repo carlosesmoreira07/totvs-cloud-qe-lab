@@ -39,6 +39,14 @@ export const scorecardDimensionSchema = z.object({
   risks: z.array(z.string().min(1)),
 }).strict();
 
+export const scorecardHistorySummarySchema = z.object({
+  checkpointsAnalyzed: z.number().int().nonnegative(),
+  canCalculateTrend: z.boolean(),
+  comparisonStatus: z.enum(['IMPROVED', 'STABLE', 'REGRESSED', 'NO_PREVIOUS_CHECKPOINT', 'NO_BASELINE', 'UNKNOWN']),
+  previousCommit: z.string().nullable(),
+  overallHistoricalTrend: qualityTrendSchema,
+}).strict();
+
 export const executiveScorecardSchema = z.object({
   schemaVersion: z.literal('1.0.0'),
   rulesVersion: z.literal('scorecard-rules-v1'),
@@ -63,14 +71,16 @@ export const executiveScorecardSchema = z.object({
   }).strict(),
   dimensions: z.array(scorecardDimensionSchema).length(10),
   knownGaps: z.array(z.string().min(1)),
-  trendDisclaimer: z.literal('Comparação pontual entre baseline e execução atual; não constitui série histórica.'),
+  trendDisclaimer: z.string().min(1),
   syntheticSlaDisclaimer: z.literal('SLAs sintéticos do laboratório não representam SLA real da TOTVS.'),
+  history: scorecardHistorySummarySchema.optional(),
 }).strict();
 
 export type QualityStatus = z.infer<typeof qualityStatusSchema>;
 export type QualityTrend = z.infer<typeof qualityTrendSchema>;
 export type ScorecardIndicator = z.infer<typeof scorecardIndicatorSchema>;
 export type ScorecardDimension = z.infer<typeof scorecardDimensionSchema>;
+export type ScorecardHistorySummary = z.infer<typeof scorecardHistorySummarySchema>;
 export type ExecutiveScorecard = z.infer<typeof executiveScorecardSchema>;
 
 export function parseExecutiveScorecard(value: unknown): ExecutiveScorecard {

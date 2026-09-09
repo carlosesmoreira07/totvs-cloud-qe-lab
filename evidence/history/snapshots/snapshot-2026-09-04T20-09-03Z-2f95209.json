@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-09-04T20:09:03.000Z",
+  "commitSha": "2f952096db4e",
+  "overallStatus": "YELLOW",
+  "riskCoverage": {
+    "knownRisks": 31,
+    "exercisedRisks": 24,
+    "coveragePct": 77.4
+  },
+  "controlsPassed": 24,
+  "controlsFailed": 0,
+  "journeysPassed": 4,
+  "journeysFailed": 0,
+  "slaMet": 4,
+  "slaBreached": 0,
+  "resiliencePassed": 6,
+  "resilienceFailed": 0,
+  "recoveryDuration": {
+    "minMs": 37,
+    "avgMs": 43,
+    "maxMs": 50
+  },
+  "observabilityStatus": "GREEN",
+  "performanceStatus": "GREEN",
+  "apiP95": 148,
+  "apiP99": 288,
+  "regressionStatus": "GREEN",
+  "securityStatus": "YELLOW",
+  "securityFindings": {
+    "critical": 0,
+    "high": 0,
+    "medium": 1,
+    "low": 0,
+    "info": 0
+  },
+  "knownGaps": [
+    "7 riscos conhecidos não possuem evidência serializada nesta coleta.",
+    "Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED."
+  ]
+}
