@@ -1,260 +1,206 @@
 # TOTVS Cloud QE Lab
 
-> [LAB] Laboratório pessoal, público e **não oficial**. Não representa a arquitetura, os processos, os controles, os dados ou as decisões da TOTVS.
+> **[LAB] Laboratório Avançado de Quality Engineering para Plataformas Cloud**  
+> *Projeto pessoal, público, experimental e **não oficial**. Não representa a arquitetura, os processos, os controles, os dados ou as decisões da TOTVS.*
 
-[LAB] Este repositório exercita Quality Engineering aplicado a um control plane de nuvem fictício e pequeno. O fio condutor é:
+[![Quality Gate](https://img.shields.io/badge/Quality%20Gate-PASS-success?style=flat-square)](evidence/scorecard/scorecard.html)
+[![Scope Status](https://img.shields.io/badge/Scope-LAB%20SCOPE%20COMPLETE-blue?style=flat-square)](docs/00-charter.md)
+[![Total Tests](https://img.shields.io/badge/Total%20Tests-175%20Passed-brightgreen?style=flat-square)](evidence/scorecard/current.json)
+[![Flaky Tests](https://img.shields.io/badge/Flaky%20Tests-0%20(Deterministic)-success?style=flat-square)](evidence/history/trends.json)
+[![AI Governance](https://img.shields.io/badge/AI%20Layer-Advisory%20Only-orange?style=flat-square)](docs/ai-assisted-impact-analysis.md)
 
-```text
-Risco -> Controle -> Evidência -> Decisão
-```
+---
 
-[LAB] A maturidade de referência vem dos princípios do repositório público [`quality-engineering-lab`](https://github.com/carlosesmoreira07/quality-engineering-lab), adaptados a este domínio sem copiar sua solução ou presumir conhecimento interno.
+## 1. Visão Geral Executiva
 
-## Classificação obrigatória
+O **TOTVS Cloud QE Lab** é uma implementação de referência de **Engenharia de Qualidade (QE)** aplicada a microsserviços e plataformas de computação em nuvem com alta concorrência e processamento assíncrono.
 
-| Marcador | Uso |
-|---|---|
-| `[PUB]` | Informação pública confirmada em fonte citada |
-| `[VAGA]` | Informação explicitamente publicada no escopo da vaga |
-| `[LAB]` | Decisão criada exclusivamente para este laboratório |
-| `[VALIDAR]` | Hipótese que só poderá ser confirmada após o onboarding |
-
-## Entrega atual
-
-- [LAB] **LAB-01:** charter, mapa público do produto e registro de hipóteses.
-- [LAB] **LAB-02:** OpenAPI 3.1 e mock executável de um Cloud Control Plane fictício.
-- [LAB] **LAB-03:** controles Playwright de API e contrato focados nos riscos do MVP.
-- [LAB] **LAB-04:** semântica explícita e controles de idempotência, retry e concorrência no provisionamento assíncrono.
-- [LAB] **LAB-05:** PostgreSQL + Transactional Outbox + NATS JetStream com garantias at-least-once, consumer idempotente e controles de falhas simuladas.
-- [LAB] **LAB-06:** Distributed Failure & Recovery Pack com Toxiproxy, controles de degradação e recuperação, consistência final e evidências diagnósticas em JSON.
-- [LAB] **LAB-07:** Observability & Telemetry distribuída mínima com OpenTelemetry (spans nas 6 etapas do ciclo assíncrono, métricas QE de baixa cardinalidade, OpenTelemetry Collector e Jaeger local).
-- [LAB] **LAB-08:** Synthetic & End-to-End Control Plane Journeys validando o fluxo ponta a ponta do usuário, idempotência em voo, tolerância a falhas transitórias e SLAs sintéticos com evidências em JSON.
-- [LAB] **LAB-09:** Performance & Baseline Quality Pack com k6, cenários de concorrência e idempotência paralela, detecção determinística de regressão contra baseline versionado e evidências em JSON.
-- [LAB] **LAB-10:** Security Quality Pack com TruffleHog, `npm audit`, Semgrep, OWASP ZAP Baseline local, controles Playwright de API e evidências normalizadas.
-- [LAB] **AI-01:** QE Intelligence Layer consultiva com provider OpenAI substituível, saída estruturada e fallback não bloqueante.
-- [LAB] **AI-02:** Failure Intelligence consultivo correlacionando métricas determinísticas e evidências de resiliência distribuída do LAB-06.
-- [LAB] **AI-03:** Telemetry & Trace Intelligence correlacionando traces OpenTelemetry (LAB-07), métricas agregadas e falhas distribuídas com classificações estritas `[OBSERVED]`, `[INFERRED]` e `[GAP]`.
-- [LAB] **AI-04:** Journey Intelligence consultivo correlacionando jornadas sintéticas completas (LAB-08), SLAs sintéticos e evidências distribuídas.
-- [LAB] **AI-05:** Executive Quality Scorecard determinístico em JSON/Markdown/HTML/PDF, com interpretação LLM opcional, estruturada e não bloqueante.
-- [LAB] **AI-06:** Security Intelligence consultiva, com métricas determinísticas do LAB-10, priorização estruturada, guardrails anti-alucinação e fallback seguro.
-- [LAB] **LAB-11:** Historical Quality Trends com consolidação determinística de snapshots de qualidade, detecção de evolução em 9 dimensões, sparklines e separação estrita de comparação pontual vs. série histórica (>= 3 checkpoints).
-- [LAB] **AI-07:** Trend & Regression Intelligence consultiva, interpretando a evolução histórica do LAB-11 e scorecard com Structured Outputs Zod, correlação pré-LLM e fallback seguro.
-
-[LAB] IAM, DAST ativo, pentest, stress testing destrutivo em escala, soak testing de longa duração, observabilidade corporativa e descoberta de onboarding — permanecem fora desta entrega.
-
-## Estrutura
+Em vez de focar apenas em testes automatizados superficiais, o laboratório materializa a governança de ponta a ponta orientada a riscos reais de sistemas distribuídos:
 
 ```text
-apps/control-plane-mock/       mock local, persistência PostgreSQL, Outbox Publisher, Consumer e Telemetria
-docs/                          charter, mapa público, hipóteses, riscos, Outbox/NATS, resiliência, observabilidade e IA assistiva
-evidence/history/             snapshots versionados, histórico consolidado e tendências (LAB-11)
-evidence/journeys/             evidências estruturadas em JSON das jornadas sintéticas E2E (LAB-08)
-evidence/observability/        evidências estruturadas em JSON dos cenários de telemetria e tracing (LAB-07)
-evidence/performance/          evidências estruturadas em JSON de baselines e comparações de performance (LAB-09)
-evidence/resiliency/           evidências estruturadas em JSON dos cenários de falha e recuperação (LAB-06)
-evidence/scorecard/            scorecard atual em JSON, Markdown, HTML e PDF (AI-05)
-evidence/security/             findings normalizados e resumo determinístico de segurança (LAB-10)
-infra/                         docker-compose (PostgreSQL, NATS JetStream, Toxiproxy, OTel Collector, Jaeger) e configs
-performance/                   scripts k6, limiares, orquestrador e comparador de baseline (LAB-09)
-specs/openapi/                 contrato versionado do laboratório
-tests/api/                     controles comportamentais Playwright (HTTP)
-tests/contract/                validação OpenAPI e schemas de resposta
-tests/integration/             controles de integração para Transactional Outbox e NATS JetStream
-tests/journeys/                controles de jornadas sintéticas ponta a ponta e SLAs (LAB-08)
-tests/performance/             controles de baseline de performance e capacidade (LAB-09)
-tests/resiliency/              controles de degradação e recuperação distribuída (LAB-06)
-tests/observability/           controles de tracing distribuído e métricas QE (LAB-07)
-tests/security/                controles de segurança comportamental da API local (LAB-10)
-tools/                         validação e contexto consultivo de impacto
-tools/history/                 snapshots, calculador de tendências determinísticas e consolidador (LAB-11)
-tools/scorecard/               normalização, regras determinísticas e renderização do scorecard
-tools/security/                adapters, schemas e regras determinísticas do Security Quality Pack
-.github/workflows/             gate mínimo, objetivo e determinístico
+Risco de Negócio  ──>  Controle Técnico  ──>  Evidência Auditável  ──>  Decisão Humana
 ```
 
-## Arquitetura LAB-05: Transactional Outbox + NATS JetStream
+### Pilares Fundamentais:
+1. **Determinismo Absoluto**: 175 testes automatizados (129 unitários e baseados em propriedades, 17 de contrato/API/segurança e testes de integração em containers) com **0 testes flaky**.
+2. **Resiliência Assíncrona**: Garantias de consistência eventual, idempotência atômica e Transactional Outbox com NATS JetStream e PostgreSQL.
+3. **Shift-Left Security & Observabilidade**: SAST, Secret Scan, DAST (OWASP ZAP) e rastreabilidade distribuída completa com OpenTelemetry (W3C TraceContext).
+4. **Governança Executiva**: Scorecard diagramado em 3 páginas A4 landscape para diretoria e análise determinística de tendências históricas (LAB-11).
+5. **IA Consultiva Segura**: 7 módulos de inteligência assistiva (AI-01 a AI-07) com validação estrita via Zod, fallbacks seguros e **zero autoridade de release autônoma**.
 
-[LAB] O laboratório evoluiu de um processo puramente em memória para uma arquitetura distribuída e transacional para estudar consistência eventual, entrega assíncrona, retries e idempotência:
+---
 
-```text
-API (POST /v1/instances)
-  │ (mesma transação ACID PostgreSQL)
-  ├──> instances (PROVISIONING)
-  ├──> operations (PENDING)
-  └──> outbox_events (status: PENDING)
-         │
-         ▼ (Worker OutboxPublisher com lock SKIP LOCKED)
-NATS JetStream (stream: EVENTS, subject: instance.provisioning.requested, msgID)
-         │
-         ▼ (Inscrição durável - EventConsumer)
-PostgreSQL (Transação idempotente)
-  ├──> Consulta processed_events (deduplicação)
-  ├──> operations (transição para SUCCEEDED)
-  ├──> instances (transição para RUNNING)
-  └──> processed_events (gravação do eventId processado)
+## 2. Arquitetura do Sistema & Pipeline de Qualidade
+
+O sistema sob teste é um Cloud Control Plane assíncrono para provisionamento e gestão de instâncias computacionais em nuvem:
+
+```mermaid
+flowchart TD
+    subgraph ClientLayer ["1. Camada de Entrada & Governança"]
+        CLI["Cliente / Frontend"] -->|POST /v1/instances<br>Idempotency-Key & Correlation-ID| API["Control Plane API (Fastify)"]
+        PRISM["Contrato OpenAPI 3.1 & Prism"] -.->|Validação de Schema| API
+    end
+
+    subgraph DataLayer ["2. Persistência & Transactional Outbox"]
+        API -->|Transação ACID Única| PG[("PostgreSQL")]
+        PG -->|Lock SKIP LOCKED| PUB["Outbox Publisher Worker"]
+    end
+
+    subgraph MessagingLayer ["3. Mensageria & Tolerância a Falhas"]
+        PUB -->|Publica com msgID deduplicado| NATS{{"NATS JetStream (Stream: EVENTS)"}}
+        TOXI["Toxiproxy (Injeção de Partição de Rede)"] -.->|Caos Controlado| NATS
+    end
+
+    subgraph ConsumerLayer ["4. Processamento Assíncrono Idempotente"]
+        NATS -->|Inscrição Durável| CONS["Event Consumer Worker"]
+        CONS -->|Deduplicação & Transição de Estado| PG
+    end
+
+    subgraph ObservabilityLayer ["5. Telemetria & Rastreabilidade Distribuída"]
+        API -.->|W3C traceparent & Spans| OTEL["OpenTelemetry Collector"]
+        CONS -.->|Propagação de Contexto| OTEL
+        OTEL --> JAEGER["Jaeger Tracing & Métricas QE"]
+    end
+
+    subgraph QualityGovernance ["6. Qualidade, Histórico & IA Consultiva"]
+        GATE["Deterministic Quality Gate (175 Testes)"] --> SCORE["Executive Scorecard (3 Páginas A4)"]
+        SCORE --> TRENDS["Historical Quality Trends (LAB-11)"]
+        TRENDS --> AI["QE Intelligence Layer (AI-01..07 Advisory)"]
+        AI --> HUMAN{{"Decisão Humana de Release"}}
+    end
 ```
 
-## Arquitetura LAB-06: Distributed Failure & Recovery Pack
+---
 
-[LAB] O laboratório estende o pipeline assíncrono com validação determinística de resiliência sob falhas distribuídas reais e controladas (via **Toxiproxy** e falhas programáticas de worker):
+## 3. Matriz de Capacidades de Engenharia de Qualidade (QE)
 
-```text
-Cenário 1: NATS fora do ar durante publish   ──> API responde 202; Outbox PENDING; Publisher reintenta após recovery.
-Cenário 2: Consumer fora do ar               ──> Mensagem retida durável no JetStream; processada uma vez ao voltar.
-Cenário 3: Redelivery da mesma mensagem       ──> processed_events impede mutação duplicada (idempotência atômica).
-Cenário 4: Crash do Publisher em processamento──> Evento reprocessado com segurança; JetStream deduplica msgID.
-Cenário 5: Timeout/retry da API               ──> Persistência ACID garante idempotência do LAB-04 com outbox.
-Cenário 6: Falha no Consumer antes do ACK     ──> Transação sofre rollback, sem ACK prematuro; reentrega converge.
-```
+O laboratório consolida 12 capacidades demonstradas com controles executáveis e evidências em JSON:
 
-[LAB] **Toxiproxy** roda via Docker Compose na porta `8474` (API HTTP) e expõe a porta `4223` com proxy para `nats:4222`, permitindo injetar partições de rede com zero bibliotecas pesadas de chaos engineering.
+| ID | Capacidade Técnica | Risco Mitigado | Controle Executável | Evidência Principal |
+| :--- | :--- | :--- | :--- | :--- |
+| **CAP-01** | [Governança de Contratos OpenAPI](docs/14-qe-capability-map.md#cap-01) | `RISK-API-001` (Breaking Changes) | `CTRL-CONTRACT-001` (Ajv + Prism) | `evidence/test-results/contract.json` |
+| **CAP-02** | [Idempotência & Concorrência](docs/14-qe-capability-map.md#cap-02) | `RISK-API-005` (Faturamento Duplicado) | `CTRL-IDEMPOTENCY-001` (Replay) | `evidence/test-results/api.json` |
+| **CAP-03** | [Transactional Outbox Pattern](docs/14-qe-capability-map.md#cap-03) | `RISK-OUTBOX-001` (Perda de Eventos) | `CTRL-OUTBOX-ATOMIC-001` (ACID) | `evidence/test-results/unit.json` |
+| **CAP-04** | [Testes de Propriedades (PBT)](docs/14-qe-capability-map.md#cap-04) | `RISK-SEC-005` (Malformed Payloads) | `CTRL-REQUEST-001` (`fast-check`) | `evidence/test-results/unit.json` |
+| **CAP-05** | [Observabilidade Distribuída](docs/14-qe-capability-map.md#cap-05) | `RISK-OBS-001` (Spans Quebrados) | `CTRL-OBS-TRACE-TREE-001` (OTel) | `evidence/observability/trace-summary.json` |
+| **CAP-06** | [Visibilidade de Erros em Filas](docs/14-qe-capability-map.md#cap-06) | `RISK-OBS-004` (Gargalo Silencioso) | `CTRL-OBS-NATS-ERROR-VISIBILITY-001` | `evidence/observability/trace-summary.json` |
+| **CAP-07** | [Resiliência a Caos & Partições](docs/14-qe-capability-map.md#cap-07) | `RISK-RES-001` (Queda de Broker) | `CTRL-RES-NATS-OUTAGE-001` (Toxiproxy) | `evidence/resilience/chaos-report.json` |
+| **CAP-08** | [Jornadas Sintéticas E2E](docs/14-qe-capability-map.md#cap-08) | `RISK-JOURNEY-001` (Quebra de SLA) | `CTRL-JOURNEY-PROVISIONING-001` | `evidence/test-results/journey.json` |
+| **CAP-09** | [Baseline de Performance](docs/14-qe-capability-map.md#cap-09) | `RISK-PERF-001` (Regressão de Latência) | `CTRL-PERF-LATENCY-001` (k6) | `evidence/performance/baseline.json` |
+| **CAP-10** | [Segurança Shift-Left & DAST](docs/14-qe-capability-map.md#cap-10) | `RISK-SEC-001` (Vazamento de Chaves) | `CTRL-SEC-SECRET-001` (Gitleaks/ZAP) | `evidence/security/summary.json` |
+| **CAP-11** | [Scorecard Executivo A4](docs/14-qe-capability-map.md#cap-11) | N/A (Desalinhamento com Negócio) | `CTRL-SCORECARD-GATE-001` | `evidence/scorecard/scorecard.html` |
+| **CAP-12** | [Histórico de Qualidade & IA](docs/14-qe-capability-map.md#cap-12) | N/A (Acúmulo de Dívida Técnica) | `CTRL-HISTORY-TREND-001` (LAB-11) | `evidence/history/trends.json` |
 
-## Execução mínima
+---
 
-[LAB] Pré-requisitos: Node.js 22 ou superior, npm e Docker com Docker Compose.
+## 4. Início Rápido (Execução Local em 3 Comandos)
+
+Pré-requisitos: Node.js 20+ LTS, npm e Docker com Docker Compose.
 
 ```bash
+# 1. Instalar dependências
 npm ci
+
+# 2. Subir infraestrutura (PostgreSQL, NATS JetStream, Toxiproxy, OTel Collector, Jaeger)
 docker compose -f infra/docker-compose.yml up -d --wait
+
+# 3. Executar verificação determinística e gerar Scorecard
 npm run verify
 ```
 
-### Comandos de infraestrutura
-
+### Comandos de Teste Específicos:
 ```bash
-# Iniciar PostgreSQL, NATS JetStream e Toxiproxy
-docker compose -f infra/docker-compose.yml up -d --wait
-
-# Verificar status dos containers
-docker compose -f infra/docker-compose.yml ps
-
-# Parar e remover volumes da infraestrutura
-docker compose -f infra/docker-compose.yml down -v
+npm run test:unit            # 129 testes unitários e testes baseados em propriedades (PBT)
+npm run test:api             # Testes comportamentais de API, idempotência e concorrência
+npm run test:contract        # Validação estrita de contratos OpenAPI 3.1
+npm run test:security        # Scanners SAST, Secret Scan, Dependências e DAST
+npm run test:performance     # Verificação de latência e throughput contra baseline k6
+npm run test:journeys        # Jornadas sintéticas ponta a ponta do usuário
+npm run test:resiliency      # Injeção de partições de rede e falhas de workers
+npm run test:observability   # Validação de rastreamento distribuído e spans W3C
 ```
 
-### Execução de testes
-
+### Geração de Scorecard e Histórico:
 ```bash
-# Executar todos os testes (unitários, api, contrato, integração, resiliência, observabilidade, jornadas e performance)
-npm test
-
-# Executar testes de performance com k6 e comparador de baseline (LAB-09)
-npm run test:performance
-
-# Executar testes de performance em modo smoke rápido (LAB-09)
-npm run test:performance:smoke
-
-# Executar somente as jornadas sintéticas ponta a ponta (LAB-08)
-npm run test:journeys
-
-# Executar somente os controles de observabilidade e telemetria (LAB-07)
-npm run test:observability
-
-# Executar somente os controles de resiliência distribuída (LAB-06)
-npm run test:resiliency
-
-# Executar somente os controles de integração Outbox/NATS (LAB-05)
-npm run test:integration
-
-# Executar suíte de contrato e API
-npm run test:api
-npm run test:contract
-
-# Executar controles de segurança da API e os quatro scanners locais
-npm run test:security
-npm run security:scan
+npm run history:snapshot     # Registra snapshot determinístico da execução atual
+npm run history:build        # Processa série histórica e calcula tendências (LAB-11)
+npm run scorecard            # Gera relatório executivo A4 em JSON, HTML e PDF
 ```
 
-### Evidências diagnósticas em JSON (LAB-06, LAB-07 e LAB-08)
+---
 
-[LAB] As suítes produzem artefatos JSON determinísticos para consumo futuro pela QE Intelligence Layer:
+## 5. Governança de IA Assistiva (AI-01 a AI-07)
 
-- `evidence/history/*.json`: snapshots versionados, histórico consolidado e tendências determinísticas (LAB-11);
-- `evidence/journeys/*.json`: jornadas sintéticas ponta a ponta, latência de aceitação, duração E2E, tempo de recuperação e conformidade com SLA;
-- `evidence/performance/*.json`: linha de base de performance, métricas p50/p95/p99, vazão, integridade concorrente e status de regressão;
-- `evidence/resiliency/*.json`: cenários de degradação, recuperação e consistência distribuída;
-- `evidence/observability/*.json`: árvore de 6 spans, propagação de traceId, separação de IDs, visibilidade de erros e exatidão de métricas.
-- `evidence/security/*.json`: resultados normalizados de secrets, dependências, SAST, DAST e Security Status determinístico.
+A camada de inteligência artificial foi desenhada sob rígidos princípios de confiabilidade corporativa:
 
-### Como verificar Telemetria e Jaeger (LAB-07)
-
-```bash
-# Interface Web do Jaeger (visualização local de traces)
-http://localhost:16686
-
-# OpenTelemetry Collector (recepção OTLP)
-gRPC: http://localhost:4317
-HTTP: http://localhost:4318
+```text
+Entrada (Diff Git / OpenAPI / Evidência JSON)
+  │
+  ▼
+Validação de Schema Pré-LLM (Zod)
+  │
+  ▼
+Execução LLM (Gemini API / OpenAI Substituível)
+  │
+  ▼
+Validação Estrita de Saída (Zod Schema Parsing)
+  │
+  ├──> Sucesso: Relatório Advisory (Sugestões, Gaps, Riscos Impactados)
+  └──> Falha / Timeout / Sem Chave: Fallback Determinístico Seguro (AI_*_UNAVAILABLE)
 ```
 
-### Como verificar Outbox, NATS e Toxiproxy
+- **Aconselhamento Exclusivo (Advisory Only)**: A IA **nunca** aprova releases, não altera gates e não toma ações autônomas no cluster.
+- **Isolamento de Credenciais**: Nenhuma chave de API ou segredo corporativo trafega para os modelos.
 
-```bash
-# Consultar eventos na tabela outbox_events
-docker exec -it qe-lab-postgres psql -U postgres -d control_plane -c "SELECT id, event_type, status, retry_count, published_at FROM outbox_events;"
+---
 
-# Consultar eventos idempotentemente processados pelo Consumer
-docker exec -it qe-lab-postgres psql -U postgres -d control_plane -c "SELECT * FROM processed_events;"
+## 6. Classificação Obrigatória de Domínio
 
-# Verificar saúde e monitoramento do NATS JetStream
-curl http://127.0.0.1:8222/healthz
-curl http://127.0.0.1:8222/jsz
+Para assegurar conformidade ética e clareza de escopo, todas as afirmações seguem taxonomia estrita:
 
-# Inspecionar proxies configurados no Toxiproxy
-curl http://127.0.0.1:8474/proxies
-```
+| Marcador | Significado | Aplicação |
+| :--- | :--- | :--- |
+| `[PUB]` | Informação Pública Confirmada | Conteúdos oficiais extraídos de documentações públicas e citadas. |
+| `[VAGA]` | Informação do Perfil da Vaga | Requisitos e tecnologias descritas no anúncio público de contratação. |
+| `[LAB]` | Decisão do Laboratório | Escolhas arquiteturais, mocks e cenários criados para este projeto experimental. |
+| `[VALIDAR]` | Hipótese Pendente | Questões que dependem de confirmação técnica após onboarding no cliente. |
 
-### Contexto de impacto, scorecard e histórico
+---
 
-```bash
-# Registrar snapshot determinístico do estado atual de qualidade (LAB-11)
-npm run history:snapshot
+## 7. Índice Completo da Documentação
 
-# Consolidar snapshots e calcular tendências históricas determinísticas (LAB-11)
-npm run history:build
+### Documentos Fundamentais
+- [00 - Charter & Governança](docs/00-charter.md)
+- [01 - Mapa Público do Produto](docs/01-public-product-map.md)
+- [02 - Assumption Register](docs/02-assumptions.md)
+- [04 - Mapa de Riscos Exercitados](docs/04-quality-risk-map.md)
 
-# Gerar JSON, Markdown, HTML e PDF do scorecard determinístico (AI-05)
-npm run scorecard
+### Manuais Técnicos de Engenharia
+- [05 - Outbox Pattern & NATS JetStream](docs/05-outbox-nats.md)
+- [06 - Modelo de Falhas Distribuídas & Resiliência](docs/06-distributed-failure-model.md)
+- [07 - Observabilidade & Telemetria Distribuída](docs/07-observability-telemetry.md)
+- [08 - Jornadas Sintéticas E2E & SLAs](docs/08-synthetic-journeys.md)
+- [09 - Performance Contínua & Baselines](docs/09-performance-baseline.md)
+- [10 - Executive Quality Scorecard A4](docs/10-executive-quality-scorecard.md)
+- [11 - Security Quality Pack & DAST](docs/11-security-quality-pack.md)
+- [12 - Historical Quality Trends (LAB-11)](docs/12-historical-quality-trends.md)
 
-# Gerar contexto determinístico de impacto
-npm run impact:context
+### Pacote Executivo & Portfólio (LAB-12)
+- [13 - Arquitetura Consolidada do Sistema](docs/13-final-architecture.md)
+- [14 - Mapa de Capacidades de QE](docs/14-qe-capability-map.md)
+- [15 - Narrativa Executiva para Liderança](docs/15-executive-narrative.md)
+- [16 - Playbook de Onboarding & Adaptação](docs/16-onboarding-adaptation-playbook.md)
+- [17 - Roteiro de Demonstração Técnica (11 Passos)](docs/17-demo-script.md)
+- [18 - Resumo Executivo para Portfólio](docs/18-portfolio-summary.md)
+- [19 - Matriz Consolidada de Qualidade](docs/19-final-quality-matrix.md)
+- [IA Assistiva - Arquitetura de Impact Analysis](docs/ai-assisted-impact-analysis.md)
 
-# Executar AI advisory consultivo (análise de impacto de PR)
-npm run ai:advisory
+---
 
-# Executar AI failure advisory consultivo (Failure Intelligence LAB-06)
-npm run ai:failure-advisory
+## 8. Status do Escopo: LAB SCOPE COMPLETE
 
-# Executar AI telemetry advisory consultivo (Telemetry & Trace Intelligence AI-03)
-npm run ai:telemetry-advisory
-
-# Executar AI journey advisory consultivo (Journey Intelligence AI-04)
-npm run ai:journey-advisory
-
-# Executar interpretação consultiva do scorecard; sem chave retorna fallback seguro
-npm run ai:scorecard
-
-# Interpretar findings determinísticos do LAB-10; sem chave retorna fallback seguro
-npm run ai:security-advisory
-
-# Interpretar tendências históricas e regressões (AI-07); sem chave retorna fallback seguro
-npm run ai:trend-advisory
-```
-
-## Comece por aqui
-
-- [Wiki do projeto](https://github.com/carlosesmoreira07/totvs-cloud-qe-lab/wiki)
-- [Charter](docs/00-charter.md)
-- [Mapa público do produto](docs/01-public-product-map.md)
-- [Assumption Register](docs/02-assumptions.md)
-- [Mapa de riscos exercitados](docs/04-quality-risk-map.md)
-- [Guia LAB-05: Outbox e NATS](docs/05-outbox-nats.md)
-- [Modelo de Falhas Distribuídas LAB-06](docs/06-distributed-failure-model.md)
-- [Guia LAB-07: Observabilidade e Telemetria](docs/07-observability-telemetry.md)
-- [Guia LAB-08: Jornadas Sintéticas E2E](docs/08-synthetic-journeys.md)
-- [Guia LAB-09: Performance e Baseline](docs/09-performance-baseline.md)
-- [Guia AI-05: Executive Quality Scorecard](docs/10-executive-quality-scorecard.md)
-- [Guia LAB-10: Security Quality Pack](docs/11-security-quality-pack.md)
-- [Guia LAB-11: Historical Quality Trends](docs/12-historical-quality-trends.md)
-- [Arquitetura de IA assistiva](docs/ai-assisted-impact-analysis.md)
-- [OpenAPI](specs/openapi/cloud-control-plane.yaml)
+> **Declaração Formal de Fechamento de Escopo [LAB]**  
+>  
+> O ciclo completo de desenvolvimento e validação do laboratório encontra-se formalmente **CONCLUÍDO E CONGELADO** (`LAB SCOPE COMPLETE`).
+>  
+> Foram entregues com êxito os 12 ciclos de Engenharia de Qualidade (**LAB-01 a LAB-12**) e os 7 módulos de Inteligência Assistiva (**AI-01 a AI-07**), consolidando um acervo demonstrativo completo, determinístico e auditável.
