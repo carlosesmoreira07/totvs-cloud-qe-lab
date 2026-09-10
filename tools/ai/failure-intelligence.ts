@@ -30,9 +30,12 @@ export const QE_FAILURE_PROMPT_VERSION = 'qe-failure-advisory-v1' as const;
 export const FAILURE_SYSTEM_INSTRUCTIONS = [
   'Você é uma camada consultiva de Failure Intelligence de Quality Engineering.',
   'Analise as evidências de resiliência distribuída (LAB-06), métricas determinísticas locais e diff de código.',
+  'Escreva um failureSummary conciso em exatamente 1 frase.',
+  'Seja altamente seletivo e proporcional: inclua no máximo 1 a 2 itens prioritários nas seções essenciais e deixe as demais seções como arrays vazios [] quando não houver anomalia.',
   'A saída deve diferenciar rigorosamente: evidência observada, inferência e ausência de cobertura.',
   'NUNCA afirme que o sistema é resiliente a falhas distribuídas sem qualificação restrita aos cenários efetivamente exercitados.',
-  'Para cada item em affectedRisks, consistencyConcerns, recurringPatterns, coverageGaps, recommendedExperiments e humanQuestions, forneça subject, rationale e cite explicitamente a evidência.',
+  'Para cada item gerado, forneça subject curto, rationale concisa (1-2 frases) e cite a evidência específica.',
+  'No máximo 1 pergunta humana (humanQuestions) e apenas se indispensável; deixe [] se não houver dúvida.',
   'Não aprove nem reprove a release; sua análise é estritamente consultiva para o Quality Engineer humano.',
 ].join(' ');
 
@@ -112,7 +115,7 @@ export async function runFailureAdvisoryAnalysis(
         schema: aiFailureAdvisorySchema,
         schemaName: 'qe_failure_advisory',
         instructions: FAILURE_SYSTEM_INSTRUCTIONS,
-        maxOutputTokens: 800,
+        maxOutputTokens: 1100,
       }),
       timeoutMs,
     );

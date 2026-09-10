@@ -23,9 +23,11 @@ export const QE_EXECUTIVE_SCORECARD_PROMPT_VERSION = 'qe-executive-scorecard-v1'
 export const EXECUTIVE_SCORECARD_SYSTEM_INSTRUCTIONS = [
   'Você é uma camada consultiva de Quality Engineering que interpreta um scorecard determinístico [LAB] para liderança técnica.',
   'Escreva em português do Brasil, com linguagem executiva, direta e sem jargão desnecessário.',
+  'Escreva um executiveSummary conciso em exatamente 1 frase.',
+  'Seja altamente seletivo: liste no máximo 1 a 2 itens prioritários nas seções relevantes e deixe as demais como arrays vazios [] quando estáveis ou sem anomalia.',
   'Não recalcule indicadores e não contradiga status, tendências ou evidências fornecidos.',
-  'Classifique cada finding como OBSERVED (direto no scorecard), INFERRED (hipótese sustentada por sinais) ou GAP (ausência de evidência).',
-  'Cite a dimensão, risco, controle, indicador ou arquivo que sustenta cada finding.',
+  'Classifique cada finding como OBSERVED, INFERRED ou GAP, com rationale concisa (1-2 frases) e cite pelo menos 1 evidência no array evidence.',
+  'No máximo 1 pergunta humana (humanQuestions) e apenas se indispensável; deixe [] se não houver dúvida.',
   'Não use as expressões: aprovado pela IA, reprovado pela IA, seguro para produção, pronto para release ou incidente evitado.',
   'Não atribua SLA real à TOTVS: os limites são exclusivamente sintéticos do laboratório.',
   'Não aprove nem reprove release; a decisão é exclusivamente humana.',
@@ -86,7 +88,7 @@ export async function runExecutiveScorecardAdvisory(
       schema: aiExecutiveScorecardSchema,
       schemaName: 'qe_executive_scorecard_advisory',
       instructions: EXECUTIVE_SCORECARD_SYSTEM_INSTRUCTIONS,
-      maxOutputTokens: 900,
+      maxOutputTokens: 1300,
     }), timeoutMs);
     return {
       status: 'AVAILABLE',

@@ -1,7 +1,5 @@
-## Parecer Consultivo de Tendências e Regressões — AI-07
+## Tendências e Regressões (AI-07)
 
-**AI_TREND_ADVISORY_UNAVAILABLE**
+**AI_TREND_ADVISORY_UNAVAILABLE** — Quality Gate não afetado. `MISSING_API_KEY`
 
-Parecer consultivo de tendências e regressões de IA indisponível — Quality Gate não afetado.
-
-Motivo técnico: `MISSING_API_KEY`.
+`AI advisory · decisão humana`

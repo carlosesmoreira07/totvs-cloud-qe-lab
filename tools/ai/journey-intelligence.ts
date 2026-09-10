@@ -33,14 +33,14 @@ export const QE_JOURNEY_PROMPT_VERSION = 'qe-journey-advisory-v1' as const;
 export const JOURNEY_SYSTEM_INSTRUCTIONS = [
   'Você é uma camada consultiva de Journey Intelligence de Quality Engineering.',
   'Analise as evidências de jornadas sintéticas completas de ponta a ponta (LAB-08), correlações com telemetria (LAB-07), resiliência distribuída (LAB-06) e diff de código.',
-  'REGRA RÍGIDA ANTI-ALUCINAÇÃO: Para CADA finding retornado em qualquer seção, defina obrigatoriamente o campo classification como um dos três valores exatos:',
-  '- OBSERVED: evidência direta, mensurada e comprovável nos JSONs de jornada (latência, duração E2E, SLA, status, retries, redeliveries ou spans com erro);',
-  '- INFERRED: hipótese fundamentada na correlação lógica de múltiplos sinais (ex: gargalo na recuperação da fronteira Publisher -> NATS);',
-  '- GAP: ausência de evidência, histórico suficiente para baseline, ou cenário de teste faltante.',
-  'VEDAÇÃO CATEGÓRICA DE JULGAMENTOS GENÉRICOS: Nunca afirme que "o sistema está performático" ou que "o sistema atende SLA de produção". Use exclusivamente formulações circunscritas como: "as N jornadas sintéticas executadas ficaram dentro dos limites [LAB] definidos".',
+  'Escreva um executiveSummary conciso em exatamente 1 frase.',
+  'Seja altamente seletivo: liste no máximo 1 a 2 itens mais relevantes nas seções prioritárias e deixe as demais como arrays vazios [] quando não houver anomalia.',
+  'REGRA RÍGIDA ANTI-ALUCINAÇÃO: Para CADA finding retornado em qualquer seção, defina obrigatoriamente o campo classification como um dos três valores exatos: OBSERVED, INFERRED ou GAP.',
+  'VEDAÇÃO CATEGÓRICA DE JULGAMENTOS GENÉRICOS: Nunca afirme que "o sistema está performático" ou que "o sistema atende SLA de produção".',
   'PROIBIÇÃO DE CAUSA RAIZ CATEGÓRICA: Nunca declare causa raiz definitiva sem prova matemática/determinística cabal.',
   'NÃO RECALCULE MÉTRICAS: Utilize estritamente os valores agregados e correlações determinísticas já fornecidos no contexto.',
-  'Para cada finding, forneça subject, rationale concisa, cite a evidência específica (ex: nome da jornada, duração, traceId, métrica ou arquivo) e classifique corretamente.',
+  'Para cada finding, forneça subject curto, rationale concisa (1-2 frases), cite pelo menos 1 evidência específica no array evidence (nunca vazio) e classifique corretamente.',
+  'No máximo 1 pergunta humana (humanQuestions) e apenas se indispensável; deixe [] se não houver dúvida.',
   'Não aprove nem reprove a release; sua análise é estritamente consultiva para o Quality Engineer humano.',
 ].join(' ');
 
@@ -137,7 +137,7 @@ export async function runJourneyAdvisoryAnalysis(
         schema: aiJourneyAdvisorySchema,
         schemaName: 'qe_journey_advisory',
         instructions: JOURNEY_SYSTEM_INSTRUCTIONS,
-        maxOutputTokens: 900,
+        maxOutputTokens: 1100,
       }),
       timeoutMs,
     );

@@ -32,12 +32,15 @@ export const QE_TELEMETRY_PROMPT_VERSION = 'qe-telemetry-advisory-v1' as const;
 export const TELEMETRY_SYSTEM_INSTRUCTIONS = [
   'Você é uma camada consultiva de Telemetry & Trace Intelligence de Quality Engineering.',
   'Analise as evidências de traces OpenTelemetry (LAB-07), métricas determinísticas locais, falhas de resiliência (LAB-06) e diff de código.',
+  'Escreva um executiveSummary conciso em exatamente 1 frase.',
+  'Seja altamente seletivo: liste no máximo 1 a 2 itens mais relevantes nas seções prioritárias e deixe as demais como arrays vazios [] quando não houver apontamento material.',
   'REGRA RÍGIDA ANTI-ALUCINAÇÃO: Para CADA item retornado em qualquer seção, defina obrigatoriamente o campo classification como um dos três valores exatos:',
   '- OBSERVED: evidência ou anomalia diretamente presente e comprovável nos spans, atributos, status ERROR ou contadores de métricas;',
   '- INFERRED: hipótese fundamentada na correlação lógica de múltiplos sinais observados (ex: provável ponto de degradação na fronteira de comunicação);',
   '- GAP: ausência de evidência, métrica, span ou cobertura de instrumentação.',
   'PROIBIÇÃO DE CAUSA RAIZ CATEGÓRICA: Nunca afirme que um componente ou serviço foi a "causa raiz definitiva" sem prova matemática/determinística direta.',
-  'Para cada finding, forneça subject, rationale concisa, cite a evidência específica (ex: nome do span, traceId, métrica ou arquivo) e classifique corretamente.',
+  'Para cada finding, forneça subject curto, rationale concisa (1-2 frases), cite pelo menos 1 evidência específica no array evidence (nunca vazio) e classifique corretamente.',
+  'No máximo 1 pergunta humana (humanQuestions) e apenas se indispensável; deixe [] se não houver dúvida.',
   'Identifique se há novas rotas sem trace, mudanças sem correlationId, spans esperados ausentes ou métricas que divergiram do comportamento.',
   'Não aprove nem reprove a release; sua análise é estritamente consultiva para o Quality Engineer humano.',
 ].join(' ');
@@ -125,7 +128,7 @@ export async function runTelemetryAdvisoryAnalysis(
         schema: aiTelemetryAdvisorySchema,
         schemaName: 'qe_telemetry_advisory',
         instructions: TELEMETRY_SYSTEM_INSTRUCTIONS,
-        maxOutputTokens: 800,
+        maxOutputTokens: 1100,
       }),
       timeoutMs,
     );

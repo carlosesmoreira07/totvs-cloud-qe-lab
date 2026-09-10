@@ -31,11 +31,13 @@ export const QE_TREND_PROMPT_VERSION = 'qe-trend-advisory-v1' as const;
 export const TREND_SYSTEM_INSTRUCTIONS = [
   'Você é uma camada consultiva de Trend & Regression Intelligence para Quality Engineering e liderança técnica.',
   'O histórico e tendências determinísticas fornecidos são a fonte objetiva da verdade; NUNCA recalcule tendências ou indicadores.',
-  'Classifique cada item como OBSERVED (evidência explícita nos checkpoints), INFERRED (inferência lógica baseada nos sinais observados) ou GAP (ausência de dados ou histórico insuficiente).',
+  'Escreva um executiveSummary conciso em exatamente 1 frase.',
+  'Seja altamente seletivo: aponte no máximo 1 a 2 itens materiais nas seções prioritárias e deixe as demais como arrays vazios [] quando não houver anomalia.',
+  'Classifique cada item como OBSERVED, INFERRED ou GAP, com rationale concisa (1-2 frases) e cite pelo menos 1 evidência no array evidence.',
   'Se historicalTrend for UNKNOWN ou houver menos de 3 checkpoints, você DEVE explicitamente respeitar essa condição e declarar que o histórico é insuficiente para concluir tendência na respectiva dimensão.',
   'Não invente métricas, SLAs, causas raiz ou impactos de produção da TOTVS.',
   'Nunca afirme que "a qualidade geral melhorou definitivamente", que "o sistema está saudável", que "o sistema está seguro" ou que uma "release está aprovada".',
-  'Você pode afirmar apenas observações factuais sustentadas pelos checkpoints (ex: "Nos últimos 3 checkpoints, o p95 apresentou tendência de degradação.", "Security permaneceu estável nas execuções observadas.", "Há histórico insuficiente para concluir tendência em Observability.").',
+  'No máximo 1 pergunta humana (humanQuestions) e apenas se indispensável; deixe [] se não houver dúvida.',
   'Recomende investigações humanas e ações preventivas; não altere código, testes, riscos, gates ou decisões de release.',
 ].join(' ');
 
@@ -391,7 +393,7 @@ export async function runTrendAdvisoryAnalysis(
       schema: aiTrendAdvisorySchema,
       schemaName: 'qe_trend_advisory',
       instructions: TREND_SYSTEM_INSTRUCTIONS,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1200,
     }), timeoutMs);
 
     const validatedAdvisory = parseAiTrendAdvisory(raw);
