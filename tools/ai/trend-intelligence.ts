@@ -391,7 +391,7 @@ export async function runTrendAdvisoryAnalysis(
       schema: aiTrendAdvisorySchema,
       schemaName: 'qe_trend_advisory',
       instructions: TREND_SYSTEM_INSTRUCTIONS,
-      maxOutputTokens: 2_500,
+      maxOutputTokens: 800,
     }), timeoutMs);
 
     const validatedAdvisory = parseAiTrendAdvisory(raw);
@@ -421,14 +421,11 @@ export async function runTrendAdvisoryAnalysis(
   }
 }
 
-function renderFindingsSection(title: string, findings: TrendIntelligenceFinding[]): string[] {
+function renderFindingsSection(title: string, findings: TrendIntelligenceFinding[], limit = 3): string[] {
   if (findings.length === 0) return [];
-  const lines: string[] = [`### ${title}`, ''];
-  for (const f of findings) {
-    lines.push(`- **[${f.classification}] ${f.subject}**: ${f.rationale}`);
-    if (f.evidence.length > 0) {
-      lines.push(`  - *Evidência:* ${f.evidence.join('; ')}`);
-    }
+  const lines: string[] = [`**${title}:**`, ''];
+  for (const f of findings.slice(0, limit)) {
+    lines.push(`- [${f.classification}] **${f.subject}**: ${f.rationale}`);
   }
   lines.push('');
   return lines;
@@ -437,40 +434,41 @@ function renderFindingsSection(title: string, findings: TrendIntelligenceFinding
 export function formatTrendAdvisoryMarkdown(outcome: TrendAdvisoryOutcome): string {
   if (outcome.status === AI_TREND_ADVISORY_UNAVAILABLE) {
     return [
-      '## Parecer Consultivo de Tendências e Regressões — AI-07',
+      '## Tendências e Regressões (AI-07)',
       '',
-      `**${AI_TREND_ADVISORY_UNAVAILABLE}**`,
-      '',
-      'Parecer consultivo de tendências e regressões de IA indisponível — Quality Gate não afetado.',
-      '',
-      `Motivo técnico: \`${outcome.reason}\`.`,
+      `**${AI_TREND_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
     ].join('\n');
   }
 
   const advisory = outcome.advisory;
+  const attentionItems = [
+    ...advisory.degradingAreas,
+    ...advisory.regressionFindings,
+    ...advisory.persistentRisks,
+  ].slice(0, 3);
+
+  const actionItems = [
+    ...advisory.recommendedActions,
+    ...advisory.recommendedInvestigations,
+  ].slice(0, 3);
+
   return [
-    '## Parecer Consultivo de Tendências e Regressões — AI-07',
+    '## Tendências e Regressões (AI-07)',
     '',
-    '> [LAB] Leitura probabilística sobre séries históricas determinísticas. A decisão permanece humana.',
+    `**Resumo:** ${advisory.executiveSummary}`,
+    `**Confiança:** ${advisory.confidence}`,
     '',
-    `- Confiança: **${advisory.confidence}**`,
-    `- Provedor: \`${outcome.provider}\` (modelo \`${outcome.model}\`, prompt \`${QE_TREND_PROMPT_VERSION}\`)`,
+    ...renderFindingsSection('Atenção', attentionItems),
+    ...renderFindingsSection('Ação', actionItems),
+    ...(advisory.humanQuestions.slice(0, 1).length > 0
+      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
+      : []),
+    '`AI advisory · decisão humana · Quality Gate não afetado`',
     '',
-    '### Resumo Executivo',
-    '',
-    advisory.executiveSummary,
-    '',
-    ...renderFindingsSection('Áreas em Melhoria', advisory.improvingAreas),
-    ...renderFindingsSection('Áreas em Degradação', advisory.degradingAreas),
-    ...renderFindingsSection('Riscos Persistentes', advisory.persistentRisks),
-    ...renderFindingsSection('Achados de Regressão', advisory.regressionFindings),
-    ...renderFindingsSection('Sinais de Qualidade', advisory.qualitySignals),
-    ...renderFindingsSection('Investigações Recomendadas', advisory.recommendedInvestigations),
-    ...renderFindingsSection('Ações Recomendadas', advisory.recommendedActions),
-    ...renderFindingsSection('Perguntas para Decisão Humana', advisory.humanQuestions),
   ].join('\n');
 }
+
 
 async function main(): Promise<void> {
   const scorecardDir = path.resolve(process.cwd(), 'evidence', 'scorecard');

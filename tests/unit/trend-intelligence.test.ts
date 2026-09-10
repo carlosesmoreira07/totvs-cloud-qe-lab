@@ -290,9 +290,9 @@ test('provider mock retorna advisory AVAILABLE quando structured output é váli
   if (outcome.status === 'AVAILABLE') {
     assert.equal(outcome.advisory.confidence, 'HIGH');
     const md = formatTrendAdvisoryMarkdown(outcome);
-    assert.match(md, /Parecer Consultivo de Tendências e Regressões — AI-07/);
-    assert.match(md, /Áreas em Melhoria/);
-    assert.match(md, /\[OBSERVED\] Aumento da Cobertura de Riscos/);
+    assert.match(md, /Tendências e Regressões \(AI-07\)/);
+    assert.match(md, /\[INFERRED\]/);
+    assert.match(md, /AI advisory/);
   }
 });
 

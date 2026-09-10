@@ -98,6 +98,7 @@ function createSampleContext(): FailureAdvisoryContext {
       knownRiskControls: [],
       relevantDiffs: [],
       openApiChanged: false,
+      openApiChangeNature: 'UNKNOWN' as const,
       openApiDiff: null,
       limits: {
         maxDiffFiles: 12,
@@ -232,7 +233,8 @@ test('ausência de OPENAI_API_KEY retorna fallback sem chamada externa', async (
   });
 
   const formatted = formatFailureAdvisorySummary(outcome, context.resiliencyMetrics);
-  assert.match(formatted, /AI Failure Advisory indisponível — Quality Gate não afetado\./);
+  assert.match(formatted, /AI_FAILURE_ADVISORY_UNAVAILABLE/);
+  assert.match(formatted, /Quality Gate não afetado/);
   assert.match(formatted, /MISSING_API_KEY/);
 });
 

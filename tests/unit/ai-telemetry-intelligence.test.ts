@@ -194,6 +194,7 @@ function createSampleContext(): TelemetryAdvisoryContext {
       knownRiskControls: [],
       relevantDiffs: [],
       openApiChanged: false,
+      openApiChangeNature: 'UNKNOWN' as const,
       openApiDiff: null,
       limits: {
         maxDiffFiles: 12,
@@ -372,7 +373,8 @@ test('ausência de OPENAI_API_KEY retorna fallback AI_TELEMETRY_ADVISORY_UNAVAIL
   });
 
   const formatted = formatTelemetryAdvisorySummary(outcome, context.telemetryCorrelation);
-  assert.match(formatted, /AI Telemetry Advisory indisponível — Quality Gate não afetado\./);
+  assert.match(formatted, /AI_TELEMETRY_ADVISORY_UNAVAILABLE/);
+  assert.match(formatted, /Quality Gate não afetado/);
   assert.match(formatted, /MISSING_API_KEY/);
 });
 
@@ -452,12 +454,10 @@ test('formatação do resumo de telemetria inclui seções com badges de classif
   const context = createSampleContext();
   const formatted = formatTelemetryAdvisorySummary(outcome, context.telemetryCorrelation);
 
-  assert.match(formatted, /## QE Intelligence Layer — Telemetry & Trace Intelligence \(AI-03\)/);
-  assert.match(formatted, /`\[OBSERVED\]`/);
-  assert.match(formatted, /`\[INFERRED\]`/);
-  assert.match(formatted, /`\[GAP\]`/);
-  assert.match(formatted, /Traces analisados:/);
-  assert.match(formatted, /Fronteira Publisher -> NATS JetStream/);
+  assert.match(formatted, /## Telemetry Intelligence \(AI-03\)/);
+  assert.match(formatted, /\[OBSERVED\]/);
+  assert.match(formatted, /\[INFERRED\]/);
+  assert.match(formatted, /Fronteira Publisher ->/);
 });
 
 test('buildTelemetryAdvisoryContext carrega evidências reais do laboratório', () => {

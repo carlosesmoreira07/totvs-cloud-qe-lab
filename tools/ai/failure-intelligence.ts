@@ -112,7 +112,7 @@ export async function runFailureAdvisoryAnalysis(
         schema: aiFailureAdvisorySchema,
         schemaName: 'qe_failure_advisory',
         instructions: FAILURE_SYSTEM_INSTRUCTIONS,
-        maxOutputTokens: 2_500,
+        maxOutputTokens: 800,
       }),
       timeoutMs,
     );
@@ -134,16 +134,14 @@ export async function runFailureAdvisoryAnalysis(
   }
 }
 
-function formatItems(title: string, items: AiFailureAdvisory['affectedRisks']): string[] {
+function formatItems(title: string, items: AiFailureAdvisory['affectedRisks'], limit = 3): string[] {
+  if (items.length === 0) return [];
   return [
-    `### ${title}`,
-    '',
-    ...(items.length > 0
-      ? items.map((item) => {
-          const evidence = item.evidence.length > 0 ? ` Evidência: ${item.evidence.join('; ')}.` : '';
-          return `- **${item.subject}:** ${item.rationale}.${evidence}`;
-        })
-      : ['- Nenhum apontamento pelo modelo.']),
+    `**${title}:**`,
+    ...items.slice(0, limit).map((item) => {
+      const evidence = item.evidence.length > 0 ? ` (${item.evidence.slice(0, 2).join('; ')})` : '';
+      return `- ${item.subject}: ${item.rationale}${evidence}`;
+    }),
     '',
   ];
 }
@@ -154,53 +152,36 @@ export function formatFailureAdvisorySummary(
 ): string {
   if (outcome.status === AI_FAILURE_ADVISORY_UNAVAILABLE) {
     return [
-      '## QE Intelligence Layer — Failure Intelligence (AI-02)',
+      '## Failure Intelligence (AI-02)',
       '',
-      `**${AI_FAILURE_ADVISORY_UNAVAILABLE}**`,
-      '',
-      'AI Failure Advisory indisponível — Quality Gate não afetado.',
-      '',
-      `Motivo técnico: \`${outcome.reason}\`.`,
+      `**${AI_FAILURE_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
     ].join('\n');
   }
 
   const { advisory } = outcome;
-  const metricsSection = metrics
-    ? [
-        '### Métricas determinísticas observadas',
-        '',
-        `- Cenários de resiliência executados: **${metrics.totalScenarios}** (Passed: **${metrics.passed}**, Failed: **${metrics.failed}**)`,
-        `- Tempo de recuperação: **mín ${metrics.durationMs.min}ms / máx ${metrics.durationMs.max}ms / média ${metrics.durationMs.avg}ms**`,
-        `- Riscos exercitados: ${metrics.exercisedRisks.map((r) => `\`${r}\``).join(', ') || '_nenhum_'}`,
-        `- Controles exercitados: ${metrics.exercisedControls.map((c) => `\`${c}\``).join(', ') || '_nenhum_'}`,
-        `- Falhas observadas: ${metrics.observedFailures.map((f) => `\`${f}\``).join(', ') || '_nenhuma_'}`,
-        '',
-      ]
-    : [];
+  const metricsLine = metrics
+    ? `Cenários: ${metrics.totalScenarios} (${metrics.passed} ok / ${metrics.failed} falhos) | Recuperação: ${metrics.durationMs.min}–${metrics.durationMs.max}ms`
+    : null;
 
-  return [
-    '## QE Intelligence Layer — Failure Intelligence (AI-02)',
+  const lines: string[] = [
+    '## Failure Intelligence (AI-02)',
     '',
-    '> [LAB] Análise consultiva de falhas distribuídas e recuperação. Decisão de qualidade permanece humana.',
+    `**Resumo:** ${advisory.failureSummary}`,
+    `**Recuperação:** ${advisory.recoveryAssessment} · **Confiança:** ${advisory.confidence}`,
+    ...(metricsLine ? ['', metricsLine] : []),
     '',
-    `- Avaliação de recuperação: **${advisory.recoveryAssessment}**`,
-    `- Confiança da IA: **${advisory.confidence}**`,
-    `- Provedor: \`${outcome.provider}\` (Modelo: \`${outcome.model}\`, Prompt: \`${QE_FAILURE_PROMPT_VERSION}\`)`,
+    ...formatItems('Atenção', [...advisory.affectedRisks, ...advisory.consistencyConcerns]),
+    ...formatItems('Ação', [...advisory.recommendedExperiments, ...advisory.coverageGaps]),
+    ...(advisory.humanQuestions.slice(0, 1).length > 0
+      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
+      : []),
+    '`AI advisory · decisão humana · Quality Gate não afetado`',
     '',
-    ...metricsSection,
-    '### Resumo da degradação e recuperação',
-    '',
-    advisory.failureSummary,
-    '',
-    ...formatItems('Riscos de resiliência impactados', advisory.affectedRisks),
-    ...formatItems('Preocupações de consistência', advisory.consistencyConcerns),
-    ...formatItems('Padrões recorrentes observados', advisory.recurringPatterns),
-    ...formatItems('Gaps de cobertura identificados', advisory.coverageGaps),
-    ...formatItems('Experimentos recomendados', advisory.recommendedExperiments),
-    ...formatItems('Perguntas para revisão humana', advisory.humanQuestions),
-  ].join('\n');
+  ];
+  return lines.join('\n');
 }
+
 
 async function main(): Promise<void> {
   const provider = createOpenAiProvider();

@@ -11,14 +11,14 @@ export const securityIntelligenceFindingSchema = z.object({
 
 export const aiSecurityAdvisorySchema = z.object({
   executiveSummary: z.string().min(1).max(1_000),
-  topSecurityPriorities: z.array(securityIntelligenceFindingSchema).max(20),
-  businessImpact: z.array(securityIntelligenceFindingSchema).max(20),
-  technicalFindings: z.array(securityIntelligenceFindingSchema).max(20),
-  affectedJourneys: z.array(securityIntelligenceFindingSchema).max(20),
-  securityGaps: z.array(securityIntelligenceFindingSchema).max(20),
-  recommendedInvestigations: z.array(securityIntelligenceFindingSchema).max(20),
-  recommendedActions: z.array(securityIntelligenceFindingSchema).max(20),
-  humanQuestions: z.array(securityIntelligenceFindingSchema).max(20),
+  topSecurityPriorities: z.array(securityIntelligenceFindingSchema).max(5),
+  businessImpact: z.array(securityIntelligenceFindingSchema).max(5),
+  technicalFindings: z.array(securityIntelligenceFindingSchema).max(5),
+  affectedJourneys: z.array(securityIntelligenceFindingSchema).max(5),
+  securityGaps: z.array(securityIntelligenceFindingSchema).max(5),
+  recommendedInvestigations: z.array(securityIntelligenceFindingSchema).max(5),
+  recommendedActions: z.array(securityIntelligenceFindingSchema).max(5),
+  humanQuestions: z.array(securityIntelligenceFindingSchema).max(3),
   confidence: z.enum(['LOW', 'MEDIUM', 'HIGH']),
 }).strict();
 

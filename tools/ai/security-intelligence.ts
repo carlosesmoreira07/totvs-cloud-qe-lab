@@ -319,7 +319,7 @@ export async function runSecurityAdvisoryAnalysis(
       schema: aiSecurityAdvisorySchema,
       schemaName: 'qe_security_advisory',
       instructions: SECURITY_SYSTEM_INSTRUCTIONS,
-      maxOutputTokens: 2_500,
+      maxOutputTokens: 900,
     }), timeoutMs);
     return {
       status: 'AVAILABLE',
@@ -338,13 +338,11 @@ export async function runSecurityAdvisoryAnalysis(
   }
 }
 
-function formatItems(title: string, items: SecurityIntelligenceFinding[]): string[] {
+function formatItems(title: string, items: SecurityIntelligenceFinding[], limit = 3): string[] {
+  if (items.length === 0) return [];
   return [
-    `### ${title}`,
-    '',
-    ...(items.length > 0
-      ? items.map((item) => `- \`[${item.classification}]\` **${item.subject}:** ${item.rationale}. Evidência: ${item.evidence.join('; ')}.`)
-      : ['- Nenhum apontamento adicional sugerido.']),
+    `**${title}:**`,
+    ...items.slice(0, limit).map((item) => `- [${item.classification}] ${item.subject}: ${item.rationale}`),
     '',
   ];
 }
@@ -355,53 +353,45 @@ export function formatSecurityAdvisorySummary(
 ): string {
   if (outcome.status === AI_SECURITY_ADVISORY_UNAVAILABLE) {
     return [
-      '## QE Intelligence Layer — Security Intelligence (AI-06)',
+      '## Security Intelligence (AI-06)',
       '',
-      `**${AI_SECURITY_ADVISORY_UNAVAILABLE}**`,
-      '',
-      'AI Security Advisory indisponível — Quality Gate não afetado.',
-      '',
-      `Motivo técnico: \`${outcome.reason}\`.`,
+      `**${AI_SECURITY_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
     ].join('\n');
   }
 
   const advisory = outcome.advisory;
-  const metricLines = metrics ? [
-    '### Métricas determinísticas recebidas',
-    '',
-    `- Security Status: **${metrics.securityStatus}**`,
-    `- Findings: **${metrics.totalFindings}** (critical=${metrics.severities.CRITICAL}, high=${metrics.severities.HIGH}, medium=${metrics.severities.MEDIUM}, low=${metrics.severities.LOW}, info=${metrics.severities.INFO})`,
-    `- Status dos findings: OPEN=${metrics.findingsByStatus.OPEN}, FIXED=${metrics.findingsByStatus.FIXED}, ACCEPTED_LAB=${metrics.findingsByStatus.ACCEPTED_LAB}`,
-    `- Scanners: ${metrics.scannersExecuted.map((source) => `\`${source}\``).join(', ') || '_nenhum_'}`,
-    `- Controles: ${metrics.controlsPassed} aprovados, ${metrics.controlsFailed} falhos, ${metrics.controlsUnknown} sem evidência`,
-    `- Gaps: ${metrics.knownGaps.map((gap) => `\`${gap}\``).join(', ') || '_nenhum_'}`,
-    '',
-  ] : [];
+  const metricsLine = metrics
+    ? `Status: ${metrics.securityStatus} | Findings: ${metrics.totalFindings} (C=${metrics.severities.CRITICAL} H=${metrics.severities.HIGH} M=${metrics.severities.MEDIUM}) | Open: ${metrics.findingsByStatus.OPEN}`
+    : null;
+
+  const attentionItems = [
+    ...advisory.topSecurityPriorities,
+    ...advisory.technicalFindings,
+  ].slice(0, 3);
+
+  const actionItems = [
+    ...advisory.recommendedActions,
+    ...advisory.recommendedInvestigations,
+  ].slice(0, 3);
 
   return [
-    '## QE Intelligence Layer — Security Intelligence (AI-06)',
+    '## Security Intelligence (AI-06)',
     '',
-    '> [LAB] Priorização probabilística sobre findings determinísticos. A decisão permanece humana.',
+    `**Resumo:** ${advisory.executiveSummary}`,
+    `**Confiança:** ${advisory.confidence}`,
+    ...(metricsLine ? ['', metricsLine] : []),
     '',
-    `- Confiança da IA: **${advisory.confidence}**`,
-    `- Provedor: \`${outcome.provider}\` (modelo \`${outcome.model}\`, prompt \`${QE_SECURITY_PROMPT_VERSION}\`)`,
+    ...formatItems('Atenção', attentionItems),
+    ...formatItems('Ação', actionItems),
+    ...(advisory.humanQuestions.slice(0, 1).length > 0
+      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
+      : []),
+    '`AI advisory · decisão humana · Quality Gate não afetado`',
     '',
-    ...metricLines,
-    '### Resumo executivo',
-    '',
-    advisory.executiveSummary,
-    '',
-    ...formatItems('Prioridades de segurança', advisory.topSecurityPriorities),
-    ...formatItems('Impacto para o laboratório', advisory.businessImpact),
-    ...formatItems('Findings técnicos', advisory.technicalFindings),
-    ...formatItems('Jornadas potencialmente afetadas', advisory.affectedJourneys),
-    ...formatItems('Gaps de segurança', advisory.securityGaps),
-    ...formatItems('Investigações recomendadas', advisory.recommendedInvestigations),
-    ...formatItems('Ações recomendadas para decisão humana', advisory.recommendedActions),
-    ...formatItems('Perguntas para revisão humana', advisory.humanQuestions),
   ].join('\n');
 }
+
 
 async function main(): Promise<void> {
   try {

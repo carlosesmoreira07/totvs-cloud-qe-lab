@@ -137,7 +137,7 @@ export async function runJourneyAdvisoryAnalysis(
         schema: aiJourneyAdvisorySchema,
         schemaName: 'qe_journey_advisory',
         instructions: JOURNEY_SYSTEM_INSTRUCTIONS,
-        maxOutputTokens: 2_500,
+        maxOutputTokens: 900,
       }),
       timeoutMs,
     );
@@ -159,17 +159,11 @@ export async function runJourneyAdvisoryAnalysis(
   }
 }
 
-function formatItems(title: string, items: JourneyFindingItem[]): string[] {
+function formatItems(title: string, items: JourneyFindingItem[], limit = 3): string[] {
+  if (items.length === 0) return [];
   return [
-    `### ${title}`,
-    '',
-    ...(items.length > 0
-      ? items.map((item) => {
-          const badge = `\`[${item.classification}]\``;
-          const evidence = item.evidence.length > 0 ? ` Evidência: ${item.evidence.join('; ')}.` : '';
-          return `- ${badge} **${item.subject}:** ${item.rationale}.${evidence}`;
-        })
-      : ['- Nenhum apontamento pelo modelo.']),
+    `**${title}:**`,
+    ...items.slice(0, limit).map((item) => `- [${item.classification}] ${item.subject}: ${item.rationale}`),
     '',
   ];
 }
@@ -180,70 +174,48 @@ export function formatJourneyAdvisorySummary(
 ): string {
   if (outcome.status === AI_JOURNEY_ADVISORY_UNAVAILABLE) {
     return [
-      '## QE Intelligence Layer — Journey Intelligence (AI-04)',
+      '## Journey Intelligence (AI-04)',
       '',
-      `**${AI_JOURNEY_ADVISORY_UNAVAILABLE}**`,
-      '',
-      'AI Journey Advisory indisponível — Quality Gate não afetado.',
-      '',
-      `Motivo técnico: \`${outcome.reason}\`.`,
+      `**${AI_JOURNEY_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
     ].join('\n');
   }
 
   const { advisory } = outcome;
-  const metricsSection = correlation
-    ? [
-        '### Correlação determinística de jornadas sintéticas',
-        '',
-        `- Total de jornadas: **${correlation.totalJourneys}** (Aprovadas: **${correlation.passedJourneys}**, Falhas: **${correlation.failedJourneys}**)`,
-        `- Conformidade de SLA sintético: **${correlation.slaMetCount} MET** / **${correlation.slaBreachedCount} BREACHED**`,
-        `- Latência da API (aceitação síncrona): mín **${correlation.apiLatency.min}ms** / máx **${correlation.apiLatency.max}ms** / média **${correlation.apiLatency.avg}ms**`,
-        `- Duração E2E completa: mín **${correlation.endToEndDuration.min}ms** / máx **${correlation.endToEndDuration.max}ms** / média **${correlation.endToEndDuration.avg}ms**`,
-        `- Duração de recuperação pós-falha: mín **${correlation.recoveryDuration.min}ms** / máx **${correlation.recoveryDuration.max}ms** / média **${correlation.recoveryDuration.avg}ms**`,
-        `- Retentativas e reentregas: **${correlation.totalRetries} retries** de cliente / **${correlation.totalRedeliveries} redeliveries** de broker`,
-        `- Jornada mais lenta: ${
-          correlation.slowestJourney
-            ? `\`${correlation.slowestJourney.journey}\` (**${correlation.slowestJourney.endToEndDurationMs}ms**)`
-            : '_nenhuma_'
-        }`,
-        `- Riscos exercitados: ${correlation.exercisedRisks.map((r) => `\`${r}\``).join(', ') || '_nenhum_'}`,
-        `- Controles exercitados: ${correlation.exercisedControls.map((c) => `\`${c}\``).join(', ') || '_nenhum_'}`,
-        ...(correlation.trendFindings.length > 0
-          ? [
-              '- Variações e tendências observadas:',
-              ...correlation.trendFindings.map((t) => `  - \`[${t.journey}]\` ${t.observation}`),
-            ]
-          : []),
-        '',
-      ]
-    : [];
+  const metricsLine = correlation
+    ? `Jornadas: ${correlation.totalJourneys} (${correlation.passedJourneys} ok / ${correlation.failedJourneys} falhas) | SLA: ${correlation.slaMetCount} met / ${correlation.slaBreachedCount} breached`
+    : null;
 
-  return [
-    '## QE Intelligence Layer — Journey Intelligence (AI-04)',
+  const attentionItems = [
+    ...advisory.degradedJourneys,
+    ...advisory.slaFindings,
+    ...advisory.probableBottlenecks,
+  ].slice(0, 3);
+
+  const actionItems = [
+    ...advisory.recommendedInvestigations,
+    ...advisory.coverageGaps,
+    ...advisory.recommendedTests,
+  ].slice(0, 3);
+
+  const lines: string[] = [
+    '## Journey Intelligence (AI-04)',
     '',
-    '> [LAB] Análise consultiva de jornadas sintéticas de ponta a ponta e SLAs. Decisão de qualidade permanece humana.',
+    `**Resumo:** ${advisory.executiveSummary}`,
+    `**Confiança:** ${advisory.confidence}`,
+    ...(metricsLine ? ['', metricsLine] : []),
     '',
-    `- Confiança da IA: **${advisory.confidence}**`,
-    `- Provedor: \`${outcome.provider}\` (Modelo: \`${outcome.model}\`, Prompt: \`${QE_JOURNEY_PROMPT_VERSION}\`)`,
+    ...formatItems('Atenção', attentionItems),
+    ...formatItems('Ação', actionItems),
+    ...(advisory.humanQuestions.slice(0, 1).length > 0
+      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
+      : []),
+    '`AI advisory · decisão humana · Quality Gate não afetado`',
     '',
-    ...metricsSection,
-    '### Resumo executivo de jornadas',
-    '',
-    advisory.executiveSummary,
-    '',
-    ...formatItems('Jornadas degradadas', advisory.degradedJourneys),
-    ...formatItems('Achados de SLA sintético', advisory.slaFindings),
-    ...formatItems('Gargalos prováveis identificados', advisory.probableBottlenecks),
-    ...formatItems('Riscos de qualidade impactados', advisory.affectedRisks),
-    ...formatItems('Correlações com traces e spans', advisory.traceCorrelations),
-    ...formatItems('Correlações com resiliência', advisory.resilienceCorrelations),
-    ...formatItems('Gaps de cobertura', advisory.coverageGaps),
-    ...formatItems('Investigações recomendadas', advisory.recommendedInvestigations),
-    ...formatItems('Testes recomendados', advisory.recommendedTests),
-    ...formatItems('Perguntas para revisão humana', advisory.humanQuestions),
-  ].join('\n');
+  ];
+  return lines.join('\n');
 }
+
 
 async function main(): Promise<void> {
   const provider = createOpenAiProvider();

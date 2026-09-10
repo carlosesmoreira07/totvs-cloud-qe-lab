@@ -12,13 +12,13 @@ export type RecoveryAssessment = z.infer<typeof recoveryAssessmentEnum>;
 
 export const aiFailureAdvisorySchema = z.object({
   failureSummary: z.string().min(1).max(1000),
-  affectedRisks: z.array(advisoryItemSchema).max(20),
+  affectedRisks: z.array(advisoryItemSchema).max(5),
   recoveryAssessment: recoveryAssessmentEnum,
-  consistencyConcerns: z.array(advisoryItemSchema).max(20),
-  recurringPatterns: z.array(advisoryItemSchema).max(20),
-  coverageGaps: z.array(advisoryItemSchema).max(20),
-  recommendedExperiments: z.array(advisoryItemSchema).max(20),
-  humanQuestions: z.array(advisoryItemSchema).max(20),
+  consistencyConcerns: z.array(advisoryItemSchema).max(5),
+  recurringPatterns: z.array(advisoryItemSchema).max(5),
+  coverageGaps: z.array(advisoryItemSchema).max(5),
+  recommendedExperiments: z.array(advisoryItemSchema).max(5),
+  humanQuestions: z.array(advisoryItemSchema).max(3),
   confidence: z.enum(['LOW', 'MEDIUM', 'HIGH']),
 }).strict();
 

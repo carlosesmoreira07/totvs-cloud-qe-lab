@@ -19,15 +19,15 @@ export type TelemetryFindingItem = z.infer<typeof telemetryFindingItemSchema>;
 
 export const aiTelemetryAdvisorySchema = z.object({
   executiveSummary: z.string().min(1).max(1000),
-  probableDegradationPoints: z.array(telemetryFindingItemSchema).max(20),
-  affectedRisks: z.array(telemetryFindingItemSchema).max(20),
-  traceFindings: z.array(telemetryFindingItemSchema).max(20),
-  metricFindings: z.array(telemetryFindingItemSchema).max(20),
-  instrumentationGaps: z.array(telemetryFindingItemSchema).max(20),
-  consistencyConcerns: z.array(telemetryFindingItemSchema).max(20),
-  recommendedInvestigations: z.array(telemetryFindingItemSchema).max(20),
-  recommendedTests: z.array(telemetryFindingItemSchema).max(20),
-  humanQuestions: z.array(telemetryFindingItemSchema).max(20),
+  probableDegradationPoints: z.array(telemetryFindingItemSchema).max(5),
+  affectedRisks: z.array(telemetryFindingItemSchema).max(5),
+  traceFindings: z.array(telemetryFindingItemSchema).max(5),
+  metricFindings: z.array(telemetryFindingItemSchema).max(5),
+  instrumentationGaps: z.array(telemetryFindingItemSchema).max(5),
+  consistencyConcerns: z.array(telemetryFindingItemSchema).max(5),
+  recommendedInvestigations: z.array(telemetryFindingItemSchema).max(5),
+  recommendedTests: z.array(telemetryFindingItemSchema).max(5),
+  humanQuestions: z.array(telemetryFindingItemSchema).max(3),
   confidence: z.enum(['LOW', 'MEDIUM', 'HIGH']),
 }).strict();
 

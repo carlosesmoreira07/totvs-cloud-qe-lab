@@ -7,6 +7,9 @@ const MAX_DIFF_CHARS_PER_FILE = 2_800;
 const MAX_TOTAL_DIFF_CHARS = 16_000;
 const MAX_OPENAPI_DIFF_CHARS = 5_000;
 
+// Linhas que indicam mudança exclusivamente documental em YAML OpenAPI
+const OPENAPI_DOCONLY_LINE = /^[+-]\s*(summary|description|x-[a-z])[:\s]/i;
+
 const sensitivePath = /(^|\/)(\.env(?:\.|$)|.*(?:secret|credential|private[-_]?key|token).*)/i;
 const relevantPath = /^(apps\/|infra\/|specs\/openapi\/|tests\/|tools\/|evidence\/|docs\/|\.github\/workflows\/|README\.md$|AGENTS\.md$|package(?:-lock)?\.json$|playwright\.config\.ts$|tsconfig.*\.json$)/;
 
@@ -30,6 +33,8 @@ export interface RelevantDiff {
   truncated: boolean;
 }
 
+export type OpenApiChangeNature = 'DOCUMENTATION' | 'SEMANTIC' | 'UNKNOWN';
+
 export interface ImpactContext {
   generatedBy: 'deterministic-impact-context';
   decisionAuthority: 'human';
@@ -40,6 +45,7 @@ export interface ImpactContext {
   knownRiskControls: KnownRiskControl[];
   relevantDiffs: RelevantDiff[];
   openApiChanged: boolean;
+  openApiChangeNature: OpenApiChangeNature;
   openApiDiff: string | null;
   limits: {
     maxDiffFiles: number;
@@ -219,12 +225,20 @@ function readKnownRiskControls(path = 'docs/04-quality-risk-map.md'): KnownRiskC
     });
 }
 
+export function detectOpenApiChangeNature(diff: string | null): OpenApiChangeNature {
+  if (!diff) return 'UNKNOWN';
+  // Analisa somente as linhas que realmente mudaram (+ ou -), excluindo cabeçalho do diff
+  const changedLines = diff.split(/\r?\n/).filter((line) =>
+    (line.startsWith('+') || line.startsWith('-')) && !line.startsWith('+++') && !line.startsWith('---'),
+  );
+  if (changedLines.length === 0) return 'UNKNOWN';
+  return changedLines.every((line) => OPENAPI_DOCONLY_LINE.test(line)) ? 'DOCUMENTATION' : 'SEMANTIC';
+}
+
 export function collectImpactContext(environment: NodeJS.ProcessEnv = process.env): ImpactContext {
   const range = diffRange(environment.QE_IMPACT_BASE_REF, environment.QE_IMPACT_HEAD_REF);
   const detectedChangedFiles = changedFilesFor(range);
   const changedFiles = detectedChangedFiles.filter((file) => !sensitivePath.test(file));
-  const matched = rules.filter((rule) => changedFiles.some((file) => rule.pattern.test(file)));
-  const candidateControls = [...new Set(matched.flatMap((rule) => rule.tests))];
   const safeRelevantFiles = changedFiles
     .filter((file) => relevantPath.test(file) && !sensitivePath.test(file) && file !== 'package-lock.json')
     .sort((left, right) => relevancePriority(left) - relevancePriority(right) || left.localeCompare(right));
@@ -232,6 +246,22 @@ export function collectImpactContext(environment: NodeJS.ProcessEnv = process.en
   const openApiFile = safeRelevantFiles.find((file) => file.startsWith('specs/openapi/'));
   const rawOpenApiDiff = openApiFile ? redactSecrets(patchForFile(openApiFile, range)) : '';
   const openApiDiff = rawOpenApiDiff ? truncate(rawOpenApiDiff, MAX_OPENAPI_DIFF_CHARS).value : null;
+  const openApiChangeNature = openApiFile ? detectOpenApiChangeNature(openApiDiff) : 'UNKNOWN';
+
+  // Quando a mudança OpenAPI é puramente documental, suprimir riscos funcionais e de segurança
+  // que seriam ativados artificialmente pela regra de padrão `specs/openapi/`
+  const matched = rules.filter((rule) => {
+    if (!changedFiles.some((file) => rule.pattern.test(file))) return false;
+    // Suprimir riscos que dependem exclusivamente do padrão openapi quando a mudança é documental
+    if (openApiChangeNature === 'DOCUMENTATION') {
+      const onlyMatchedByOpenApiPattern =
+        changedFiles.filter((file) => rule.pattern.test(file)).every((file) => file.startsWith('specs/openapi/'));
+      if (onlyMatchedByOpenApiPattern) return false;
+    }
+    return true;
+  });
+
+  const candidateControls = [...new Set(matched.flatMap((rule) => rule.tests))];
 
   let remainingCharacters = MAX_TOTAL_DIFF_CHARS;
   const relevantDiffs: RelevantDiff[] = [];
@@ -256,6 +286,7 @@ export function collectImpactContext(environment: NodeJS.ProcessEnv = process.en
     knownRiskControls: readKnownRiskControls(),
     relevantDiffs,
     openApiChanged: Boolean(openApiFile),
+    openApiChangeNature,
     openApiDiff,
     limits: {
       maxDiffFiles: MAX_DIFF_FILES,
@@ -277,6 +308,7 @@ export function formatImpactContextMarkdown(context: ImpactContext): string {
       ? context.changedFiles.map((file) => `- \`${file}\``)
       : ['- Nenhuma mudança detectada.']),
     '',
+    ...(context.openApiChanged ? [`**Natureza da mudança OpenAPI:** \`${context.openApiChangeNature}\``, ''] : []),
     '## Riscos candidatos',
     ...(context.candidateRisks.length > 0
       ? context.candidateRisks.map((risk) => `- ${risk}`)

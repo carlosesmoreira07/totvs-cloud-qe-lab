@@ -125,7 +125,7 @@ export async function runTelemetryAdvisoryAnalysis(
         schema: aiTelemetryAdvisorySchema,
         schemaName: 'qe_telemetry_advisory',
         instructions: TELEMETRY_SYSTEM_INSTRUCTIONS,
-        maxOutputTokens: 2_500,
+        maxOutputTokens: 800,
       }),
       timeoutMs,
     );
@@ -147,17 +147,14 @@ export async function runTelemetryAdvisoryAnalysis(
   }
 }
 
-function formatItems(title: string, items: TelemetryFindingItem[]): string[] {
+function formatItems(title: string, items: TelemetryFindingItem[], limit = 3): string[] {
+  if (items.length === 0) return [];
   return [
-    `### ${title}`,
-    '',
-    ...(items.length > 0
-      ? items.map((item) => {
-          const badge = `\`[${item.classification}]\``;
-          const evidence = item.evidence.length > 0 ? ` Evidência: ${item.evidence.join('; ')}.` : '';
-          return `- ${badge} **${item.subject}:** ${item.rationale}.${evidence}`;
-        })
-      : ['- Nenhum apontamento pelo modelo.']),
+    `**${title}:**`,
+    ...items.slice(0, limit).map((item) => {
+      const badge = `[${item.classification}]`;
+      return `- ${badge} ${item.subject}: ${item.rationale}`;
+    }),
     '',
   ];
 }
@@ -168,63 +165,48 @@ export function formatTelemetryAdvisorySummary(
 ): string {
   if (outcome.status === AI_TELEMETRY_ADVISORY_UNAVAILABLE) {
     return [
-      '## QE Intelligence Layer — Telemetry & Trace Intelligence (AI-03)',
+      '## Telemetry Intelligence (AI-03)',
       '',
-      `**${AI_TELEMETRY_ADVISORY_UNAVAILABLE}**`,
-      '',
-      'AI Telemetry Advisory indisponível — Quality Gate não afetado.',
-      '',
-      `Motivo técnico: \`${outcome.reason}\`.`,
+      `**${AI_TELEMETRY_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
     ].join('\n');
   }
 
   const { advisory } = outcome;
-  const metricsSection = correlation
-    ? [
-        '### Correlação determinística observada',
-        '',
-        `- Traces analisados: **${correlation.totalTraces}** (Cenários de observabilidade: **${correlation.totalObservabilityScenarios}**, Resiliência: **${correlation.totalResiliencyScenarios}**)`,
-        `- Spans observados na cadeia: ${correlation.observedSpans.map((s) => `\`${s}\``).join(', ') || '_nenhum_'}`,
-        `- Traces com status ERROR: **${correlation.errorTraces.length}**${
-          correlation.errorTraces.length > 0
-            ? ` (${correlation.errorTraces.map((e) => `\`${e.spanName}\` em ${e.scenario}`).join(', ')})`
-            : ''
-        }`,
-        `- Quebras de fluxo (spans esperados ausentes): **${correlation.missingSpans.length}** cenários`,
-        `- Métricas agregadas: HTTP reqs: **${correlation.metricsSummary.httpRequestsTotal}** | HTTP errs: **${correlation.metricsSummary.httpErrorsTotal}** | Outbox pending: **${correlation.metricsSummary.outboxPendingCount}** | Publish fails: **${correlation.metricsSummary.outboxPublishFailuresTotal}** | Processed: **${correlation.metricsSummary.messagesProcessedTotal}** | Consumer fails: **${correlation.metricsSummary.consumerFailuresTotal}** | Redeliveries: **${correlation.metricsSummary.messageRedeliveriesTotal}**`,
-        `- Recuperação observada: mín **${correlation.recoveryDuration.min}ms** / máx **${correlation.recoveryDuration.max}ms** / média **${correlation.recoveryDuration.avg}ms**`,
-        `- Riscos exercitados: ${correlation.exercisedRisks.map((r) => `\`${r}\``).join(', ') || '_nenhum_'}`,
-        `- Controles exercitados: ${correlation.exercisedControls.map((c) => `\`${c}\``).join(', ') || '_nenhum_'}`,
-        `- Falhas/anomalias registradas: ${correlation.observedFailures.map((f) => `\`${f}\``).join(', ') || '_nenhuma_'}`,
-        '',
-      ]
-    : [];
+  const metricsLine = correlation
+    ? `Traces: ${correlation.totalTraces} | Erros: ${correlation.errorTraces.length} | Missing spans: ${correlation.missingSpans.length}`
+    : null;
 
-  return [
-    '## QE Intelligence Layer — Telemetry & Trace Intelligence (AI-03)',
+  const attentionItems = [
+    ...advisory.probableDegradationPoints,
+    ...advisory.consistencyConcerns,
+    ...advisory.traceFindings,
+  ].slice(0, 3);
+
+  const actionItems = [
+    ...advisory.recommendedInvestigations,
+    ...advisory.instrumentationGaps,
+    ...advisory.recommendedTests,
+  ].slice(0, 3);
+
+  const lines: string[] = [
+    '## Telemetry Intelligence (AI-03)',
     '',
-    '> [LAB] Análise consultiva de telemetria distribuída, rastros e métricas. Decisão de qualidade permanece humana.',
+    `**Resumo:** ${advisory.executiveSummary}`,
+    `**Confiança:** ${advisory.confidence}`,
+    ...(metricsLine ? ['', metricsLine] : []),
     '',
-    `- Confiança da IA: **${advisory.confidence}**`,
-    `- Provedor: \`${outcome.provider}\` (Modelo: \`${outcome.model}\`, Prompt: \`${QE_TELEMETRY_PROMPT_VERSION}\`)`,
+    ...formatItems('Atenção', attentionItems),
+    ...formatItems('Ação', actionItems),
+    ...(advisory.humanQuestions.slice(0, 1).length > 0
+      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
+      : []),
+    '`AI advisory · decisão humana · Quality Gate não afetado`',
     '',
-    ...metricsSection,
-    '### Resumo executivo de telemetria',
-    '',
-    advisory.executiveSummary,
-    '',
-    ...formatItems('Pontos prováveis de degradação', advisory.probableDegradationPoints),
-    ...formatItems('Riscos de qualidade impactados', advisory.affectedRisks),
-    ...formatItems('Achados de traces e spans', advisory.traceFindings),
-    ...formatItems('Achados de métricas', advisory.metricFindings),
-    ...formatItems('Gaps de instrumentação e observabilidade', advisory.instrumentationGaps),
-    ...formatItems('Preocupações de consistência', advisory.consistencyConcerns),
-    ...formatItems('Investigações recomendadas', advisory.recommendedInvestigations),
-    ...formatItems('Testes adicionais recomendados', advisory.recommendedTests),
-    ...formatItems('Perguntas para revisão humana', advisory.humanQuestions),
-  ].join('\n');
+  ];
+  return lines.join('\n');
 }
+
 
 async function main(): Promise<void> {
   const provider = createOpenAiProvider();

@@ -11,14 +11,14 @@ export const trendIntelligenceFindingSchema = z.object({
 
 export const aiTrendAdvisorySchema = z.object({
   executiveSummary: z.string().min(1).max(1_000),
-  improvingAreas: z.array(trendIntelligenceFindingSchema).max(20),
-  degradingAreas: z.array(trendIntelligenceFindingSchema).max(20),
-  persistentRisks: z.array(trendIntelligenceFindingSchema).max(20),
-  regressionFindings: z.array(trendIntelligenceFindingSchema).max(20),
-  qualitySignals: z.array(trendIntelligenceFindingSchema).max(20),
-  recommendedInvestigations: z.array(trendIntelligenceFindingSchema).max(20),
-  recommendedActions: z.array(trendIntelligenceFindingSchema).max(20),
-  humanQuestions: z.array(trendIntelligenceFindingSchema).max(20),
+  improvingAreas: z.array(trendIntelligenceFindingSchema).max(5),
+  degradingAreas: z.array(trendIntelligenceFindingSchema).max(5),
+  persistentRisks: z.array(trendIntelligenceFindingSchema).max(5),
+  regressionFindings: z.array(trendIntelligenceFindingSchema).max(5),
+  qualitySignals: z.array(trendIntelligenceFindingSchema).max(5),
+  recommendedInvestigations: z.array(trendIntelligenceFindingSchema).max(5),
+  recommendedActions: z.array(trendIntelligenceFindingSchema).max(5),
+  humanQuestions: z.array(trendIntelligenceFindingSchema).max(3),
   confidence: z.enum(['LOW', 'MEDIUM', 'HIGH']),
 }).strict();
 

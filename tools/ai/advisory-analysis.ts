@@ -12,10 +12,11 @@ import {
 import { parseAiAdvisory, type AiAdvisory } from './schema.js';
 
 export const AI_ADVISORY_UNAVAILABLE = 'AI_ADVISORY_UNAVAILABLE' as const;
-export const QE_AI_PROMPT_VERSION = 'qe-advisory-v1' as const;
+export const QE_AI_PROMPT_VERSION = 'qe-advisory-v2' as const;
 const MAX_TEST_REPORT_BYTES = 1_000_000;
 const MAX_IMPACT_CONTEXT_BYTES = 100_000;
 const MAX_CONTROL_RESULTS = 50;
+
 
 interface ControlResult {
   name: string;
@@ -160,6 +161,16 @@ export function buildAdvisoryContext(
   };
 }
 
+// Token budget baseado no tamanho e natureza da mudança
+function selectTokenBudget(context: AdvisoryContext): number {
+  const { changes } = context;
+  if (changes.openApiChangeNature === 'DOCUMENTATION') return 350;
+  if (changes.candidateRisks.length === 0) return 350;
+  if (changes.changedFiles.length <= 2) return 450;
+  if (changes.changedFiles.length <= 5) return 600;
+  return 700;
+}
+
 function withTimeout<T>(operation: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(
@@ -179,7 +190,27 @@ export async function runAdvisoryAnalysis(
   timeoutMs = DEFAULT_QE_AI_TIMEOUT_MS,
 ): Promise<AdvisoryOutcome> {
   try {
-    const raw = await withTimeout(provider.analyze(context), timeoutMs);
+    // Filtrar knownRiskControls ao contexto: só controles relacionados aos riscos candidatos
+    const relatedRiskIds = new Set(
+      context.changes.candidateRisks.flatMap((risk) =>
+        context.changes.knownRiskControls
+          .filter((krc) => krc.risk.toLowerCase().includes(risk.toLowerCase().slice(0, 20)))
+          .map((krc) => krc.riskId),
+      ),
+    );
+    const filteredContext: AdvisoryContext = {
+      ...context,
+      changes: {
+        ...context.changes,
+        knownRiskControls: context.changes.knownRiskControls.filter(
+          (krc) => relatedRiskIds.has(krc.riskId) || relatedRiskIds.size === 0,
+        ).slice(0, 20), // cap absoluto
+      },
+    };
+
+    const raw = await withTimeout(provider.analyze(filteredContext, {
+      maxOutputTokens: selectTokenBudget(context),
+    }), timeoutMs);
     return {
       status: 'AVAILABLE',
       provider: provider.name,
@@ -197,16 +228,13 @@ export async function runAdvisoryAnalysis(
   }
 }
 
-function advisoryItems(title: string, items: AiAdvisory['coverageGaps']): string[] {
+
+// Renderiza uma seção somente se tiver itens (sem "Nenhum item")
+function advisorySection(title: string, items: AiAdvisory['coverageGaps'], limit = 3): string[] {
+  if (items.length === 0) return [];
   return [
-    `### ${title}`,
-    '',
-    ...(items.length > 0
-      ? items.map((item) => {
-          const evidence = item.evidence.length > 0 ? ` Evidência: ${item.evidence.join('; ')}.` : '';
-          return `- **${item.subject}:** ${item.rationale}.${evidence}`;
-        })
-      : ['- Nenhum item sugerido pelo modelo.']),
+    `**${title}:**`,
+    ...items.slice(0, limit).map((item) => `- ${item.subject}: ${item.rationale}`),
     '',
   ];
 }
@@ -214,38 +242,45 @@ function advisoryItems(title: string, items: AiAdvisory['coverageGaps']): string
 export function formatAdvisorySummary(outcome: AdvisoryOutcome): string {
   if (outcome.status === AI_ADVISORY_UNAVAILABLE) {
     return [
-      '## QE Intelligence Layer — advisory',
+      '## QE Advisory',
       '',
-      `**${AI_ADVISORY_UNAVAILABLE}**`,
-      '',
-      'AI Advisory indisponível — Quality Gate não afetado.',
-      '',
-      `Motivo técnico: \`${outcome.reason}\`.`,
+      `**${AI_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
     ].join('\n');
   }
 
   const { advisory } = outcome;
-  return [
-    '## QE Intelligence Layer — advisory',
+
+  // Agregar atenções (riscos + gaps + tests suspeitos) e ações (controles + checks + segurança)
+  const attentionItems = [
+    ...advisory.impactedRisks,
+    ...advisory.coverageGaps,
+    ...advisory.suspiciousTests,
+  ].slice(0, 3);
+
+  const actionItems = [
+    ...advisory.recommendedChecks,
+    ...advisory.impactedControls,
+    ...advisory.securityConcerns,
+  ].slice(0, 3);
+
+  const questionItems = advisory.humanQuestions.slice(0, 1);
+
+  const lines: string[] = [
+    '## QE Advisory',
     '',
-    '> [LAB] Recomendação probabilística. Não aprova nem reprova a mudança; a decisão é humana.',
+    `**Resumo:** ${advisory.changeSummary}`,
+    `**Impacto:** ${advisory.impact} \u00b7 **Confiança:** ${advisory.confidence}`,
     '',
-    `- Impacto sugerido: **${advisory.impact}**`,
-    `- Confiança: **${advisory.confidence}**`,
-    `- Provedor: \`${outcome.provider}\``,
-    `- Modelo: \`${outcome.model}\``,
-    `- Prompt: \`${QE_AI_PROMPT_VERSION}\``,
+    ...advisorySection('Atenção', attentionItems),
+    ...advisorySection('Ação', actionItems),
+    ...(questionItems.length > 0 ? [`**Pergunta:** ${questionItems[0]!.subject} — ${questionItems[0]!.rationale}`, ''] : []),
+    '`AI advisory \u00b7 decisão humana \u00b7 Quality Gate não afetado`',
     '',
-    ...advisoryItems('Riscos impactados', advisory.impactedRisks),
-    ...advisoryItems('Controles impactados', advisory.impactedControls),
-    ...advisoryItems('Gaps de cobertura', advisory.coverageGaps),
-    ...advisoryItems('Testes suspeitos', advisory.suspiciousTests),
-    ...advisoryItems('Preocupações de segurança', advisory.securityConcerns),
-    ...advisoryItems('Checks recomendados', advisory.recommendedChecks),
-    ...advisoryItems('Perguntas para revisão humana', advisory.humanQuestions),
-  ].join('\n');
+  ];
+  return lines.join('\n');
 }
+
 
 async function main(): Promise<void> {
   const provider = createOpenAiProvider();

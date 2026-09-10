@@ -86,7 +86,7 @@ export async function runExecutiveScorecardAdvisory(
       schema: aiExecutiveScorecardSchema,
       schemaName: 'qe_executive_scorecard_advisory',
       instructions: EXECUTIVE_SCORECARD_SYSTEM_INSTRUCTIONS,
-      maxOutputTokens: 2_800,
+      maxOutputTokens: 900,
     }), timeoutMs);
     return {
       status: 'AVAILABLE',
@@ -105,13 +105,11 @@ export async function runExecutiveScorecardAdvisory(
   }
 }
 
-function findings(title: string, items: ExecutiveScorecardFinding[]): string[] {
+function findings(title: string, items: ExecutiveScorecardFinding[], limit = 3): string[] {
+  if (items.length === 0) return [];
   return [
-    `### ${title}`,
-    '',
-    ...(items.length > 0
-      ? items.map((item) => `- **${item.subject}** — \`[${item.classification}]\` ${item.rationale}. **Base da leitura:** ${item.evidence.join('; ')}.`)
-      : ['- Nenhum ponto adicional sugerido.']),
+    `**${title}:**`,
+    ...items.slice(0, limit).map((item) => `- [${item.classification}] **${item.subject}**: ${item.rationale}`),
     '',
   ];
 }
@@ -119,44 +117,42 @@ function findings(title: string, items: ExecutiveScorecardFinding[]): string[] {
 export function formatExecutiveScorecardAdvisory(outcome: ExecutiveScorecardAdvisoryOutcome): string {
   if (outcome.status === AI_EXECUTIVE_SCORECARD_UNAVAILABLE) {
     return [
-      '## Parecer Executivo Consultivo — AI-05',
+      '## Parecer Executivo (AI-05)',
       '',
-      `**${AI_EXECUTIVE_SCORECARD_UNAVAILABLE}**`,
-      '',
-      'Parecer executivo de IA indisponível — Quality Gate não afetado.',
-      '',
-      `Motivo técnico: \`${outcome.reason}\`.`,
+      `**${AI_EXECUTIVE_SCORECARD_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
     ].join('\n');
   }
 
   const advisory = outcome.advisory;
+  const attentionItems = [
+    advisory.overallInterpretation,
+    ...advisory.regressions,
+    ...advisory.degradedJourneys,
+  ].slice(0, 3);
+
+  const actionItems = [
+    ...advisory.recommendedInvestigations,
+    ...advisory.coverageGaps,
+    ...advisory.recommendedTests,
+  ].slice(0, 3);
+
   return [
-    '## Parecer Executivo Consultivo — AI-05',
+    '## Parecer Executivo (AI-05)',
     '',
-    '> [LAB] Leitura probabilística sobre evidências determinísticas. A decisão permanece humana.',
+    `**Resumo:** ${advisory.executiveSummary}`,
+    `**Confiança:** ${advisory.confidence}`,
     '',
-    `- Confiança: **${advisory.confidence}**`,
-    `- Provedor: \`${outcome.provider}\` (modelo \`${outcome.model}\`, prompt \`${QE_EXECUTIVE_SCORECARD_PROMPT_VERSION}\`)`,
+    ...findings('Atenção', attentionItems),
+    ...findings('Ação', actionItems),
+    ...(advisory.humanQuestions.slice(0, 1).length > 0
+      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
+      : []),
+    '`AI advisory · decisão humana · Quality Gate não afetado`',
     '',
-    '### Resumo Executivo',
-    '',
-    advisory.executiveSummary,
-    '',
-    ...findings('Interpretação geral', [advisory.overallInterpretation]),
-    ...findings('Riscos afetados', advisory.affectedRisks),
-    ...findings('Evidências mais fortes', advisory.strongestEvidence),
-    ...findings('Regressões', advisory.regressions),
-    ...findings('Jornadas degradadas', advisory.degradedJourneys),
-    ...findings('Resiliência', advisory.resilienceFindings),
-    ...findings('Observabilidade', advisory.observabilityFindings),
-    ...findings('Desempenho', advisory.performanceFindings),
-    ...findings('Lacunas de cobertura', advisory.coverageGaps),
-    ...findings('Investigações recomendadas', advisory.recommendedInvestigations),
-    ...findings('Testes recomendados', advisory.recommendedTests),
-    ...findings('Perguntas para decisão humana', advisory.humanQuestions),
   ].join('\n');
 }
+
 
 async function main(): Promise<void> {
   try {
