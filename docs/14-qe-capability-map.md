@@ -28,14 +28,14 @@
 ### 1. API / Contract Testing
 - **Problema que resolve:** Quebras de contrato entre frontend/clientes e o backend de controle, respostas inconsistentes e falhas de validação de payload.
 - **Controle / Evidência:** Validador OpenAPI 3.1 no build (`validate-openapi.ts`), suíte Playwright de contrato (`tests/contract/`) e asserções contra esquemas JSON.
-- **Valor técnico:** Detecta quebras antes da integração e garante documentação viva 100% aderente ao código do mock.
-- **Valor de negócio:** Elimina retrabalho de desenvolvimento por divergência de contrato e reduz chamados de clientes por payloads malformados.
+- **Valor técnico:** Detecta quebras antes da integração e mantém a documentação de contrato alinhada ao código do mock.
+- **Valor de negócio:** Ajuda a reduzir retrabalho de desenvolvimento por divergência de contrato e mitiga falhas por payloads malformados.
 
 ### 2. Idempotency & Concurrency
 - **Problema que resolve:** Criação acidental de recursos duplicados quando requisições idênticas sofrem retry por instabilidade de rede ou concorrência.
 - **Controle / Evidência:** Suíte de concorrência e idempotência (`tests/api/idempotency.spec.ts`), teste de corridas de requisições simultâneas e chave `Idempotency-Key`.
-- **Valor técnico:** Garante cardinalidade 1:1 entre chave e recurso e validação determinística de conflito para payloads divergentes.
-- **Valor de negócio:** Previne cobranças duplicadas de clientes e provisionamentos desnecessários de infraestrutura em nuvem.
+- **Valor técnico:** Valida cardinalidade 1:1 entre chave e recurso e asserção determinística de conflito para payloads divergentes.
+- **Valor de negócio:** Reduz o risco de cobranças indevidas e provisionamentos duplicados de infraestrutura sob retries.
 
 ### 3. Distributed Systems
 - **Problema que resolve:** Perda de estado, divergência entre dados relacionais e eventos distribuídos, e estados fantasmas (*ghost writes*).
@@ -56,7 +56,7 @@
 - **Valor de negócio:** Redução do risco de indisponibilidade prolongada e proteção contra efeito dominó de falhas em cascata.
 
 ### 6. Observability & Tracing
-- **Problema que resolve:** Dificuldade em diagnosticar a causa raiz de falhas em fluxos assíncronos que atravessam múltiplos processos.
+- **Problema que resolve:** Dificuldade em diagnosticar o ponto de ruptura de falhas em fluxos assíncronos que atravessam múltiplos processos.
 - **Controle / Evidência:** OpenTelemetry instrumentado em 6 spans com contexto W3C (`traceparent`), exportação OTLP para Collector/Jaeger e suíte de telemetria (`tests/observability/`).
 - **Valor técnico:** Rastreabilidade fim-a-fim de cada operação e detecção determinística de spans ausentes ou com erro.
 - **Valor de negócio:** Auxilia na aceleração do diagnóstico de incidentes complexos através da visibilidade clara e correlacionada do rastro da requisição.

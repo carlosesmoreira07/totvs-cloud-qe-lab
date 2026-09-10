@@ -90,6 +90,11 @@ O primeiro comando produz:
 
 O PDF é gerado localmente e em CI, sem SaaS externo. Markdown, HTML e PDF usam o rodapé `TOTVS Cloud QE Lab — Personal & Non-Official [LAB]` e `Generated from deterministic Quality Engineering evidence`. A decisão humana obrigatória permanece explícita na seção de governança.
 
+### Semântica dos Artefatos: Snapshot Versionado vs. Execução em CI
+- **Evidência versionada em `master` (`evidence/scorecard/*`)**: Representa o snapshot determinístico gerado a partir do estado de código e evidências disponível no momento da geração/congelamento.
+- **Artifact do GitHub Actions**: Representa a geração executada dinamicamente pela esteira de CI sobre o commit/head exato daquele workflow.
+Essa distinção formal elimina qualquer circularidade conceitual de tentar fazer um arquivo versionado apontar para o SHA do seu próprio commit antes que ele exista.
+
 ## IA consultiva
 
 `tools/ai/executive-scorecard-intelligence.ts` usa a interface `AiProvider`, o adapter OpenAI e Structured Outputs com Zod. A entrada contém apenas o scorecard determinístico; não inclui repositório, logs completos ou secrets. A apresentação final foi refinada para PT-BR executivo, mantendo a estrutura, a classificação e a governança originais.

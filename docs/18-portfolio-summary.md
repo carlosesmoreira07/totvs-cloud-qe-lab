@@ -21,7 +21,7 @@
 | **Bateria de Testes** | **176 Testes Totais** | - **130 Testes Unitários & PBT** (`node:test`, `fast-check`)<br>- **46 Testes Playwright** (Contrato, API, Segurança, Integração, Resiliência, Observabilidade, Jornadas) |
 | **Módulos de Laboratório** | **12 LABs Concluídos** | LAB-01 (Fundação) a LAB-12 (Portfolio Pack & Fechamento) |
 | **Automações de IA** | **7 Módulos AI-Assistive** | AI-01 a AI-07 (Impact Analysis, Flaky Detection, Trend Intelligence) |
-| **Estabilidade de Pipeline** | **0 Flaky Tests (100% Determinístico)** | Execuções herméticas com teardown e mocks isolados |
+| **Estabilidade de Pipeline** | **0 Flaky Tests (Determinístico)** | Execuções herméticas com teardown e mocks isolados nos cenários exercitados |
 | **Scorecard Executivo** | **2 Páginas A4 Landscape** | Relatório gerado em HTML/PDF com foco executivo e legibilidade |
 | **Governança de IA** | **Advisory (0% Autônoma)** | IA nunca bloqueia gate nem aprova release de forma autônoma |
 
@@ -47,16 +47,16 @@ IA & Validação:      Adapter OpenAI / Zod (Runtime Schema Validation)
 
 ### 1. Cultura Orientada a Risco Real de Cloud
 Em vez de testar funcionalidades triviais de front-end ou CRUDs básicos, o laboratório foca nas falhas complexas de arquiteturas de nuvem:
-- **Tolerância a Falhas e Idempotência**: Garantia de não-duplicação de registros mesmo sob reentregas em massa na mensageria.
+- **Tolerância a Falhas e Idempotência**: Validação de não-duplicação de registros mesmo sob reentregas em massa na mensageria nos cenários exercitados.
 - **Rastreabilidade de Ponta a Ponta**: Instrumentação de `x-correlation-id` e `traceparent` desde a requisição HTTP até o consumer em background.
 - **Testes Baseados em Propriedades (PBT)**: Geração de milhares de casos de borda com `fast-check` para validar a robustez de parsers e schemas Zod.
 
 ### 2. Quality Gate Determinístico vs IA Consultiva
 O laboratório estabelece uma linha clara de separação:
-- **Quality Gate**: 100% determinístico, baseado em código, tipos, cobertura e testes objetivos.
+- **Quality Gate**: Determinístico, baseado em código, tipos, cobertura e testes objetivos.
 - **Inteligência Artificial**: Exclusivamente consultiva (`advisory`), analisando diffs, impacto em riscos e tendências históricas para apoiar a decisão de revisores humanos. Qualquer instabilidade de LLM ativa fallbacks seguros (`AI_*_UNAVAILABLE`) sem impactar a entrega contínua.
 
-### 3. Visão Executiva e Prontidão para Auditoria
+### 3. Visão Executiva e Transparência Técnica
 A qualidade não é escondida em logs de terminal. O Scorecard Executivo diagramado em formato A4 fornece à diretoria, auditoria e times de compliance:
 - Status binário e transparente do release.
 - Cobertura de riscos de negócio vinculados a controles técnicos.

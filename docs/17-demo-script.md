@@ -86,10 +86,10 @@ graph LR
   npm run test:api
   ```
 - **O que Mostrar**:
-  - Testes de idempotência: requisições com a mesma chave `Idempotency-Key` e mesmo payload retornam resultado idêntico (HTTP 200/201) sem duplicação no banco.
-  - Requisições com a mesma chave e payload divergente disparam conflito explícito (HTTP 409).
+  - Testes de idempotência: requisições com a mesma chave `Idempotency-Key` e mesmo payload retornam resultado idêntico (`202 Accepted` com cabeçalho `Idempotency-Replayed: true`) sem duplicação no banco.
+  - Requisições com a mesma chave e payload divergente disparam conflito explícito (`409 Conflict`).
 - **Mensagem-Chave**:
-  "Em sistemas distribuídos, a rede falhará. A garantia de idempotência no Transactional Outbox protege contra faturamento duplicado e corrupção de estado."
+  "Em sistemas distribuídos, a rede falhará. A garantia de idempotência no Transactional Outbox reduz o risco de faturamento duplicado e corrupção de estado sob retries de rede."
 
 ---
 
@@ -99,7 +99,7 @@ graph LR
 - **O que Mostrar**:
   - O fluxo de telemetria padronizado: Logs, Métricas e Traces correlacionados entre API e Consumer assíncrono.
 - **Mensagem-Chave**:
-  "Não há qualidade sem observabilidade. Se um teste falhar ou um erro ocorrer no consumer, o correlation ID permite rastrear a causa raiz ponta a ponta."
+  "Não há qualidade sem observabilidade. Se um teste falhar ou um erro ocorrer no consumer, o correlation ID e a árvore de spans W3C ajudam a diagnosticar a cadeia de eventos ponta a ponta."
 
 ---
 
@@ -112,7 +112,7 @@ graph LR
 - **O que Mostrar**:
   - Pipeline de segurança com 4 camadas: SAST (Semgrep), Verificação de Segredos (TruffleHog), Análise de Dependências (npm audit) e DAST passivo (OWASP ZAP).
 - **Mensagem-Chave**:
-  "Segurança integrada à engenharia de qualidade: vulnerabilidades e vazamento de chaves são interceptados antes do build."
+  "Segurança integrada à engenharia de qualidade: ajuda a detectar credenciais versionadas e vulnerabilidades antes da integração, dentro dos controles executados."
 
 ---
 
@@ -120,7 +120,7 @@ graph LR
 - **Comando / Ação**:
   Exibir `evidence/performance/baseline.json` e `evidence/resiliency/resilience-summary.json`.
 - **O que Mostrar**:
-  - Asserções estritas de latência p95 (< 200ms) e throughput mínimo contra baseline versionado.
+  - Asserções estritas de latência p95 (< 500ms, com baseline de 350ms) e throughput mínimo contra baseline versionado.
   - Testes de caos: reconexão automática do worker após particionamento simulado de rede do NATS.
 - **Mensagem-Chave**:
   "Performance e resiliência não são testes de fim de ciclo; são contratos contínuos validados contra baselines históricos."

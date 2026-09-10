@@ -73,7 +73,7 @@ graph TD
 3. **Padrão OpenTelemetry com Correlation IDs**:
    - Propagação de W3C TraceContext (`traceparent`) e `x-correlation-id` entre APIs, brokers de mensageria e workers.
 4. **Layout Executivo de Scorecard A4**:
-   - Preservar o relatório denso, visual e sem rolagem em 3 páginas A4 landscape para consumo de diretoria e auditoria.
+   - Preservar a apresentação executiva e visual em 2 páginas A4 landscape para consumo de liderança e auditoria.
 5. **Governança de IA Consultiva com Validação Estrita (Zod)**:
    - Manter schemas Zod para parsing de respostas de LLMs, fallbacks determinísticos (`AI_*_UNAVAILABLE`) e impedimento total de ação autônoma ou bloqueio de gates.
 
@@ -82,27 +82,27 @@ graph TD
 1. **Substituição de Mocks por Serviços Reais / Staging**:
    - Substituir `apps/control-plane-mock` por endpoints de ambientes de homologação (Staging/Sandbox), utilizando geradores de contratos OpenAPI para manter alinhamento.
 2. **Scanners e Ferramental de Segurança**:
-   - Conectar os controles de DAST do laboratório (OWASP ZAP container) à infraestrutura de segurança corporativa (SonarQube, Veracode, Checkmarx, Wiz, Prisma Cloud).
+   - Conectar os controles de DAST do laboratório (OWASP ZAP container) à infraestrutura de segurança corporativa (ex: SonarQube, Veracode, Checkmarx, Wiz ou ferramentas adotadas pela organização).
 3. **Orquestração de CI/CD**:
-   - Converter os workflows de GitHub Actions para a esteira oficial da empresa (GitLab CI, Azure DevOps, Jenkins ou Harness), preservando os mesmos passos de validação (`lint`, `audit`, `typecheck`, `test`, `scorecard`).
+   - Converter os workflows de GitHub Actions para a esteira oficial da empresa (caso utilize GitLab CI, Azure DevOps, Jenkins ou Harness), preservando os mesmos passos de validação (`audit`, `typecheck`, `test`, `scorecard`).
 4. **Backend de Observabilidade**:
-   - Apontar o OpenTelemetry Collector (`infra/otel-collector-config.yaml`) para o cluster corporativo gerenciado (Grafana Cloud, Datadog, Dynatrace, New Relic, Tempo/Loki).
+   - Apontar o OpenTelemetry Collector (`infra/otel-collector-config.yaml`) para a infraestrutura corporativa de telemetria adotada pela organização (ex: Datadog, Dynatrace, New Relic, Grafana Cloud, Tempo/Loki).
 
 ### 3.3. O que DESCARTAR
 
 1. **Docker Compose Local para Orquestração Produtiva**:
-   - Descartar os manifests de `docker-compose.yml` para implantação; adotar manifests Kubernetes, Helm Charts ou Kustomize conforme o padrão da engenharia de infraestrutura.
+   - Descartar os manifests de `docker-compose.yml` para implantação; adotar a tecnologia de orquestração padrão da infraestrutura corporativa (ex: Kubernetes, Helm, ECS, conforme definição do time de infraestrutura).
 2. **Workers em Processo Único Local**:
-   - Descartar o runner de consumo mockado em Node.js; adotar deployments com Horizontal Pod Autoscaler (HPA) e escalonamento orientado a métricas de fila (KEDA).
+   - Descartar o runner de consumo mockado em Node.js; adotar deployments com escalonamento orientado a métricas de fila (ex: HPA/KEDA, se aplicável à arquitetura corporativa).
 3. **Dados Sintéticos Simplificados**:
    - Descartar seeds estáticos; implementar geradores de massas de dados mascaradas e alinhadas a padrões LGPD.
 
 ### 3.4. O que VALIDAR Antes de Tocar em Produção
 
 1. **SLOs e Tolerância de Latência Reais**:
-   - `[VALIDAR]` se os thresholds do laboratório (ex: p95 < 200ms) condizem com a realidade da rede e infraestrutura de produção multi-tenant.
+   - `[VALIDAR]` se os thresholds didáticos do laboratório condizem com a realidade da rede e infraestrutura de produção multi-tenant.
 2. **Topologias de Mensageria e Confiabilidade**:
-   - `[VALIDAR]` políticas de retenção de mensagens, partições, dead-letter exchanges e timeouts configurados nos clusters de mensageria corporativos (Kafka, RabbitMQ, NATS JetStream).
+   - `[VALIDAR]` políticas de retenção de mensagens, partições, dead-letter exchanges e timeouts configurados na mensageria corporativa adotada (seja Kafka, RabbitMQ, NATS JetStream ou cloud-native brokers).
 3. **IAM, RBAC e Governança de Rede**:
    - `[VALIDAR]` autenticação via mTLS, tokens OAuth2/OIDC corporativos e políticas de rede (NetworkPolicies) entre pods e VPCs.
 4. **Compliance Regulatório e Trilha de Auditoria**:

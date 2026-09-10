@@ -127,6 +127,8 @@ npm run history:build        # Processa série histórica e calcula tendências 
 npm run scorecard            # Gera relatório executivo A4 em JSON, HTML e PDF
 ```
 
+> **Nota sobre Semântica de Evidência [LAB]**: Os arquivos de scorecard versionados no repositório (`evidence/scorecard/*`) representam o snapshot congelado gerado localmente; os artifacts do GitHub Actions representam a execução dinâmica do CI sobre o commit de cada workflow.
+
 ---
 
 ## 5. Governança de IA Assistiva (AI-01 a AI-07)

@@ -20,7 +20,7 @@ Em plataformas de nuvem, os incidentes mais caros e destrutivos raramente ocorre
 - Novas versões degradam silenciosamente o tempo de resposta ou reintroduzem vulnerabilidades de segurança;
 - Lideranças precisam decidir se uma versão deve ir para produção baseadas apenas em opiniões subjetivas de "parece estável".
 
-Este laboratório resolve a **desconexão entre esforço técnico de teste e impacto no negócio**, garantindo que cada teste exista para cobrir um risco real de receita, reputação ou disponibilidade.
+Este laboratório busca aproximar o **esforço técnico de teste do impacto no negócio**, estruturando controles para cobrir riscos identificados de receita, reputação ou disponibilidade nos fluxos exercitados.
 
 ---
 
