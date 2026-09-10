@@ -9,9 +9,9 @@
   "successRate": 1,
   "errorRate": 0,
   "latency": {
-    "p50": 0,
+    "p50": 32.5,
     "p95": 200.3,
-    "p99": 0,
+    "p99": null,
     "max": 264.3
   },
   "e2eLatency": {

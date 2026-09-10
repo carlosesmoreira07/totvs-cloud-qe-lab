@@ -17,7 +17,7 @@
 - [LAB] LAB-07 introduz observabilidade e telemetria distribuída com OpenTelemetry cobrindo os 6 spans do ciclo assíncrono, métricas QE de baixa cardinalidade, OpenTelemetry Collector e Jaeger local.
 - [LAB] LAB-08 introduz jornadas sintéticas de ponta a ponta (Synthetic & End-to-End Control Plane Journeys), validando o fluxo integral do usuário sob SLAs didáticos [LAB] e gerando evidências estruturadas em JSON.
 - [LAB] LAB-09 introduz verificação contínua de performance e carga com k6/autocannon, baseline versionado e asserções estritas de latência, throughput e error rate.
-- [LAB] LAB-10 introduz o pacote de segurança Shift-Left (SAST, Secret Scan com TruffleHog/Gitleaks, Análise de Dependências e DAST com OWASP ZAP) e o Scorecard Executivo A4 Landscape de 3 páginas.
+- [LAB] LAB-10 introduz o pacote de segurança Shift-Left (SAST com Semgrep, Secret Scan com TruffleHog, Análise de Dependências com npm audit e DAST passivo com OWASP ZAP) e o Scorecard Executivo A4 Landscape de 2 páginas.
 - [LAB] LAB-11 introduz o histórico determinístico de qualidade (Historical Quality Trends) e detecção de regressão entre múltiplos checkpoints sem uso de LLM.
 - [LAB] LAB-12 consolida o laboratório no Pacote Executivo e Portfólio Final (Final Architecture, Capability Map, Executive Narrative, Onboarding Playbook, Demo Script e Final Quality Matrix).
 - [LAB] AI-01 a AI-07 introduzem a QE Intelligence Layer consultiva (Impact Analysis, Failure Intelligence, Telemetry Intelligence, Architecture Change, Flaky & Stability, Security & Policy, e Trend & Regression Intelligence), com validação Zod estrita, fallbacks determinísticos e autoridade de release 100% humana.
@@ -60,7 +60,7 @@
 >  
 > Em conformidade com o planejamento estratégico do laboratório, o ciclo completo de engenharia de qualidade compreendendo **LAB-01 a LAB-12** e as automações consultivas de **AI-01 a AI-07** encontra-se formalmente **CONCLUÍDO E CONGELADO** (`LAB SCOPE COMPLETE`).
 >  
-> O repositório atingiu seu objetivo educacional e demonstrativo: estabelecer uma referência ponta a ponta de Quality Engineering para microsserviços Cloud, articulando a cadeia `Risco -> Controle -> Evidência -> Decisão Humana` com governança estrita, 175 testes automatizados, 0 flaky tests e 100% de reproducibilidade determinística.
+> O repositório atingiu seu objetivo educacional e demonstrativo: estabelecer uma referência ponta a ponta de Quality Engineering para microsserviços Cloud, articulando a cadeia `Risco -> Controle -> Evidência -> Decisão Humana` com governança estrita, 176 testes automatizados, 0 flaky tests e alta repetibilidade determinística nos cenários exercitados.
 >  
 > Nenhuma extensão arquitetural adicional (como auto-remediation, RAG ou orquestração Kubernetes) será introduzida neste repositório experimental público, preservando a fidelidade da linha de base de evidências.
 

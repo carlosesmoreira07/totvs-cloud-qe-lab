@@ -81,6 +81,6 @@
 8. **Performance (Carga & Baseline):** Testes de concorrência e capacidade com k6, comparador determinístico contra baseline de referência com tolerância de 20% e monitoramento de latências p95 e p99.
 9. **Security (Segurança Preventiva):** Quatro scanners determinísticos locais (TruffleHog, npm audit, Semgrep e OWASP ZAP Baseline) com normalização comum de findings e testes comportamentais de API.
 10. **Evidence (Repositório de Evidências):** Artefatos JSON estruturados gerados deterministicamente pelas suítes de teste para consumo pelo scorecard, histórico e camadas consultivas de inteligência.
-11. **Scorecard (Scorecard Executivo Multidimensional):** Consolidador determinístico que avalia a saúde de 9 dimensões de qualidade, suporta série histórica ($\ge 3$ checkpoints) e gera relatórios em JSON, Markdown, HTML e PDF de 3 páginas.
+11. **Scorecard (Scorecard Executivo Multidimensional):** Consolidador determinístico que avalia a saúde de 9 dimensões de qualidade, suporta série histórica ($\ge 3$ checkpoints) e gera relatórios em JSON, Markdown, HTML e PDF de 2 páginas A4 landscape.
 12. **QE Intelligence Layer (IA Assistiva Consultiva):** Conjunto de automações (AI-01 a AI-07) baseadas em OpenAI com Structured Outputs Zod que analisa mudanças, falhas, telemetria, jornadas, segurança e tendências sem autoridade de gate.
 13. **Human Decision (Governança & Decisão Humana):** Quality Gate bloqueante estritamente determinístico no CI; nenhuma IA aprova ou reprova releases, mantendo a responsabilidade integral nas mãos de profissionais de engenharia.

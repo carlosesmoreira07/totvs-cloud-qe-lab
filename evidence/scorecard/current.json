@@ -1,8 +1,8 @@
 {
   "schemaVersion": "1.0.0",
   "rulesVersion": "scorecard-rules-v1",
-  "generatedAt": "2026-09-09T23:34:47.888Z",
-  "commit": "886a2ccbae7c",
+  "generatedAt": "2026-09-10T00:47:51.056Z",
+  "commit": "5c792e7c0b94",
   "scope": "[LAB] Cloud Control Plane fictício",
   "decisionAuthority": "HUMAN",
   "overallStatus": "YELLOW",
@@ -309,7 +309,7 @@
         {
           "key": "p50",
           "label": "p50",
-          "value": 0,
+          "value": 32.5,
           "unit": "ms",
           "status": "GREEN"
         },
@@ -323,8 +323,7 @@
         {
           "key": "p99",
           "label": "p99",
-          "value": 0,
-          "unit": "ms",
+          "value": "N/D",
           "status": "GREEN"
         },
         {

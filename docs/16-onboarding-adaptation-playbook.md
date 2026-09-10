@@ -117,7 +117,7 @@ Para evitar a dispersão de esforço em cenários de baixa probabilidade ou baix
 | Prioridade | Critério | Ação Imediata de QE | Exemplo no Lab |
 | :--- | :--- | :--- | :--- |
 | **P0 (Crítico)** | Corrupção de dados, falha de idempotência, vazamento de segredos, indisponibilidade total do pipeline de billing/pedido. | Controle determinístico automatizado no gate bloqueante (PBT, Idempotência, Secret Scan). | `RSK-IDEMP-01`, `RSK-SEC-03` |
-| **P1 (Alto)** | Regressão de latência p95 > 25%, timeout em chamadas assíncronas, falha de contrato OpenAPI, falha de schema em eventos. | Testes de contrato (Pact/Prism) e testes de carga baseline com asserção estrita no CI. | `RSK-PERF-01`, `RSK-ASYNC-01` |
+| **P1 (Alto)** | Regressão de latência p95 > 25%, timeout em chamadas assíncronas, falha de contrato OpenAPI, falha de schema em eventos. | Testes de contrato OpenAPI (Ajv/SwaggerParser/Pact) e testes de carga baseline com asserção estrita no CI. | `RSK-PERF-01`, `RSK-ASYNC-01` |
 | **P2 (Médio)** | Degradamento de resiliência (reconexão lenta de broker), headers de segurança ausentes, logs sem correlação. | Alertas em ambiente de staging, validação de headers e testes de resiliência periódicos. | `RSK-RESIL-01`, `RSK-SEC-01` |
 | **P3 (Baixo)** | Inconsistências cosméticas de documentação, warnings de dependências sem vulnerabilidade explorável. | Linters estáticos, sugestões consultivas de IA via PR, dívida técnica priorizada em backlog. | `AI-01`, `AI-02` |
 

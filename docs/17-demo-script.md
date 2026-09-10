@@ -58,8 +58,8 @@ graph LR
   npm run test:contract
   ```
 - **O que Mostrar**:
-  - Execução dos testes de contrato validando a especificação `contracts/openapi.yaml` contra o mock de referência.
-  - Validação estrita de tipos, status HTTP e payloads via Zod e Prism.
+  - Execução dos testes de contrato validando a especificação `specs/openapi/cloud-control-plane.yaml` contra o mock de referência.
+  - Validação estrita de tipos, status HTTP e schemas via Ajv e SwaggerParser.
 - **Mensagem-Chave**:
   "O contrato OpenAPI é a verdade canônica do laboratório. Nenhuma divergência de status, campos ou erros passa despercebida no pipeline."
 
@@ -71,7 +71,7 @@ graph LR
   npm run test:unit
   ```
 - **O que Mostrar**:
-  - Execução de 129 testes unitários rápidos e determinísticos com Vitest.
+  - Execução de 130 testes unitários rápidos e determinísticos com `node:test` via `tsx --test`.
   - Testes baseados em propriedades (Property-Based Testing) com `fast-check` exercitando milhares de permutações de payloads sem flaky tests.
   - Anotações Playwright padronizadas com tags `risk_id`, `risk`, `control_id` e `control`.
 - **Mensagem-Chave**:
@@ -110,7 +110,7 @@ graph LR
   ```
   Exibir os relatórios em `evidence/security/`.
 - **O que Mostrar**:
-  - Pipeline de segurança com 4 camadas: SAST/Lint, Verificação de Segredos (Gitleaks), Análise de Dependências/Containers (Trivy) e DAST automatizado (OWASP ZAP).
+  - Pipeline de segurança com 4 camadas: SAST (Semgrep), Verificação de Segredos (TruffleHog), Análise de Dependências (npm audit) e DAST passivo (OWASP ZAP).
 - **Mensagem-Chave**:
   "Segurança integrada à engenharia de qualidade: vulnerabilidades e vazamento de chaves são interceptados antes do build."
 
@@ -118,7 +118,7 @@ graph LR
 
 ### Passo 8: Performance Baseline & Resiliência a Caos
 - **Comando / Ação**:
-  Exibir `evidence/performance/baseline.json` e `evidence/resilience/chaos-report.json`.
+  Exibir `evidence/performance/baseline.json` e `evidence/resiliency/resilience-summary.json`.
 - **O que Mostrar**:
   - Asserções estritas de latência p95 (< 200ms) e throughput mínimo contra baseline versionado.
   - Testes de caos: reconexão automática do worker após particionamento simulado de rede do NATS.
@@ -132,10 +132,11 @@ graph LR
   ```bash
   npm run scorecard
   ```
-  Abrir `evidence/scorecard/scorecard.html` no navegador.
+  Abrir `evidence/scorecard/executive-scorecard.html` no navegador.
 - **O que Mostrar**:
-  - Relatório denso e executivo diagramado em exatamente 3 páginas A4 landscape.
-  - Visão geral de métricas, status do Quality Gate (PASS/FAIL), matriz de riscos e evidências auditáveis.
+  - Relatório executivo diagramado em exatamente 2 páginas A4 landscape.
+  - Página 1 orientada a Decisão (status governado, o que está sob controle, pontos de atenção e próxima ação).
+  - Página 2 orientada a Evidência (cards por dimensão com métricas e interpretação).
 - **Mensagem-Chave**:
   "A liderança não quer ler logs de CI; quer uma visão consolidada de risco e maturidade em formato executivo pronto para auditoria."
 
@@ -157,7 +158,7 @@ graph LR
 
 ### Passo 11: Governança de IA Consultiva (AI-01 a AI-07)
 - **Comando / Ação**:
-  Exibir `tools/ai/analyze-pr-impact.ts` e `evidence/ai/ai-07-trend-analysis.json`.
+  Exibir `tools/ai/advisory-analysis.ts` e `evidence/scorecard/ai-trend-advisory.md`.
 - **O que Mostrar**:
   - IA puramente consultiva (Advisory): analisa diffs, OpenAPI e histórico, gerando recomendações sem autoridade de release.
   - Validação estrita via Zod com garantia de fallback determinístico (`AI_*_UNAVAILABLE`) em caso de falha de modelo ou ausência de chave.
@@ -168,7 +169,7 @@ graph LR
 
 ## 3. Checklist de Preparação para o Apresentador
 
-1. Executar `npm run verify` antes da sessão para garantir que todos os 146 testes locais estejam passando.
-2. Deixar o arquivo `evidence/scorecard/scorecard.html` aberto em uma aba do navegador em zoom 100%.
+1. Executar `npm run verify` antes da sessão para garantir que todos os 147 testes locais rápidos estejam passando.
+2. Deixar o arquivo `evidence/scorecard/executive-scorecard.html` aberto em uma aba do navegador em zoom 100%.
 3. Ter o terminal aberto na raiz do repositório pronto para executar `npm run test:unit`.
 4. Enfatizar a transição: do risco de negócio ao controle técnico, e da evidência ao scorecard executivo.

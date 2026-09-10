@@ -40,7 +40,7 @@ $$\text{Risco} \longrightarrow \text{Controle} \longrightarrow \text{Evidência}
 
 A velocidade de entrega não aumenta cortando testes, mas sim **eliminando a dúvida**:
 
-1. **Scorecard Executivo em Formatos Amigáveis:** Em vez de exigir que a liderança navegue por milhares de linhas de log, o laboratório sintetiza a saúde do produto em uma página visual executiva (JSON, Markdown, HTML e PDF em 3 páginas A4 landscape).
+1. **Scorecard Executivo em Formatos Amigáveis:** Em vez de exigir que a liderança navegue por milhares de linhas de log, o laboratório sintetiza a saúde do produto em uma apresentação visual executiva (JSON, Markdown, HTML e PDF em 2 páginas A4 landscape).
 2. **Critérios Determinísticos Claros:** Status `GREEN`, `YELLOW` ou `RED` são calculados matematicamente com base em limiares explícitos. Não há adivinhação.
 3. **Tendência Histórica Real:** A liderança consegue saber se a qualidade está melhorando ou degradando ao longo dos últimos lançamentos, distinguindo uma instabilidade isolada de um problema crônico.
 

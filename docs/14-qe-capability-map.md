@@ -45,7 +45,7 @@
 
 ### 4. Outbox / Messaging
 - **Problema que resolve:** Perda de eventos caso o message broker fique indisponível exatamente no instante do commit da requisição na API.
-- **Controle / Evidência:** Padrão Transactional Outbox com worker assíncrono (`apps/control-plane-mock/src/publisher.ts`) e NATS JetStream at-least-once.
+- **Controle / Evidência:** Padrão Transactional Outbox com worker assíncrono (`apps/control-plane-mock/src/outbox-publisher.ts`) e NATS JetStream at-least-once.
 - **Valor técnico:** Desacopla a resposta imediata da API da disponibilidade externa da mensageria com garantia de entrega eventual.
 - **Valor de negócio:** Continuidade da operação do cliente mesmo durante paradas parciais ou manutenção de infraestrutura de mensageria.
 
@@ -53,13 +53,13 @@
 - **Problema que resolve:** Comportamento imprevisível ou travamento da plataforma quando componentes dependentes entram em partição ou timeout.
 - **Controle / Evidência:** Distributed Failure & Recovery Pack com Toxiproxy (`tests/resiliency/failure-recovery.spec.ts`), injetando latência, resets de TCP e queda do broker.
 - **Valor técnico:** Validação automatizada de 6 cenários de falha e recuperação com cálculo de tempo médio de recuperação (MTTR sintético).
-- **Valor de negócio:** Redução do tempo de indisponibilidade (MTTR) e proteção contra efeito dominó de falhas em cascata.
+- **Valor de negócio:** Redução do risco de indisponibilidade prolongada e proteção contra efeito dominó de falhas em cascata.
 
 ### 6. Observability & Tracing
 - **Problema que resolve:** Dificuldade em diagnosticar a causa raiz de falhas em fluxos assíncronos que atravessam múltiplos processos.
 - **Controle / Evidência:** OpenTelemetry instrumentado em 6 spans com contexto W3C (`traceparent`), exportação OTLP para Collector/Jaeger e suíte de telemetria (`tests/observability/`).
 - **Valor técnico:** Rastreabilidade fim-a-fim de cada operação e detecção determinística de spans ausentes ou com erro.
-- **Valor de negócio:** Aceleração do diagnóstico de incidentes de produção de horas para minutos pela visibilidade clara do rastro da requisição.
+- **Valor de negócio:** Auxilia na aceleração do diagnóstico de incidentes complexos através da visibilidade clara e correlacionada do rastro da requisição.
 
 ### 7. Synthetic Journeys
 - **Problema que resolve:** Testes unitários passam isoladamente, mas a experiência ponta a ponta do usuário quebra por inconsistência de ciclo de vida.
@@ -87,7 +87,7 @@
 
 ### 11. Executive Scorecard
 - **Problema que resolve:** Executivos e líderes de engenharia recebem relatórios técnicos densos e não conseguem entender rapidamente a saúde do release.
-- **Controle / Evidência:** Gerador de scorecard executivo (`tools/scorecard/`) consolidando 9 dimensões em JSON, Markdown, HTML A4 landscape e PDF executivo de 3 páginas.
+- **Controle / Evidência:** Gerador de scorecard executivo (`tools/scorecard/`) consolidando dimensões em JSON, Markdown, HTML A4 landscape e PDF executivo de 2 páginas.
 - **Valor técnico:** Tradução automática de dezenas de evidências técnicas em status objetivos (`GREEN`, `YELLOW`, `RED`) e ações recomendadas.
 - **Valor de negócio:** Alinhamento claro entre engenharia e negócios, facilitando reuniões de Go/No-Go e governança de releases.
 

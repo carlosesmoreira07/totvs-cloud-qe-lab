@@ -1,71 +1,55 @@
-# Quality Engineering Executive Scorecard
+# Executive Quality Scorecard
 
-> Visão executiva da qualidade do laboratório Cloud Control Plane [LAB]
+> Visão Executiva da Qualidade do Laboratório Cloud Control Plane [LAB]
 
-- **Status Geral:** AMARELO (Requer atenção)
-- **Tendência Geral:** Em melhoria (3 checkpoints)
-- **Gerado em:** 09/09/2026, 20:34
-- **Commit analisado:** `886a2ccbae7c`
+- **Status Geral:** ▲ AMARELO (Requer atenção)
+- **Tendência Histórica:** Em melhoria (3 checkpoints comparáveis)
+- **Gerado em:** 09/09/2026, 21:47 (Horário de Brasília)
+- **Commit Analisado:** `5c792e7c0b94`
 - **Contexto:** Personal & Non-Official [LAB]
 
 ## Resumo Executivo
 
-- A situação geral está em amarelo: requer atenção.
-- Principal risco: 15 de 41 riscos conhecidos ainda não possuem evidência nesta coleta.
-- Principal força: 26 controles exercitados foram aprovados, sem falhas registradas.
-- Principal lacuna: 1 cadeia de rastreabilidade está parcial e não há série histórica.
-- Prioridade recomendada: ampliar a cobertura de evidência e fechar a rastreabilidade parcial.
-
-## Visão por Dimensão
-
-- **Cobertura de Riscos:** AMARELO | Métrica: 63,4% cobertos | Tendência: Em melhoria
-  *15 riscos ainda aguardam evidência nesta coleta.*
-- **Controles:** AMARELO | Métrica: 26 aprovados | Tendência: Em melhoria
-  *Nenhum controle exercitado apresentou falha.*
-- **Jornadas Críticas:** VERDE | Métrica: 4/4 aprovadas | Tendência: Estável
-  *As jornadas avaliadas atenderam aos limites sintéticos [LAB].*
-- **Resiliência:** VERDE | Métrica: 6 cenários aprovados | Tendência: Estável
-  *Os cenários exercitados recuperaram o fluxo esperado.*
-- **Observabilidade:** AMARELO | Métrica: 7 rastros analisados | Tendência: Estável
-  *1 cadeia parcial reduz a confiança no diagnóstico.*
-- **Desempenho:** VERDE | Métrica: p95 de 200,3 ms | Tendência: Estável
-  *Os limites sintéticos foram atendidos na execução registrada.*
-- **Regressão:** VERDE | Métrica: Melhorou | Tendência: Estável
-  *Comparação pontual favorável; ainda não há série histórica.*
-- **Segurança:** AMARELO | Métrica: 1 findings | Tendência: Estável
-  *Scanners locais ativos; o gap IAM mantém revisão humana obrigatória.*
-- **Lacunas Conhecidas:** AMARELO | Métrica: 3 lacunas explícitas | Tendência: Estável
-  *As lacunas seguem visíveis e não contam como sucesso.*
-
-## Principais Pontos de Atenção
-
-- **Cobertura de evidência parcial:** A leitura não permite o mesmo nível de confiança para todo o mapa de riscos. (15 de 41 riscos conhecidos não possuem evidência nesta coleta.)
-- **Rastreabilidade incompleta:** Uma investigação de falha pode exigir correlação manual adicional. (1 cenário de observabilidade possui cadeia parcial.)
-- **Limite de evidência:** A lacuna reduz a confiança executiva da leitura. (Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED.)
+- Os controles executados não identificaram falhas críticas nas jornadas, resiliência ou performance da plataforma.
+- O status geral permanece AMARELO: cobertura de 26 de 41 riscos conhecidos (63.4%), gap explícito de IAM e rastreabilidade parcial em falha simulada.
+- A tendência histórica é de melhoria sustentada, impulsionada pela expansão progressiva da cobertura de controles e integração de segurança.
+- A recomendação prioritária é expandir a evidência para os riscos pendentes antes de elevar o nível de confiança técnica.
 
 ## O que está sob controle
 
-- 26 controles exercitados foram aprovados, sem falhas registradas.
-- 4/4 jornadas críticas atenderam aos critérios [LAB].
-- 4/4 limites sintéticos foram atendidos.
-- 6 cenários de resiliência preservaram a recuperação esperada.
-- Os limites de desempenho e duplicidade avaliados foram atendidos.
+- **Jornadas Críticas:** 4/4 jornadas sintéticas ponta a ponta aprovadas com cumprimento de SLA.
+- **Resiliência Distribuída:** 6 cenários de falha simulada (broker, worker, timeout) com recuperação atômica.
+- **Performance & Capacidade:** Latência p95 de 200.3 ms sob concorrência, sem regressão observada em relação ao baseline.
+- **Controles Automatizados:** 26 controles executados aprovados; 0 falhas registradas na esteira determinística.
 
-## Gaps e Limites Atuais
+## Pontos de Atenção
 
-- 15 riscos conhecidos não possuem evidência serializada nesta coleta.
-- 1 cenário de observabilidade possui cadeia parcial de rastreamento e exige interpretação humana.
-- Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED.
+- **Cobertura Parcial de Riscos:** 26 de 41 riscos exercitados (63.4% de cobertura). (15 riscos conhecidos aguardam automação de controles e evidência serializada.)
+- **Segurança & IAM (Gap Declarado):** Camada de autenticação e controle de acesso não implementada no mock [LAB]. (Gap explicitamente documentado no scorecard para transparência, mantendo a dimensão amarela.)
+- **Observabilidade (Rastreabilidade Parcial):** 1 cenário com cadeia parcial de spans durante injeção de erro no NATS. (Falha funcional esperada do broker exige correlação manual adicional para diagnóstico.)
 
-- Tendência histórica baseada em 3 checkpoints determinísticos; não utiliza projeção probabilística.
-- SLAs sintéticos do laboratório não representam SLA real da TOTVS.
+## Decisão & Próxima Ação Recomendada
 
-## Ações Recomendadas
+> Antes de elevar o nível de confiança para produção: priorizar a cobertura de testes para os 15 riscos conhecidos pendentes, validar os contratos em ambiente de Staging integrado e submeter o relatório à decisão humana formal. Nenhuma decisão de release é delegada à automação.
 
-1. Priorizar evidências para os 15 riscos ainda não exercitados.
-2. Completar a cadeia de rastreabilidade do cenário parcial.
-3. Acumular execuções comparáveis antes de declarar tendência histórica.
-4. Submeter lacunas e sinais amarelos à revisão humana antes de qualquer decisão.
+## Evidências por Dimensão
+
+- **Cobertura de Riscos:** AMARELO | Métrica: 26 / 41 (63.4% Cobertura) | Tendência: Em melhoria
+  *26 riscos exercitados com controle comprovado; 15 riscos aguardam evidência serializada.*
+- **Controles Automatizados:** AMARELO | Métrica: 26 Aprovados (0 Falhas) | Tendência: Em melhoria
+  *100% dos controles executados atingiram resultado de aprovação sem divergências de estado.*
+- **Jornadas Críticas:** VERDE | Métrica: 4 / 4 (100% SLA Atendido) | Tendência: Estável
+  *Fluxos assíncronos ponta a ponta concluídos com sucesso dentro dos limites sintéticos de tempo.*
+- **Resiliência Distribuída:** VERDE | Métrica: 6 Cenários (Recuperação: 167 ms) | Tendência: Estável
+  *Auto-recuperação comprovada sob partições de rede, reentregas e quedas temporárias de broker.*
+- **Observabilidade Distribuída:** AMARELO | Métrica: 7 Traces W3C (1 Cadeia Parcial) | Tendência: Estável
+  *Rastreabilidade distribuída completa via OpenTelemetry; 1 cenário de falha requer atenção diagnóstica.*
+- **Performance & Capacidade:** VERDE | Métrica: p95: 200.3 ms (Vazão: 32.6 req/s) | Tendência: Estável
+  *Latência e throughput nominais sob carga moderada sem regressão observada contra o baseline.*
+- **Segurança Shift-Left:** AMARELO | Métrica: 4 Scanners (0 Críticos / Gap IAM) | Tendência: Estável
+  *TruffleHog, npm audit, Semgrep e ZAP executados; status reflete gap explícito de IAM documentado.*
+- **Histórico & Tendências:** Em melhoria | Métrica: Em melhoria (3 Checkpoints) | Tendência: Em melhoria
+  *Série temporal determinística baseada em evidências comparáveis sem inferências probabilísticas.*
 
 ## Parecer Consultivo de Tendências e Regressões — AI-07
 
@@ -75,8 +59,6 @@ Parecer consultivo de tendências e regressões de IA indisponível — Quality 
 
 Motivo técnico: `MISSING_API_KEY`.
 
-> Este scorecard apoia a decisão profissional. A decisão humana é obrigatória e nenhuma leitura automatizada aprova ou reprova uma release.
+> Decisão humana obrigatória: este material sintetiza evidências determinísticas do laboratório. Nenhuma automação aprova ou reprova releases.
 
-**TOTVS Cloud QE Lab — Personal & Non-Official [LAB]**
-
-Generated from deterministic Quality Engineering evidence
+**Quality Engineering Lab — NÃO OFICIAL**

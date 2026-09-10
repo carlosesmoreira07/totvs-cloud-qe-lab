@@ -154,6 +154,10 @@ function numberOrNull(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
+function positiveNumberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+}
+
 function parseRiskMap(filePath: string): RiskControlSignal[] {
   try {
     return fs.readFileSync(filePath, 'utf8')
@@ -308,14 +312,14 @@ export function loadScorecardSignals(repositoryRoot = process.cwd()): ScorecardS
     },
     performance: {
       result: performanceResult,
-      p50Ms: numberOrNull(current?.latency?.p50),
-      p95Ms: numberOrNull(current?.latency?.p95),
-      p99Ms: numberOrNull(current?.latency?.p99),
-      throughputRps: numberOrNull(current?.throughput),
+      p50Ms: positiveNumberOrNull(current?.latency?.p50),
+      p95Ms: positiveNumberOrNull(current?.latency?.p95),
+      p99Ms: positiveNumberOrNull(current?.latency?.p99),
+      throughputRps: positiveNumberOrNull(current?.throughput),
       errorRate: numberOrNull(current?.errorRate),
       duplicateResources: numberOrNull(current?.duplicates?.duplicateResources),
       duplicateOperations: numberOrNull(current?.duplicates?.duplicateOperations),
-      e2eP95Ms: numberOrNull(current?.e2eLatency?.p95),
+      e2eP95Ms: positiveNumberOrNull(current?.e2eLatency?.p95),
       thresholdStatus,
       comparisonStatus: normalizedComparison,
       tolerancePct: numberOrNull(current?.baselineComparison?.tolerancePct),
@@ -487,7 +491,7 @@ export function buildExecutiveScorecard(signals: ScorecardSignals, metadata: Bui
         indicator('p99', 'p99', signals.performance.p99Ms ?? 'N/D', performanceStatus, signals.performance.p99Ms === null ? undefined : 'ms'),
         indicator('throughput', 'Throughput', signals.performance.throughputRps ?? 'N/D', performanceStatus, signals.performance.throughputRps === null ? undefined : 'req/s'),
       ],
-      explanation: `Thresholds sintéticos: ${signals.performance.thresholdStatus}; error rate ${signals.performance.errorRate ?? 'N/D'}; E2E p95 ${signals.performance.e2eP95Ms ?? 'N/D'} ms.`,
+      explanation: `Thresholds sintéticos: ${signals.performance.thresholdStatus}; error rate ${signals.performance.errorRate ?? 'N/D'}; E2E p95 ${signals.performance.e2eP95Ms !== null ? `${signals.performance.e2eP95Ms} ms` : 'N/D'}.`,
       risks: signals.performance.result === 'FAILED' ? PERFORMANCE_CONTROLS.map((item) => item.riskId) : [],
     },
     {

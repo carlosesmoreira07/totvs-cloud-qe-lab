@@ -18,11 +18,11 @@
 
 | Dimensão | Quantidade / Indicador | Descrição |
 | :--- | :--- | :--- |
-| **Bateria de Testes** | **175 Testes Totais** | - **129 Testes Unitários & PBT** (`fast-check`, Vitest)<br>- **17 Testes de Contrato, API & Segurança** (Playwright)<br>- **Testes de Integração em Containers** (PostgreSQL, NATS) |
+| **Bateria de Testes** | **176 Testes Totais** | - **130 Testes Unitários & PBT** (`node:test`, `fast-check`)<br>- **46 Testes Playwright** (Contrato, API, Segurança, Integração, Resiliência, Observabilidade, Jornadas) |
 | **Módulos de Laboratório** | **12 LABs Concluídos** | LAB-01 (Fundação) a LAB-12 (Portfolio Pack & Fechamento) |
 | **Automações de IA** | **7 Módulos AI-Assistive** | AI-01 a AI-07 (Impact Analysis, Flaky Detection, Trend Intelligence) |
 | **Estabilidade de Pipeline** | **0 Flaky Tests (100% Determinístico)** | Execuções herméticas com teardown e mocks isolados |
-| **Scorecard Executivo** | **3 Páginas A4 Landscape** | Relatório gerado em HTML/PDF sem rolagem para auditoria |
+| **Scorecard Executivo** | **2 Páginas A4 Landscape** | Relatório gerado em HTML/PDF com foco executivo e legibilidade |
 | **Governança de IA** | **Advisory (0% Autônoma)** | IA nunca bloqueia gate nem aprova release de forma autônoma |
 
 ---
@@ -32,13 +32,13 @@
 ```
 Frontend/Scorecard: HTML5 / CSS3 Print-Optimized (A4 Landscape)
 Runtime & Linguagem: Node.js (v20+ LTS) / TypeScript Strict Mode
-API & Mock:          Fastify / Prism / OpenAPI 3.1
+API & Mock:          node:http / OpenAPI 3.1 / SwaggerParser / Ajv
 Banco & Fila:        PostgreSQL (Transactional Outbox) / NATS JetStream
-Testes & Qualidade:  Vitest / Playwright / fast-check (Property-Based Testing)
-Performance & Caos:  Autocannon / k6 / Chaos Network Partitions
-Segurança:           Trivy (SCA/Containers) / Gitleaks / OWASP ZAP (DAST)
-Observabilidade:     OpenTelemetry Collector / W3C TraceContext / Tempo / Grafana
-IA & Validação:      Google Gemini API / Zod (Runtime Schema Validation)
+Testes & Qualidade:  node:test (tsx) / Playwright / fast-check (PBT)
+Performance & Caos:  k6 / autocannon / Toxiproxy
+Segurança:           TruffleHog / npm audit / Semgrep / OWASP ZAP (DAST)
+Observabilidade:     OpenTelemetry Collector / W3C TraceContext / Jaeger
+IA & Validação:      Adapter OpenAI / Zod (Runtime Schema Validation)
 ```
 
 ---
@@ -66,6 +66,6 @@ A qualidade não é escondida em logs de terminal. O Scorecard Executivo diagram
 
 ## 5. Texto de Apresentação Rápida (Elevator Pitch / LinkedIn)
 
-> *"Como Especialista em Quality Engineering, desenvolvi o `totvs-cloud-qe-lab`: um laboratório completo de engenharia de qualidade voltado a microsserviços em nuvem, combinando resiliência assíncrona (PostgreSQL Outbox + NATS), segurança Shift-Left (Trivy, Gitleaks, OWASP ZAP), observabilidade distribuída com OpenTelemetry, testes determinísticos baseados em propriedades e IA consultiva governada com validação estrita Zod.*  
->  
-> *O projeto consolida 175 testes automatizados, 0 flaky tests e um Quality Gate determinístico com Scorecard Executivo A4 e análise de tendências históricas, provando que qualidade de software em nuvem é uma disciplina de mitigação de riscos de negócio, evidências auditáveis e decisão humana governada."*
+> *"Como Especialista em Quality Engineering, desenvolvi o `totvs-cloud-qe-lab`: um laboratório completo de engenharia de qualidade voltado a microsserviços em nuvem, combinando resiliência assíncrona (PostgreSQL Outbox + NATS), segurança Shift-Left (TruffleHog, npm audit, Semgrep, OWASP ZAP), observabilidade distribuída com OpenTelemetry, testes determinísticos baseados em propriedades e IA consultiva governada com validação estrita Zod.*<br>
+>
+> *O projeto consolida 176 testes automatizados, 0 flaky tests e um Quality Gate determinístico com Scorecard Executivo A4 de 2 páginas e análise de tendências históricas, provando que qualidade de software em nuvem é uma disciplina de mitigação de riscos de negócio, evidências auditáveis e decisão humana governada."*

@@ -7,6 +7,7 @@ const e2eDuration = new Trend('e2e_duration', true);
 const journeyErrors = new Counter('journey_errors');
 
 export const options = {
+  summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)'],
   thresholds: K6_JOURNEY_THRESHOLDS,
   vus: Number(__ENV.VUS || 5),
   duration: __ENV.DURATION || '5s',

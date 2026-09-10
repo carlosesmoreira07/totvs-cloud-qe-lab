@@ -304,3 +304,24 @@ test('contexto da IA lê somente o scorecard estruturado', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 });
+
+test('latência nula ou zero é tratada como N/D e nunca exibe 0 ms', () => {
+  const signals = greenSignals();
+  signals.performance.p50Ms = null;
+  signals.performance.p99Ms = null;
+  const scorecard = buildExecutiveScorecard(signals, metadata);
+  const perfDim = scorecard.dimensions.find((item) => item.key === 'PERFORMANCE');
+  assert.ok(perfDim);
+
+  const p50Indicator = perfDim.indicators.find((ind) => ind.key === 'p50');
+  const p99Indicator = perfDim.indicators.find((ind) => ind.key === 'p99');
+  const p95Indicator = perfDim.indicators.find((ind) => ind.key === 'p95');
+
+  assert.equal(p50Indicator?.value, 'N/D');
+  assert.equal(p50Indicator?.unit, undefined);
+  assert.equal(p99Indicator?.value, 'N/D');
+  assert.equal(p99Indicator?.unit, undefined);
+
+  assert.equal(p95Indicator?.value, 150);
+  assert.equal(p95Indicator?.unit, 'ms');
+});

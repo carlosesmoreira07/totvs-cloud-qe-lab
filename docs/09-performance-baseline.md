@@ -6,7 +6,7 @@ No contexto de Quality Engineering aplicado a um Cloud Control Plane `[LAB]`, a 
 
 Este pacote estabelece uma camada didática, determinística e reproduzível de **Performance Testing e Baseline Quality** para o fluxo:
 
-$$\text{Client / k6} \longrightarrow \text{API Fastify} \longrightarrow \text{PostgreSQL (Outbox)} \longrightarrow \text{NATS JetStream} \longrightarrow \text{Async Worker}$$
+$$\text{Client / k6} \longrightarrow \text{Control Plane API (node:http)} \longrightarrow \text{PostgreSQL (Outbox)} \longrightarrow \text{NATS JetStream} \longrightarrow \text{Async Worker}$$
 
 ### 1.1 Objetivos de QE
 

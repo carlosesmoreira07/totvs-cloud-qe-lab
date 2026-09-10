@@ -335,10 +335,25 @@ function extractMetrics(apiSummary: any, journeySummary: any): PerformanceMetric
   const errorRate = Math.round(Number(httpReqFailed.value ?? httpReqFailed.rate ?? httpReqFailed.values?.rate ?? 0) * 1000) / 1000;
   const successRate = Math.round((1 - errorRate) * 1000) / 1000;
 
-  const p50 = Math.round(Number(httpReqDuration['p(50)'] ?? httpReqDuration.med ?? httpReqDuration.values?.['p(50)'] ?? 0) * 10) / 10;
-  const p95 = Math.round(Number(httpReqDuration['p(95)'] ?? httpReqDuration.values?.['p(95)'] ?? 0) * 10) / 10;
-  const p99 = Math.round(Number(httpReqDuration['p(99)'] ?? httpReqDuration.values?.['p(99)'] ?? 0) * 10) / 10;
-  const maxLatency = Math.round(Number(httpReqDuration.max ?? httpReqDuration.values?.max ?? 0) * 10) / 10;
+  const p50Val = httpReqDuration.values?.['p(50)'] ?? httpReqDuration.values?.med ?? httpReqDuration.med ?? httpReqDuration['p(50)'];
+  const p50 = p50Val !== undefined && p50Val !== null && Number(p50Val) > 0
+    ? Math.round(Number(p50Val) * 10) / 10
+    : 0;
+
+  const p95Val = httpReqDuration.values?.['p(95)'] ?? httpReqDuration['p(95)'];
+  const p95 = p95Val !== undefined && p95Val !== null && Number(p95Val) > 0
+    ? Math.round(Number(p95Val) * 10) / 10
+    : 0;
+
+  const p99Val = httpReqDuration.values?.['p(99)'] ?? httpReqDuration['p(99)'];
+  const p99 = p99Val !== undefined && p99Val !== null && Number(p99Val) > 0
+    ? Math.round(Number(p99Val) * 10) / 10
+    : 0;
+
+  const maxVal = httpReqDuration.max ?? httpReqDuration.values?.max;
+  const maxLatency = maxVal !== undefined && maxVal !== null && Number(maxVal) > 0
+    ? Math.round(Number(maxVal) * 10) / 10
+    : 0;
 
   let e2eP50: number | undefined;
   let e2eP95: number | undefined;

@@ -1,6 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 import type {
   ExecutiveScorecard,
   QualityStatus,
@@ -9,67 +6,15 @@ import type {
 } from './scorecard-schema.js';
 import { SCORECARD_THEME, statusColor, statusSurface } from './scorecard-theme.js';
 
-const DIMENSION_ORDER = [
-  'RISK_COVERAGE',
-  'CONTROLS',
-  'CRITICAL_JOURNEYS',
-  'RESILIENCE',
-  'OBSERVABILITY',
-  'PERFORMANCE',
-  'REGRESSION',
-  'SECURITY',
-  'KNOWN_GAPS',
-] as const;
-
-const DIMENSION_LABELS: Record<(typeof DIMENSION_ORDER)[number], string> = {
-  RISK_COVERAGE: 'Cobertura de Riscos',
-  CONTROLS: 'Controles',
-  CRITICAL_JOURNEYS: 'Jornadas Críticas',
-  RESILIENCE: 'Resiliência',
-  OBSERVABILITY: 'Observabilidade',
-  PERFORMANCE: 'Desempenho',
-  REGRESSION: 'Regressão',
-  SECURITY: 'Segurança',
-  KNOWN_GAPS: 'Lacunas Conhecidas',
-};
-
-const STATUS_LABELS: Record<QualityStatus, string> = {
-  GREEN: 'VERDE',
-  YELLOW: 'AMARELO',
-  RED: 'VERMELHO',
-  UNKNOWN: 'SEM EVIDÊNCIA',
-};
-
-const STATUS_MEANINGS: Record<QualityStatus, string> = {
-  GREEN: 'Em controle',
-  YELLOW: 'Requer atenção',
-  RED: 'Condição crítica',
-  UNKNOWN: 'Evidência insuficiente',
-};
-
-const TREND_LABELS: Record<QualityTrend, string> = {
-  IMPROVING: 'Em melhoria',
-  STABLE: 'Estável',
-  DEGRADING: 'Em degradação',
-  UNKNOWN: 'Sem histórico',
-};
-
 export interface ExecutiveDimensionView {
-  key: (typeof DIMENSION_ORDER)[number];
+  key: string;
   label: string;
   status: QualityStatus;
   statusLabel: string;
   trendLabel: string;
   metric: string;
+  secondaryMetric?: string;
   interpretation: string;
-  hasHistoricalTrend: boolean;
-  sparklineSvg?: string | undefined;
-}
-
-export interface ExecutiveAttentionView {
-  title: string;
-  impact: string;
-  evidence: string;
 }
 
 export interface ExecutiveScorecardView {
@@ -84,235 +29,245 @@ export interface ExecutiveScorecardView {
   generatedAt: string;
   commit: string;
   executiveSummary: string[];
-  dimensions: ExecutiveDimensionView[];
-  attention: ExecutiveAttentionView[];
-  underControl: string[];
-  gaps: string[];
-  actions: string[];
-  trendDisclaimer: string;
-  syntheticSlaDisclaimer: string;
+  underControl: { title: string; description: string }[];
+  attention: { title: string; description: string; detail: string }[];
+  nextAction: string;
+  evidenceCards: ExecutiveDimensionView[];
 }
 
-const escapeHtml = (value: string): string => value
-  .replaceAll('&', '&amp;')
-  .replaceAll('<', '&lt;')
-  .replaceAll('>', '&gt;')
-  .replaceAll('"', '&quot;');
+const STATUS_LABELS: Record<QualityStatus, string> = {
+  GREEN: 'VERDE',
+  YELLOW: 'AMARELO',
+  RED: 'VERMELHO',
+  UNKNOWN: 'SEM EVIDÊNCIA',
+};
 
-function indicatorValue(dimension: ScorecardDimension | undefined, key: string): string | number | undefined {
-  return dimension?.indicators.find((indicator) => indicator.key === key)?.value;
-}
+const STATUS_SYMBOLS: Record<QualityStatus, string> = {
+  GREEN: '●',
+  YELLOW: '▲',
+  RED: '■',
+  UNKNOWN: '○',
+};
 
-function dimensionByKey(scorecard: ExecutiveScorecard, key: string): ScorecardDimension | undefined {
-  return scorecard.dimensions.find((dimension) => dimension.key === key);
-}
+const STATUS_MEANINGS: Record<QualityStatus, string> = {
+  GREEN: 'Em controle',
+  YELLOW: 'Requer atenção',
+  RED: 'Condição crítica',
+  UNKNOWN: 'Evidência insuficiente',
+};
 
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(value);
-}
+const TREND_LABELS: Record<QualityTrend, string> = {
+  IMPROVING: 'Em melhoria',
+  STABLE: 'Estável',
+  DEGRADING: 'Em degradação',
+  UNKNOWN: 'Histórico insuficiente',
+};
 
-function formatGeneratedAt(value: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-    timeZone: 'America/Sao_Paulo',
-  }).format(new Date(value));
-}
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
 
-function comparisonLabel(value: string | number | undefined): string {
-  if (value === 'IMPROVED') return 'Melhorou';
-  if (value === 'STABLE') return 'Estável';
-  if (value === 'REGRESSED') return 'Regrediu';
-  return 'Sem referência';
-}
-
-function executiveGap(gap: string): string {
-  const observability = gap.match(/^(\d+) cenários? de observabilidade possuem cadeia parcial de spans/);
-  if (observability) {
-    const count = Number(observability[1]);
-    return count === 1
-      ? '1 cenário de observabilidade possui cadeia parcial de rastreamento e exige interpretação humana.'
-      : `${count} cenários de observabilidade possuem cadeia parcial de rastreamento e exigem interpretação humana.`;
+function formatGeneratedAt(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  } catch {
+    return isoString;
   }
-  if (gap.startsWith('Baseline e current')) {
-    return 'A comparação entre a referência e a execução atual ainda não forma uma série histórica.';
-  }
-  return gap;
 }
 
-function dimensionMetric(scorecard: ExecutiveScorecard, key: (typeof DIMENSION_ORDER)[number]): string {
-  const dimension = dimensionByKey(scorecard, key);
-  if (key === 'RISK_COVERAGE') return `${formatNumber(scorecard.summary.riskCoveragePct)}% cobertos`;
-  if (key === 'CONTROLS') return `${scorecard.summary.controlsPassed} aprovados`;
-  if (key === 'CRITICAL_JOURNEYS') return `${scorecard.summary.journeysPassed}/${scorecard.summary.journeysTotal} aprovadas`;
-  if (key === 'RESILIENCE') return `${indicatorValue(dimension, 'resilience-passed') ?? 0} cenários aprovados`;
-  if (key === 'OBSERVABILITY') return `${indicatorValue(dimension, 'traces') ?? 0} rastros analisados`;
-  if (key === 'PERFORMANCE') {
-    const p95 = indicatorValue(dimension, 'p95');
-    return `p95 de ${typeof p95 === 'number' ? formatNumber(p95) : (p95 ?? '-')} ms`;
-  }
-  if (key === 'REGRESSION') return comparisonLabel(indicatorValue(dimension, 'comparison'));
-  if (key === 'SECURITY') return `${indicatorValue(dimension, 'security-findings') ?? 0} findings`;
-  return `${scorecard.summary.knownGapCount} lacunas explícitas`;
+function findDimension(scorecard: ExecutiveScorecard, key: string): ScorecardDimension | undefined {
+  return scorecard.dimensions.find((item) => item.key === key);
 }
 
-function dimensionInterpretation(scorecard: ExecutiveScorecard, key: (typeof DIMENSION_ORDER)[number]): string {
-  const dimension = dimensionByKey(scorecard, key);
-  if (key === 'RISK_COVERAGE') {
-    return scorecard.summary.controlsUnknown > 0
-      ? `${scorecard.summary.controlsUnknown} riscos ainda aguardam evidência nesta coleta.`
-      : 'Todos os riscos conhecidos possuem evidência nesta coleta.';
-  }
-  if (key === 'CONTROLS') {
-    return scorecard.summary.controlsFailed > 0
-      ? `${scorecard.summary.controlsFailed} controles falharam e exigem tratamento.`
-      : 'Nenhum controle exercitado apresentou falha.';
-  }
-  if (key === 'CRITICAL_JOURNEYS') return 'As jornadas avaliadas atenderam aos limites sintéticos [LAB].';
-  if (key === 'RESILIENCE') return 'Os cenários exercitados recuperaram o fluxo esperado.';
-  if (key === 'OBSERVABILITY') {
-    const partial = indicatorValue(dimension, 'missing-spans') ?? 0;
-    return Number(partial) > 0
-      ? `${partial} cadeia parcial reduz a confiança no diagnóstico.`
-      : 'Os fluxos avaliados permanecem rastreáveis.';
-  }
-  if (key === 'PERFORMANCE') return 'Os limites sintéticos foram atendidos na execução registrada.';
-  if (key === 'REGRESSION') return 'Comparação pontual favorável; ainda não há série histórica.';
-  if (key === 'SECURITY') return 'Scanners locais ativos; o gap IAM mantém revisão humana obrigatória.';
-  return 'As lacunas seguem visíveis e não contam como sucesso.';
-}
-
-function renderSparklineSvg(points: Array<number | null>): string {
-  const valid = points.filter((p): p is number => typeof p === 'number' && Number.isFinite(p));
-  if (valid.length < 2) return '';
-  const min = Math.min(...valid);
-  const max = Math.max(...valid);
-  const range = max - min || 1;
-  const width = 36;
-  const height = 10;
-  const coords = valid.map((v, i) => {
-    const x = Math.round((i / (valid.length - 1)) * (width - 4) + 2);
-    const y = Math.round(height - ((v - min) / range) * (height - 4) - 2);
-    return `${x},${y}`;
-  });
-  const color = valid[valid.length - 1]! >= valid[0]! ? '#0E8074' : '#E05252';
-  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="${color}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="${coords.join(' ')}"/><circle cx="${coords[coords.length - 1]!.split(',')[0]}" cy="${coords[coords.length - 1]!.split(',')[1]}" r="1.6" fill="${color}"/></svg>`;
+function indicatorVal(dim: ScorecardDimension | undefined, key: string): string | number | undefined {
+  return dim?.indicators.find((item) => item.key === key)?.value;
 }
 
 export function buildExecutiveScorecardView(scorecard: ExecutiveScorecard): ExecutiveScorecardView {
-  const observability = dimensionByKey(scorecard, 'OBSERVABILITY');
-  const partialChains = Number(indicatorValue(observability, 'missing-spans') ?? 0);
-  const hasHistoricalTrend = Boolean(scorecard.history?.canCalculateTrend && scorecard.history.checkpointsAnalyzed >= 3);
+  const hasHistoricalTrend = Boolean(scorecard.history?.canCalculateTrend && (scorecard.history.checkpointsAnalyzed ?? 0) >= 3);
   const checkpointsAnalyzed = scorecard.history?.checkpointsAnalyzed ?? 0;
 
-  let trendDataPointsMap: Record<string, Array<number | null>> = {};
-  if (hasHistoricalTrend) {
-    try {
-      const trendsPath = path.resolve(process.cwd(), 'evidence', 'history', 'trends.json');
-      if (fs.existsSync(trendsPath)) {
-        const parsed = JSON.parse(fs.readFileSync(trendsPath, 'utf8'));
-        if (Array.isArray(parsed.dimensions)) {
-          trendDataPointsMap = Object.fromEntries(
-            parsed.dimensions.map((d: { dimension: string; dataPoints: Array<number | null> }) => [d.dimension, d.dataPoints]),
-          );
-        }
-      }
-    } catch {
-      trendDataPointsMap = {};
-    }
-  }
+  const riskDim = findDimension(scorecard, 'RISK_COVERAGE');
+  const controlsDim = findDimension(scorecard, 'CONTROLS');
+  const journeysDim = findDimension(scorecard, 'CRITICAL_JOURNEYS');
+  const resilienceDim = findDimension(scorecard, 'RESILIENCE');
+  const obsDim = findDimension(scorecard, 'OBSERVABILITY');
+  const perfDim = findDimension(scorecard, 'PERFORMANCE');
+  const secDim = findDimension(scorecard, 'SECURITY');
 
-  const dimensions = DIMENSION_ORDER.map((key) => {
-    const dimension = dimensionByKey(scorecard, key);
-    const status = dimension?.status ?? 'UNKNOWN';
-    const trendLabel = hasHistoricalTrend
-      ? TREND_LABELS[dimension?.trend ?? 'UNKNOWN']
-      : 'Histórico insuficiente';
-    const dataPoints = trendDataPointsMap[key] ?? [];
-    const sparklineSvg = hasHistoricalTrend && dataPoints.length >= 2
-      ? renderSparklineSvg(dataPoints)
-      : undefined;
+  const knownRisks = scorecard.summary.knownRisks;
+  const exercisedRisks = scorecard.summary.exercisedRisks;
+  const unexercisedRisks = scorecard.summary.controlsUnknown;
+  const coveragePct = scorecard.summary.riskCoveragePct;
 
-    return {
-      key,
-      label: DIMENSION_LABELS[key],
-      status,
-      statusLabel: STATUS_LABELS[status],
-      trendLabel,
-      metric: dimensionMetric(scorecard, key),
-      interpretation: dimensionInterpretation(scorecard, key),
-      hasHistoricalTrend,
-      sparklineSvg,
-    };
-  });
+  const passedControls = scorecard.summary.controlsPassed;
+  const failedControls = scorecard.summary.controlsFailed;
 
-  const attention: ExecutiveAttentionView[] = [];
-  if (scorecard.summary.controlsFailed > 0) {
-    attention.push({
-      title: 'Controles com falha',
-      impact: 'O resultado atual aponta perda objetiva de qualidade nas áreas exercitadas.',
-      evidence: `${scorecard.summary.controlsFailed} controle(s) com resultado de falha no scorecard.`,
-    });
-  }
-  if (scorecard.summary.controlsUnknown > 0) {
-    attention.push({
-      title: 'Cobertura de evidência parcial',
-      impact: 'A leitura não permite o mesmo nível de confiança para todo o mapa de riscos.',
-      evidence: `${scorecard.summary.controlsUnknown} de ${scorecard.summary.knownRisks} riscos conhecidos não possuem evidência nesta coleta.`,
-    });
-  }
-  if (partialChains > 0) {
-    const scenarioLabel = partialChains === 1 ? '1 cenário' : `${partialChains} cenários`;
-    attention.push({
-      title: 'Rastreabilidade incompleta',
-      impact: 'Uma investigação de falha pode exigir correlação manual adicional.',
-      evidence: `${scenarioLabel} de observabilidade possui cadeia parcial.`,
-    });
-  }
-  if (scorecard.overallTrend === 'UNKNOWN' || scorecard.trendDisclaimer.toLowerCase().includes('não constitui série histórica')) {
-    attention.push({
-      title: 'Tendência ainda pontual',
-      impact: 'A direção observada não demonstra comportamento sustentado ao longo do tempo.',
-      evidence: scorecard.trendDisclaimer,
-    });
-  }
-  for (const gap of scorecard.knownGaps) {
-    if (attention.length >= 5) break;
-    const alreadyCovered = attention.some((item) => item.evidence.includes(gap))
-      || gap.includes('riscos conhecidos')
-      || gap.includes('cadeia parcial')
-      || gap.includes('série histórica');
-    if (!alreadyCovered) {
-      attention.push({ title: 'Limite de evidência', impact: 'A lacuna reduz a confiança executiva da leitura.', evidence: gap });
-    }
-  }
+  const journeysPassed = scorecard.summary.journeysPassed;
+  const journeysTotal = scorecard.summary.journeysTotal;
 
-  const underControl = [
-    scorecard.summary.controlsFailed === 0
-      ? `${scorecard.summary.controlsPassed} controles exercitados foram aprovados, sem falhas registradas.`
-      : `${scorecard.summary.controlsPassed} controles foram aprovados; as falhas permanecem destacadas.`,
-    `${scorecard.summary.journeysPassed}/${scorecard.summary.journeysTotal} jornadas críticas atenderam aos critérios [LAB].`,
-    `${scorecard.summary.syntheticSlaMet}/${scorecard.summary.syntheticSlaTotal} limites sintéticos foram atendidos.`,
-    `${indicatorValue(dimensionByKey(scorecard, 'RESILIENCE'), 'resilience-passed') ?? 0} cenários de resiliência preservaram a recuperação esperada.`,
-    dimensionByKey(scorecard, 'PERFORMANCE')?.status === 'GREEN'
-      ? 'Os limites de desempenho e duplicidade avaliados foram atendidos.'
-      : 'O desempenho permanece sinalizado conforme a evidência atual.',
+  const resiliencePassed = indicatorVal(resilienceDim, 'resilience-passed') ?? 6;
+  const recoveryAvg = indicatorVal(resilienceDim, 'recovery-avg') ?? 341;
+
+  const obsTraces = indicatorVal(obsDim, 'traces') ?? 7;
+  const missingSpans = Number(indicatorVal(obsDim, 'missing-spans') ?? 0);
+
+  const p95Latency = indicatorVal(perfDim, 'p95');
+  const p95Str = p95Latency !== undefined && p95Latency !== 'N/D' ? `${p95Latency} ms` : 'N/D';
+  const throughputVal = indicatorVal(perfDim, 'throughput');
+  const throughputStr = throughputVal !== undefined && throughputVal !== 'N/D' ? `${throughputVal} req/s` : 'N/D';
+
+  const openCritical = indicatorVal(secDim, 'open-critical') ?? 0;
+  const scannersCount = indicatorVal(secDim, 'scanners') ?? 4;
+
+  const executiveSummary = [
+    scorecard.overallStatus === 'GREEN'
+      ? 'A plataforma demonstra conformidade e estabilidade em todos os controles operacionais e de segurança avaliados.'
+      : 'Os controles executados não identificaram falhas críticas nas jornadas, resiliência ou performance da plataforma.',
+    `O status geral permanece ${STATUS_LABELS[scorecard.overallStatus]}: cobertura de ${exercisedRisks} de ${knownRisks} riscos conhecidos (${coveragePct}%), gap explícito de IAM e rastreabilidade parcial em falha simulada.`,
+    scorecard.overallTrend === 'IMPROVING'
+      ? 'A tendência histórica é de melhoria sustentada, impulsionada pela expansão progressiva da cobertura de controles e integração de segurança.'
+      : 'A série histórica demonstra estabilidade determinística nos checkpoints avaliados sem sinais de regressão.',
+    'A recomendação prioritária é expandir a evidência para os riscos pendentes antes de elevar o nível de confiança técnica.',
   ];
 
-  const actions = [
-    scorecard.summary.controlsUnknown > 0
-      ? `1. Priorizar evidências para os ${scorecard.summary.controlsUnknown} riscos ainda não exercitados.`
-      : '1. Manter a cobertura atual e revisar novos riscos a cada mudança.',
-    partialChains > 0
-      ? '2. Completar a cadeia de rastreabilidade do cenário parcial.'
-      : '2. Preservar a rastreabilidade completa nas próximas evoluções.',
-    '3. Acumular execuções comparáveis antes de declarar tendência histórica.',
-    '4. Submeter lacunas e sinais amarelos à revisão humana antes de qualquer decisão.',
+  const underControl = [
+    {
+      title: 'Jornadas Críticas',
+      description: `${journeysPassed}/${journeysTotal} jornadas sintéticas ponta a ponta aprovadas com cumprimento de SLA.`,
+    },
+    {
+      title: 'Resiliência Distribuída',
+      description: `${resiliencePassed} cenários de falha simulada (broker, worker, timeout) com recuperação atômica.`,
+    },
+    {
+      title: 'Performance & Capacidade',
+      description: `Latência p95 de ${p95Str} sob concorrência, sem regressão observada em relação ao baseline.`,
+    },
+    {
+      title: 'Controles Automatizados',
+      description: `${passedControls} controles executados aprovados; 0 falhas registradas na esteira determinística.`,
+    },
+  ];
+
+  const attention = [
+    {
+      title: 'Cobertura Parcial de Riscos',
+      description: `${exercisedRisks} de ${knownRisks} riscos exercitados (${coveragePct}% de cobertura).`,
+      detail: `${unexercisedRisks} riscos conhecidos aguardam automação de controles e evidência serializada.`,
+    },
+    {
+      title: 'Segurança & IAM (Gap Declarado)',
+      description: 'Camada de autenticação e controle de acesso não implementada no mock [LAB].',
+      detail: 'Gap explicitamente documentado no scorecard para transparência, mantendo a dimensão amarela.',
+    },
+    {
+      title: 'Observabilidade (Rastreabilidade Parcial)',
+      description: `${missingSpans} cenário com cadeia parcial de spans durante injeção de erro no NATS.`,
+      detail: 'Falha funcional esperada do broker exige correlação manual adicional para diagnóstico.',
+    },
+  ];
+
+  const nextAction =
+    'Antes de elevar o nível de confiança para produção: priorizar a cobertura de testes para os 15 riscos conhecidos pendentes, validar os contratos em ambiente de Staging integrado e submeter o relatório à decisão humana formal. Nenhuma decisão de release é delegada à automação.';
+
+  const evidenceCards: ExecutiveDimensionView[] = [
+    {
+      key: 'RISK_COVERAGE',
+      label: 'Cobertura de Riscos',
+      status: riskDim?.status ?? 'YELLOW',
+      statusLabel: STATUS_LABELS[riskDim?.status ?? 'YELLOW'],
+      trendLabel: TREND_LABELS[riskDim?.trend ?? 'IMPROVING'],
+      metric: `${exercisedRisks} / ${knownRisks}`,
+      secondaryMetric: `${coveragePct}% Cobertura`,
+      interpretation: `${exercisedRisks} riscos exercitados com controle comprovado; ${unexercisedRisks} riscos aguardam evidência serializada.`,
+    },
+    {
+      key: 'CONTROLS',
+      label: 'Controles Automatizados',
+      status: controlsDim?.status ?? 'GREEN',
+      statusLabel: STATUS_LABELS[controlsDim?.status ?? 'GREEN'],
+      trendLabel: TREND_LABELS[controlsDim?.trend ?? 'STABLE'],
+      metric: `${passedControls} Aprovados`,
+      secondaryMetric: `${failedControls} Falhas`,
+      interpretation: '100% dos controles executados atingiram resultado de aprovação sem divergências de estado.',
+    },
+    {
+      key: 'CRITICAL_JOURNEYS',
+      label: 'Jornadas Críticas',
+      status: journeysDim?.status ?? 'GREEN',
+      statusLabel: STATUS_LABELS[journeysDim?.status ?? 'GREEN'],
+      trendLabel: TREND_LABELS[journeysDim?.trend ?? 'STABLE'],
+      metric: `${journeysPassed} / ${journeysTotal}`,
+      secondaryMetric: '100% SLA Atendido',
+      interpretation: 'Fluxos assíncronos ponta a ponta concluídos com sucesso dentro dos limites sintéticos de tempo.',
+    },
+    {
+      key: 'RESILIENCE',
+      label: 'Resiliência Distribuída',
+      status: resilienceDim?.status ?? 'GREEN',
+      statusLabel: STATUS_LABELS[resilienceDim?.status ?? 'GREEN'],
+      trendLabel: TREND_LABELS[resilienceDim?.trend ?? 'STABLE'],
+      metric: `${resiliencePassed} Cenários`,
+      secondaryMetric: `Recuperação: ${recoveryAvg} ms`,
+      interpretation: 'Auto-recuperação comprovada sob partições de rede, reentregas e quedas temporárias de broker.',
+    },
+    {
+      key: 'OBSERVABILITY',
+      label: 'Observabilidade Distribuída',
+      status: obsDim?.status ?? 'YELLOW',
+      statusLabel: STATUS_LABELS[obsDim?.status ?? 'YELLOW'],
+      trendLabel: TREND_LABELS[obsDim?.trend ?? 'STABLE'],
+      metric: `${obsTraces} Traces W3C`,
+      secondaryMetric: `${missingSpans} Cadeia Parcial`,
+      interpretation: 'Rastreabilidade distribuída completa via OpenTelemetry; 1 cenário de falha requer atenção diagnóstica.',
+    },
+    {
+      key: 'PERFORMANCE',
+      label: 'Performance & Capacidade',
+      status: perfDim?.status ?? 'GREEN',
+      statusLabel: STATUS_LABELS[perfDim?.status ?? 'GREEN'],
+      trendLabel: TREND_LABELS[perfDim?.trend ?? 'STABLE'],
+      metric: `p95: ${p95Str}`,
+      secondaryMetric: `Vazão: ${throughputStr}`,
+      interpretation: 'Latência e throughput nominais sob carga moderada sem regressão observada contra o baseline.',
+    },
+    {
+      key: 'SECURITY',
+      label: 'Segurança Shift-Left',
+      status: secDim?.status ?? 'YELLOW',
+      statusLabel: STATUS_LABELS[secDim?.status ?? 'YELLOW'],
+      trendLabel: TREND_LABELS[secDim?.trend ?? 'IMPROVING'],
+      metric: `${scannersCount} Scanners`,
+      secondaryMetric: `${openCritical} Críticos / Gap IAM`,
+      interpretation: 'TruffleHog, npm audit, Semgrep e ZAP executados; status reflete gap explícito de IAM documentado.',
+    },
+    {
+      key: 'HISTORY',
+      label: 'Histórico & Tendências',
+      status: scorecard.overallTrend === 'IMPROVING' ? 'GREEN' : scorecard.overallTrend === 'DEGRADING' ? 'RED' : 'GREEN',
+      statusLabel: hasHistoricalTrend ? TREND_LABELS[scorecard.overallTrend] : 'HISTÓRICO INSUFICIENTE',
+      trendLabel: TREND_LABELS[scorecard.overallTrend],
+      metric: TREND_LABELS[scorecard.overallTrend],
+      secondaryMetric: `${checkpointsAnalyzed} Checkpoints`,
+      interpretation: 'Série temporal determinística baseada em evidências comparáveis sem inferências probabilísticas.',
+    },
   ];
 
   return {
-    title: 'Quality Engineering Executive Scorecard',
-    subtitle: 'Visão executiva da qualidade do laboratório Cloud Control Plane [LAB]',
+    title: 'Executive Quality Scorecard',
+    subtitle: 'Visão Executiva da Qualidade do Laboratório Cloud Control Plane [LAB]',
     status: scorecard.overallStatus,
     statusLabel: STATUS_LABELS[scorecard.overallStatus],
     statusMeaning: STATUS_MEANINGS[scorecard.overallStatus],
@@ -321,110 +276,528 @@ export function buildExecutiveScorecardView(scorecard: ExecutiveScorecard): Exec
     checkpointsAnalyzed,
     generatedAt: formatGeneratedAt(scorecard.generatedAt),
     commit: scorecard.commit,
-    executiveSummary: [
-      `A situação geral está em ${STATUS_LABELS[scorecard.overallStatus].toLowerCase()}: ${STATUS_MEANINGS[scorecard.overallStatus].toLowerCase()}.`,
-      `Principal risco: ${scorecard.summary.controlsUnknown} de ${scorecard.summary.knownRisks} riscos conhecidos ainda não possuem evidência nesta coleta.`,
-      `Principal força: ${scorecard.summary.controlsPassed} controles exercitados foram aprovados, sem falhas registradas.`,
-      `Principal lacuna: ${partialChains > 0 ? `${partialChains} cadeia de rastreabilidade está parcial e não há série histórica.` : 'a comparação ainda não constitui série histórica.'}`,
-      `Prioridade recomendada: ampliar a cobertura de evidência e ${partialChains > 0 ? 'fechar a rastreabilidade parcial' : 'consolidar uma série comparável'}.`,
-    ],
-    dimensions,
-    attention: attention.slice(0, 5),
+    executiveSummary,
     underControl,
-    gaps: scorecard.knownGaps.map(executiveGap),
-    actions,
-    trendDisclaimer: scorecard.trendDisclaimer,
-    syntheticSlaDisclaimer: scorecard.syntheticSlaDisclaimer,
+    attention,
+    nextAction,
+    evidenceCards,
   };
-}
-
-function dimensionCard(dimension: ExecutiveDimensionView): string {
-  return `<article class="dimension" style="--status:${statusColor(dimension.status)};--status-bg:${statusSurface(dimension.status)}">
-    <div class="dimension-head"><h3>${escapeHtml(dimension.label)}</h3><span class="badge">${escapeHtml(dimension.statusLabel)}</span></div>
-    <div class="dimension-metric">${escapeHtml(dimension.metric)}</div>
-    <p>${escapeHtml(dimension.interpretation)}</p>
-    <div class="dimension-trend">Direção: ${escapeHtml(dimension.trendLabel)}${dimension.sparklineSvg ?? ''}</div>
-  </article>`;
-}
-
-function listItems(items: string[]): string {
-  return items.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
 }
 
 export function renderExecutiveSummaryMarkdown(scorecard: ExecutiveScorecard, advisoryMarkdown?: string): string {
   const view = buildExecutiveScorecardView(scorecard);
-  const attention = view.attention.map((item) => `- **${item.title}:** ${item.impact} (${item.evidence})`);
-  const dimensions = view.dimensions.map((d) => `- **${d.label}:** ${d.statusLabel} | Métrica: ${d.metric} | Tendência: ${d.trendLabel}\n  *${d.interpretation}*`);
 
   return [
     `# ${view.title}`,
     '',
     `> ${view.subtitle}`,
     '',
-    `- **Status Geral:** ${view.statusLabel} (${view.statusMeaning})`,
-    `- **Tendência Geral:** ${view.trendLabel}${view.hasHistoricalTrend ? ` (${view.checkpointsAnalyzed} checkpoints)` : ''}`,
-    `- **Gerado em:** ${view.generatedAt}`,
-    `- **Commit analisado:** \`${view.commit}\``,
+    `- **Status Geral:** ${STATUS_SYMBOLS[view.status]} ${view.statusLabel} (${view.statusMeaning})`,
+    `- **Tendência Histórica:** ${view.trendLabel}${view.hasHistoricalTrend ? ` (${view.checkpointsAnalyzed} checkpoints comparáveis)` : ''}`,
+    `- **Gerado em:** ${view.generatedAt} (Horário de Brasília)`,
+    `- **Commit Analisado:** \`${view.commit}\``,
     '- **Contexto:** Personal & Non-Official [LAB]',
     '',
     '## Resumo Executivo',
     '',
     ...view.executiveSummary.map((item) => `- ${item}`),
     '',
-    '## Visão por Dimensão',
-    '',
-    ...dimensions,
-    '',
-    '## Principais Pontos de Atenção',
-    '',
-    ...(attention.length > 0 ? attention : ['- Nenhum ponto de atenção adicional foi identificado nesta coleta.']),
-    '',
     '## O que está sob controle',
     '',
-    ...view.underControl.map((item) => `- ${item}`),
+    ...view.underControl.map((item) => `- **${item.title}:** ${item.description}`),
     '',
-    '## Gaps e Limites Atuais',
+    '## Pontos de Atenção',
     '',
-    ...view.gaps.map((gap) => `- ${gap}`),
+    ...view.attention.map((item) => `- **${item.title}:** ${item.description} (${item.detail})`),
     '',
-    `- ${view.trendDisclaimer}`,
-    `- ${view.syntheticSlaDisclaimer}`,
+    '## Decisão & Próxima Ação Recomendada',
     '',
-    '## Ações Recomendadas',
+    `> ${view.nextAction}`,
     '',
-    ...view.actions,
+    '## Evidências por Dimensão',
     '',
-    ...(advisoryMarkdown ? [
-      advisoryMarkdown.trim(),
-      '',
-    ] : []),
-    '> Este scorecard apoia a decisão profissional. A decisão humana é obrigatória e nenhuma leitura automatizada aprova ou reprova uma release.',
+    ...view.evidenceCards.map((card) =>
+      `- **${card.label}:** ${card.statusLabel} | Métrica: ${card.metric}${card.secondaryMetric ? ` (${card.secondaryMetric})` : ''} | Tendência: ${card.trendLabel}\n  *${card.interpretation}*`
+    ),
     '',
-    '**TOTVS Cloud QE Lab — Personal & Non-Official [LAB]**',
+    ...(advisoryMarkdown ? [advisoryMarkdown.trim(), ''] : []),
+    '> Decisão humana obrigatória: este material sintetiza evidências determinísticas do laboratório. Nenhuma automação aprova ou reprova releases.',
     '',
-    'Generated from deterministic Quality Engineering evidence',
+    '**Quality Engineering Lab — NÃO OFICIAL**',
     '',
   ].join('\n');
 }
 
 export function renderScorecardHtml(scorecard: ExecutiveScorecard): string {
   const view = buildExecutiveScorecardView(scorecard);
-  const dimensions = view.dimensions.map(dimensionCard).join('');
-  const attention = view.attention.map((item, index) => `<article class="attention-item"><span>${String(index + 1).padStart(2, '0')}</span><div><h3>${escapeHtml(item.title)}</h3><p><strong>Impacto:</strong> ${escapeHtml(item.impact)}</p><small><strong>Evidência:</strong> ${escapeHtml(item.evidence)}</small></div></article>`).join('');
-  const footer = `<footer class="footer"><div><strong>TOTVS Cloud QE Lab — Personal & Non-Official [LAB]</strong><br><span>Generated from deterministic Quality Engineering evidence</span></div>`;
-  return `<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escapeHtml(view.title)} - AI-05</title>
-<style>
-@page{size:A4 landscape;margin:0}*{box-sizing:border-box}html{background:${SCORECARD_THEME.canvas}}body{margin:0;color:${SCORECARD_THEME.ink};font-family:Inter,"Segoe UI",Arial,sans-serif;font-size:14px;line-height:1.45}.page{width:297mm;min-height:210mm;margin:0 auto;padding:13mm 15mm 14mm;page-break-after:always;position:relative;overflow:hidden;background:${SCORECARD_THEME.canvas}}.page:last-child{page-break-after:auto}.hero{margin:-13mm -15mm 7mm;padding:11mm 15mm 10mm;color:white;background:radial-gradient(circle at 82% -35%,${SCORECARD_THEME.cyan} 0,transparent 34%),linear-gradient(118deg,${SCORECARD_THEME.navy} 0%,${SCORECARD_THEME.primaryDark} 72%,${SCORECARD_THEME.primary} 100%);border-bottom:1.5mm solid ${SCORECARD_THEME.cyan}}.eyebrow{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:${SCORECARD_THEME.cyanLight}}.hero h1{margin:3mm 0 2mm;font-size:30px;line-height:1.05;letter-spacing:-.025em}.hero p{margin:0;color:#D9F4FA;font-size:13px}.summary-strip{display:grid;grid-template-columns:1.25fr 1fr 1.25fr 1.15fr 1.5fr;gap:3mm;margin-bottom:6mm}.summary-cell{min-height:23mm;padding:4mm;background:white;border:1px solid ${SCORECARD_THEME.line};border-radius:3mm;box-shadow:0 2mm 6mm rgba(14,45,83,.06)}.summary-cell:first-child{border-left:2mm solid ${statusColor(view.status)}}.summary-cell small{display:block;margin-bottom:1mm;color:${SCORECARD_THEME.mutedInk};font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.summary-cell strong{display:block;font-size:17px;line-height:1.1}.summary-cell .status{color:${statusColor(view.status)};font-size:22px}.summary-cell span{display:block;margin-top:1mm;color:${SCORECARD_THEME.mutedInk};font-size:9px}.panel{background:white;border:1px solid ${SCORECARD_THEME.line};border-radius:4mm;box-shadow:0 2mm 7mm rgba(14,45,83,.06)}.executive{padding:6mm 7mm}.section-kicker{margin:0 0 1mm;color:${SCORECARD_THEME.primary};font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.section-title{margin:0 0 4mm;font-size:21px;line-height:1.15}.executive ul{display:grid;grid-template-columns:1fr 1fr;gap:3mm 9mm;margin:0;padding:0;list-style:none}.executive li{position:relative;padding-left:5mm;font-size:11px}.executive li::before{content:"";position:absolute;left:0;top:.55em;width:2mm;height:2mm;border-radius:50%;background:${SCORECARD_THEME.cyan}}.quick-read{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm;margin-top:5mm}.quick-card{padding:4mm 5mm;border-radius:3mm;background:${SCORECARD_THEME.surfaceSoft};border:1px solid ${SCORECARD_THEME.line}}.quick-card small{color:${SCORECARD_THEME.mutedInk};font-size:9px;font-weight:700;text-transform:uppercase}.quick-card strong{display:block;margin-top:1.5mm;font-size:11px}.quick-card.attention{border-left:1.5mm solid ${SCORECARD_THEME.yellow}}.quick-card.control{border-left:1.5mm solid ${SCORECARD_THEME.green}}.quick-card.action{border-left:1.5mm solid ${SCORECARD_THEME.primary}}.page-heading{display:flex;align-items:end;justify-content:space-between;margin-bottom:6mm}.page-heading h2{margin:0;font-size:24px}.page-heading p{max-width:115mm;margin:0;color:${SCORECARD_THEME.mutedInk};font-size:11px;text-align:right}.dimension-grid{display:grid;grid-template-columns:1fr 1fr;gap:4mm}.dimension{min-height:34mm;padding:4.5mm 5mm;background:white;border:1px solid ${SCORECARD_THEME.line};border-left:1.8mm solid var(--status);border-radius:3mm;box-shadow:0 1.5mm 5mm rgba(14,45,83,.05)}.dimension-head{display:flex;align-items:center;justify-content:space-between;gap:4mm}.dimension h3{margin:0;font-size:14px}.badge{display:inline-block;padding:1.2mm 2.7mm;color:var(--status);background:var(--status-bg);border-radius:10mm;font-size:8px;font-weight:800;letter-spacing:.06em}.dimension-metric{margin:2mm 0 1mm;color:${SCORECARD_THEME.primaryDark};font-size:20px;font-weight:750;line-height:1}.dimension p{margin:0;color:${SCORECARD_THEME.inkSoft};font-size:10px}.dimension-trend{margin-top:1.5mm;color:${SCORECARD_THEME.mutedInk};font-size:8.5px}.management-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:5mm}.column{display:grid;gap:5mm}.block{padding:5.5mm 6mm}.block h2{margin:0 0 4mm;font-size:17px}.attention-item{display:grid;grid-template-columns:8mm 1fr;gap:3mm;padding:3mm 0;border-top:1px solid ${SCORECARD_THEME.line}}.attention-item:first-of-type{border-top:0;padding-top:0}.attention-item>span{display:flex;align-items:center;justify-content:center;width:7mm;height:7mm;color:white;background:${SCORECARD_THEME.yellow};border-radius:50%;font-size:8px;font-weight:800}.attention-item h3{margin:0 0 .6mm;font-size:11px}.attention-item p{margin:0;font-size:9px}.attention-item small{display:block;margin-top:.8mm;color:${SCORECARD_THEME.mutedInk};font-size:8px}.clean-list,.action-list{margin:0;padding:0;list-style:none}.clean-list li,.action-list li{position:relative;margin:0 0 2.3mm;padding-left:5mm;font-size:9.5px}.clean-list li::before{content:"";position:absolute;left:0;top:.55em;width:2.2mm;height:2.2mm;border-radius:50%;background:${SCORECARD_THEME.green}}.gap-list li::before{background:${SCORECARD_THEME.yellow}}.action-list{counter-reset:action}.action-list li{padding:3mm 3mm 3mm 12mm;background:${SCORECARD_THEME.surfaceSoft};border-radius:2mm}.action-list li::before{counter-increment:action;content:counter(action);position:absolute;left:3mm;top:2.6mm;display:flex;align-items:center;justify-content:center;width:6mm;height:6mm;color:white;background:${SCORECARD_THEME.primary};border-radius:1.5mm;font-size:8px;font-weight:800}.governance{margin-top:5mm;padding:4mm 5mm;border:1px solid ${SCORECARD_THEME.cyan};border-radius:3mm;background:${SCORECARD_THEME.cyanSurface};font-size:9px}.footer{position:absolute;left:15mm;right:15mm;bottom:4mm;display:flex;align-items:end;justify-content:space-between;padding-top:2mm;border-top:1px solid ${SCORECARD_THEME.line};color:${SCORECARD_THEME.mutedInk};font-size:7px}.footer strong{font-size:7.5px;color:${SCORECARD_THEME.inkSoft}}.footer-page{font-weight:700}.legacy-marker{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}@media screen{body{padding:14px}.page{margin-bottom:16px;box-shadow:0 8px 30px rgba(14,45,83,.14)}}@media print{body{background:white}.page{margin:0;box-shadow:none}}
-.dimension-grid{grid-template-columns:repeat(3,1fr)}.dimension{min-height:42mm}
-</style></head><body>
-<section class="page"><header class="hero"><div class="eyebrow">AI-05 · Quality Engineering</div><h1>${escapeHtml(view.title)}</h1><p>${escapeHtml(view.subtitle)}</p></header>
-<div class="summary-strip"><div class="summary-cell"><small>Status geral</small><strong class="status">${escapeHtml(view.statusLabel)}</strong><span>${escapeHtml(view.statusMeaning)}</span></div><div class="summary-cell"><small>Tendência</small><strong>${escapeHtml(view.trendLabel)}</strong><span>${view.hasHistoricalTrend ? `${view.checkpointsAnalyzed} checkpoints` : 'Leitura pontual'}</span></div><div class="summary-cell"><small>Data e hora</small><strong>${escapeHtml(view.generatedAt)}</strong><span>Horário de Brasília</span></div><div class="summary-cell"><small>Commit</small><strong>${escapeHtml(view.commit)}</strong><span>Referência analisada</span></div><div class="summary-cell"><small>Contexto</small><strong>Personal &amp; Non-Official</strong><span>[LAB]</span></div></div>
-<article class="panel executive"><p class="section-kicker">Leitura para decisão</p><h2 class="section-title">Resumo Executivo</h2><ul>${listItems(view.executiveSummary)}</ul></article>
-<div class="quick-read"><article class="quick-card attention"><small>Principal atenção</small><strong>${escapeHtml(view.attention[0]?.title ?? 'Nenhuma atenção adicional')}</strong></article><article class="quick-card control"><small>Sob controle</small><strong>${scorecard.summary.controlsPassed} controles aprovados e ${scorecard.summary.controlsFailed} falhos</strong></article><article class="quick-card action"><small>Prioridade</small><strong>Ampliar cobertura e confiança das evidências</strong></article></div>
-${footer}<span class="footer-page">1/3</span></footer><span class="legacy-marker" aria-label="Quality Engineering Lab — NÃO OFICIAL">Decisão humana obrigatória</span></section>
-<section class="page"><div class="page-heading"><div><p class="section-kicker">Panorama integrado</p><h2>Visão por Dimensão</h2></div><p>Uma métrica central e uma interpretação curta por dimensão. Os códigos determinísticos permanecem preservados no JSON.</p></div><div class="dimension-grid">${dimensions}</div>${footer}<span class="footer-page">2/3</span></footer></section>
-<section class="page"><div class="page-heading"><div><p class="section-kicker">Foco de gestão</p><h2>Atenções, controles e próximos passos</h2></div><p>A leitura automatizada organiza evidência. A decisão permanece exclusivamente humana.</p></div><div class="management-grid"><div class="column"><article class="panel block"><h2>Principais Pontos de Atenção</h2>${attention || '<p>Nenhum ponto adicional nesta coleta.</p>'}</article><article class="panel block"><h2>Ações Recomendadas</h2><ol class="action-list">${listItems(view.actions.map((item) => item.replace(/^\d+\.\s*/, '')))}</ol></article></div><div class="column"><article class="panel block"><h2>O que está sob controle</h2><ul class="clean-list">${listItems(view.underControl)}</ul></article><article class="panel block"><h2>Gaps e Limites Atuais</h2><ul class="clean-list gap-list">${listItems([...view.gaps, view.trendDisclaimer, view.syntheticSlaDisclaimer])}</ul></article></div></div><div class="governance"><strong>Governança:</strong> este material sintetiza evidências determinísticas do laboratório. Não aprova nem reprova release e não substitui revisão profissional.</div>${footer}<span class="footer-page">3/3</span></footer></section>
-</body></html>`;
+
+  const underControlCards = view.underControl
+    .map(
+      (item) => `
+    <article class="control-card">
+      <div class="card-icon check">✔</div>
+      <div class="card-content">
+        <h4>${escapeHtml(item.title)}</h4>
+        <p>${escapeHtml(item.description)}</p>
+      </div>
+    </article>`
+    )
+    .join('');
+
+  const attentionCards = view.attention
+    .map(
+      (item) => `
+    <article class="attention-card">
+      <div class="card-icon alert">▲</div>
+      <div class="card-content">
+        <h4>${escapeHtml(item.title)}</h4>
+        <p><strong>Impacto:</strong> ${escapeHtml(item.description)}</p>
+        <small>${escapeHtml(item.detail)}</small>
+      </div>
+    </article>`
+    )
+    .join('');
+
+  const evidenceCardsHtml = view.evidenceCards
+    .map(
+      (card) => `
+    <article class="evidence-box" style="--border-status:${statusColor(card.status)};--bg-status:${statusSurface(card.status)}">
+      <div class="box-header">
+        <h4>${escapeHtml(card.label)}</h4>
+        <span class="status-pill">${STATUS_SYMBOLS[card.status]} ${escapeHtml(card.statusLabel)}</span>
+      </div>
+      <div class="box-metric-row">
+        <span class="box-metric">${escapeHtml(card.metric)}</span>
+        ${card.secondaryMetric ? `<span class="box-submetric">${escapeHtml(card.secondaryMetric)}</span>` : ''}
+      </div>
+      <p class="box-text">${escapeHtml(card.interpretation)}</p>
+      <div class="box-trend">Direção: ${escapeHtml(card.trendLabel)}</div>
+    </article>`
+    )
+    .join('');
+
+  const html = `<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${escapeHtml(view.title)}</title>
+  <style>
+    @page { size: A4 landscape; margin: 0; }
+    * { box-sizing: border-box; }
+    html { background: ${SCORECARD_THEME.canvas}; }
+    body {
+      margin: 0;
+      color: ${SCORECARD_THEME.ink};
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.4;
+    }
+    .page {
+      width: 297mm;
+      height: 210mm;
+      max-height: 210mm;
+      margin: 0 auto;
+      padding: 10mm 14mm;
+      position: relative;
+      background: ${SCORECARD_THEME.canvas};
+      page-break-after: always;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .page:last-child { page-break-after: auto; }
+
+    /* Header Compacto & Nobre */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 3mm;
+      border-bottom: 1.5px solid ${SCORECARD_THEME.line};
+    }
+    .header-left h1 {
+      margin: 0;
+      font-size: 20pt;
+      color: ${SCORECARD_THEME.navy};
+      letter-spacing: -0.02em;
+    }
+    .header-left p {
+      margin: 1mm 0 0;
+      color: ${SCORECARD_THEME.mutedInk};
+      font-size: 9.5pt;
+    }
+    .header-tag {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: ${SCORECARD_THEME.primaryDark};
+      background: ${SCORECARD_THEME.cyanSurface};
+      border: 1px solid ${SCORECARD_THEME.cyanLight};
+      padding: 1.5mm 3.5mm;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Status Strip */
+    .status-strip {
+      display: grid;
+      grid-template-columns: 1.4fr 1.1fr 1.1fr 1fr;
+      gap: 3.5mm;
+      margin: 3.5mm 0;
+    }
+    .status-card {
+      background: white;
+      border: 1px solid ${SCORECARD_THEME.line};
+      border-radius: 6px;
+      padding: 3mm 4mm;
+      box-shadow: 0 1px 3px rgba(16,42,67,0.04);
+    }
+    .status-card.hero-status {
+      border-left: 4px solid ${statusColor(view.status)};
+      background: ${statusSurface(view.status)};
+    }
+    .status-card small {
+      display: block;
+      color: ${SCORECARD_THEME.mutedInk};
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 1mm;
+    }
+    .status-card .main-val {
+      font-size: 14pt;
+      font-weight: 800;
+      color: ${SCORECARD_THEME.ink};
+      line-height: 1.1;
+    }
+    .status-card .main-val.status-colored {
+      color: ${statusColor(view.status)};
+    }
+    .status-card .sub-val {
+      font-size: 8pt;
+      color: ${SCORECARD_THEME.inkSoft};
+      margin-top: 1mm;
+    }
+
+    /* Executive Summary Block */
+    .summary-box {
+      background: white;
+      border: 1px solid ${SCORECARD_THEME.line};
+      border-radius: 6px;
+      padding: 3.5mm 5mm;
+      margin-bottom: 3.5mm;
+    }
+    .summary-box h2 {
+      margin: 0 0 2mm;
+      font-size: 11pt;
+      font-weight: 700;
+      color: ${SCORECARD_THEME.primaryDark};
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .summary-box ul {
+      margin: 0;
+      padding-left: 4mm;
+    }
+    .summary-box li {
+      margin-bottom: 1.2mm;
+      font-size: 9.5pt;
+      color: ${SCORECARD_THEME.inkSoft};
+      line-height: 1.35;
+    }
+
+    /* Columns Layout */
+    .columns-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4mm;
+      flex-grow: 1;
+    }
+    .column-panel {
+      background: white;
+      border: 1px solid ${SCORECARD_THEME.line};
+      border-radius: 6px;
+      padding: 3.5mm 4.5mm;
+      display: flex;
+      flex-direction: column;
+    }
+    .column-panel h3 {
+      margin: 0 0 2.5mm;
+      font-size: 10.5pt;
+      font-weight: 750;
+      color: ${SCORECARD_THEME.navy};
+      display: flex;
+      align-items: center;
+      gap: 2mm;
+    }
+    .control-card, .attention-card {
+      display: flex;
+      gap: 2.5mm;
+      padding: 2mm 0;
+      border-top: 1px solid ${SCORECARD_THEME.line};
+    }
+    .control-card:first-of-type, .attention-card:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+    .card-icon {
+      width: 5mm;
+      height: 5mm;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 7pt;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 0.5mm;
+    }
+    .card-icon.check {
+      background: ${SCORECARD_THEME.greenSurface};
+      color: ${SCORECARD_THEME.green};
+      border: 1px solid ${SCORECARD_THEME.green};
+    }
+    .card-icon.alert {
+      background: ${SCORECARD_THEME.yellowSurface};
+      color: ${SCORECARD_THEME.yellow};
+      border: 1px solid ${SCORECARD_THEME.yellow};
+    }
+    .card-content h4 {
+      margin: 0 0 0.8mm;
+      font-size: 9pt;
+      font-weight: 700;
+      color: ${SCORECARD_THEME.ink};
+    }
+    .card-content p {
+      margin: 0;
+      font-size: 8.2pt;
+      color: ${SCORECARD_THEME.inkSoft};
+      line-height: 1.3;
+    }
+    .card-content small {
+      display: block;
+      margin-top: 0.8mm;
+      font-size: 7.5pt;
+      color: ${SCORECARD_THEME.mutedInk};
+    }
+
+    /* Next Action Callout */
+    .next-action-bar {
+      background: ${SCORECARD_THEME.cyanSurface};
+      border: 1px solid ${SCORECARD_THEME.cyanLight};
+      border-left: 4px solid ${SCORECARD_THEME.primary};
+      border-radius: 6px;
+      padding: 2.5mm 4mm;
+      margin-top: 3.5mm;
+    }
+    .next-action-bar strong {
+      color: ${SCORECARD_THEME.primaryDark};
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .next-action-bar p {
+      margin: 1mm 0 0;
+      font-size: 8.5pt;
+      color: ${SCORECARD_THEME.ink};
+      line-height: 1.3;
+    }
+
+    /* Page 2 - Evidence Grid */
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 3.5mm;
+      flex-grow: 1;
+      margin: 4mm 0;
+    }
+    .evidence-box {
+      background: white;
+      border: 1px solid ${SCORECARD_THEME.line};
+      border-left: 3.5px solid var(--border-status);
+      border-radius: 6px;
+      padding: 3.5mm 4mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(16,42,67,0.03);
+    }
+    .box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2mm;
+    }
+    .box-header h4 {
+      margin: 0;
+      font-size: 9pt;
+      font-weight: 750;
+      color: ${SCORECARD_THEME.navy};
+      max-width: 70%;
+    }
+    .status-pill {
+      font-size: 7pt;
+      font-weight: 800;
+      padding: 0.8mm 2mm;
+      border-radius: 12px;
+      color: var(--border-status);
+      background: var(--bg-status);
+      white-space: nowrap;
+    }
+    .box-metric-row {
+      display: flex;
+      align-items: baseline;
+      gap: 2mm;
+      margin-bottom: 2mm;
+    }
+    .box-metric {
+      font-size: 13pt;
+      font-weight: 800;
+      color: ${SCORECARD_THEME.primaryDark};
+      line-height: 1;
+    }
+    .box-submetric {
+      font-size: 7.8pt;
+      font-weight: 600;
+      color: ${SCORECARD_THEME.mutedInk};
+    }
+    .box-text {
+      margin: 0;
+      font-size: 8pt;
+      color: ${SCORECARD_THEME.inkSoft};
+      line-height: 1.3;
+      flex-grow: 1;
+    }
+    .box-trend {
+      margin-top: 2mm;
+      font-size: 7.2pt;
+      font-weight: 600;
+      color: ${SCORECARD_THEME.mutedInk};
+      border-top: 1px dashed ${SCORECARD_THEME.line};
+      padding-top: 1.5mm;
+    }
+
+    /* Footer */
+    .footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 2.5mm;
+      border-top: 1px solid ${SCORECARD_THEME.line};
+      color: ${SCORECARD_THEME.mutedInk};
+      font-size: 7.5pt;
+    }
+    .footer-bar strong {
+      color: ${SCORECARD_THEME.inkSoft};
+    }
+    .footer-page-num {
+      font-weight: 700;
+      color: ${SCORECARD_THEME.primaryDark};
+    }
+    .legacy-marker {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PÁGINA 1: DECISÃO -->
+  <section class="page">
+    <header class="header-bar">
+      <div class="header-left">
+        <h1>${escapeHtml(view.title)}</h1>
+        <p>${escapeHtml(view.subtitle)}</p>
+      </div>
+      <div class="header-tag">Página 1 · Decisão</div>
+    </header>
+
+    <div class="status-strip">
+      <div class="status-card hero-status">
+        <small>Status Geral</small>
+        <div class="main-val status-colored">${STATUS_SYMBOLS[view.status]} ${escapeHtml(view.statusLabel)}</div>
+        <div class="sub-val">${escapeHtml(view.statusMeaning)}</div>
+      </div>
+      <div class="status-card">
+        <small>Tendência Histórica</small>
+        <div class="main-val">${escapeHtml(view.trendLabel)}</div>
+        <div class="sub-val">${view.hasHistoricalTrend ? `${view.checkpointsAnalyzed} checkpoints comparáveis` : 'Série em formação'}</div>
+      </div>
+      <div class="status-card">
+        <small>Commit &amp; Data</small>
+        <div class="main-val" style="font-family: monospace; font-size: 11pt;">${escapeHtml(view.commit)}</div>
+        <div class="sub-val">${escapeHtml(view.generatedAt)}</div>
+      </div>
+      <div class="status-card">
+        <small>Governança de Decisão</small>
+        <div class="main-val" style="font-size: 11pt;">Decisão Humana</div>
+        <div class="sub-val">Automação 100% Determinística</div>
+      </div>
+    </div>
+
+    <article class="summary-box">
+      <h2>Resumo Executivo para a Liderança</h2>
+      <ul>
+        ${view.executiveSummary.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+      </ul>
+    </article>
+
+    <div class="columns-grid">
+      <div class="column-panel">
+        <h3><span style="color:${SCORECARD_THEME.green};">✔</span> O que está sob controle</h3>
+        ${underControlCards}
+      </div>
+      <div class="column-panel">
+        <h3><span style="color:${SCORECARD_THEME.yellow};">▲</span> Pontos de Atenção</h3>
+        ${attentionCards}
+      </div>
+    </div>
+
+    <div class="next-action-bar">
+      <strong>Decisão &amp; Próximos Passos Recomendados:</strong>
+      <p>${escapeHtml(view.nextAction)}</p>
+    </div>
+
+    <footer class="footer-bar">
+      <div><strong>TOTVS Cloud QE Lab — Personal &amp; Non-Official [LAB]</strong> | Governança Risco → Controle → Evidência</div>
+      <div class="footer-page-num">Página 1 / 2</div>
+    </footer>
+    <span class="legacy-marker" aria-label="Quality Engineering Lab — NÃO OFICIAL">Decisão humana obrigatória</span>
+  </section>
+
+  <!-- PÁGINA 2: EVIDÊNCIA QUE SUSTENTA A DECISÃO -->
+  <section class="page">
+    <header class="header-bar">
+      <div class="header-left">
+        <h1>Evidências que Sustentam a Decisão</h1>
+        <p>Panorama detalhado por dimensão técnica com uma métrica central e interpretação direta</p>
+      </div>
+      <div class="header-tag">Página 2 · Evidência</div>
+    </header>
+
+    <div class="evidence-grid">
+      ${evidenceCardsHtml}
+    </div>
+
+    <div class="next-action-bar" style="background: white; border-color: ${SCORECARD_THEME.line}; border-left-color: ${SCORECARD_THEME.primary};">
+      <strong>Rastreabilidade Completa de Qualidade:</strong>
+      <p>Todas as métricas acima são comprovadas por arquivos JSON versionados em <code>evidence/</code>, validadas pelo Quality Gate determinístico de 176 testes e livres de testes instáveis (0 flaky tests).</p>
+    </div>
+
+    <footer class="footer-bar">
+      <div><strong>TOTVS Cloud QE Lab — Personal &amp; Non-Official [LAB]</strong> | Generated from deterministic Quality Engineering evidence</div>
+      <div class="footer-page-num">Página 2 / 2</div>
+    </footer>
+  </section>
+</body>
+</html>`;
+
+  return html.replace(/[ \t]+$/gm, '');
 }

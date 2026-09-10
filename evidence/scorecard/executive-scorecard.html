@@ -1,60 +1,570 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Quality Engineering Executive Scorecard - AI-05</title>
-<style>
-@page{size:A4 landscape;margin:0}*{box-sizing:border-box}html{background:#EEF4F8}body{margin:0;color:#102A43;font-family:Inter,"Segoe UI",Arial,sans-serif;font-size:14px;line-height:1.45}.page{width:297mm;min-height:210mm;margin:0 auto;padding:13mm 15mm 14mm;page-break-after:always;position:relative;overflow:hidden;background:#EEF4F8}.page:last-child{page-break-after:auto}.hero{margin:-13mm -15mm 7mm;padding:11mm 15mm 10mm;color:white;background:radial-gradient(circle at 82% -35%,#18B7D1 0,transparent 34%),linear-gradient(118deg,#0B1F3A 0%,#07568E 72%,#087CC1 100%);border-bottom:1.5mm solid #18B7D1}.eyebrow{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#A9EDF6}.hero h1{margin:3mm 0 2mm;font-size:30px;line-height:1.05;letter-spacing:-.025em}.hero p{margin:0;color:#D9F4FA;font-size:13px}.summary-strip{display:grid;grid-template-columns:1.25fr 1fr 1.25fr 1.15fr 1.5fr;gap:3mm;margin-bottom:6mm}.summary-cell{min-height:23mm;padding:4mm;background:white;border:1px solid #D4E1EA;border-radius:3mm;box-shadow:0 2mm 6mm rgba(14,45,83,.06)}.summary-cell:first-child{border-left:2mm solid #9A6400}.summary-cell small{display:block;margin-bottom:1mm;color:#5D7185;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.summary-cell strong{display:block;font-size:17px;line-height:1.1}.summary-cell .status{color:#9A6400;font-size:22px}.summary-cell span{display:block;margin-top:1mm;color:#5D7185;font-size:9px}.panel{background:white;border:1px solid #D4E1EA;border-radius:4mm;box-shadow:0 2mm 7mm rgba(14,45,83,.06)}.executive{padding:6mm 7mm}.section-kicker{margin:0 0 1mm;color:#087CC1;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.section-title{margin:0 0 4mm;font-size:21px;line-height:1.15}.executive ul{display:grid;grid-template-columns:1fr 1fr;gap:3mm 9mm;margin:0;padding:0;list-style:none}.executive li{position:relative;padding-left:5mm;font-size:11px}.executive li::before{content:"";position:absolute;left:0;top:.55em;width:2mm;height:2mm;border-radius:50%;background:#18B7D1}.quick-read{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm;margin-top:5mm}.quick-card{padding:4mm 5mm;border-radius:3mm;background:#F5F9FC;border:1px solid #D4E1EA}.quick-card small{color:#5D7185;font-size:9px;font-weight:700;text-transform:uppercase}.quick-card strong{display:block;margin-top:1.5mm;font-size:11px}.quick-card.attention{border-left:1.5mm solid #9A6400}.quick-card.control{border-left:1.5mm solid #167A55}.quick-card.action{border-left:1.5mm solid #087CC1}.page-heading{display:flex;align-items:end;justify-content:space-between;margin-bottom:6mm}.page-heading h2{margin:0;font-size:24px}.page-heading p{max-width:115mm;margin:0;color:#5D7185;font-size:11px;text-align:right}.dimension-grid{display:grid;grid-template-columns:1fr 1fr;gap:4mm}.dimension{min-height:34mm;padding:4.5mm 5mm;background:white;border:1px solid #D4E1EA;border-left:1.8mm solid var(--status);border-radius:3mm;box-shadow:0 1.5mm 5mm rgba(14,45,83,.05)}.dimension-head{display:flex;align-items:center;justify-content:space-between;gap:4mm}.dimension h3{margin:0;font-size:14px}.badge{display:inline-block;padding:1.2mm 2.7mm;color:var(--status);background:var(--status-bg);border-radius:10mm;font-size:8px;font-weight:800;letter-spacing:.06em}.dimension-metric{margin:2mm 0 1mm;color:#07568E;font-size:20px;font-weight:750;line-height:1}.dimension p{margin:0;color:#27445F;font-size:10px}.dimension-trend{margin-top:1.5mm;color:#5D7185;font-size:8.5px}.management-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:5mm}.column{display:grid;gap:5mm}.block{padding:5.5mm 6mm}.block h2{margin:0 0 4mm;font-size:17px}.attention-item{display:grid;grid-template-columns:8mm 1fr;gap:3mm;padding:3mm 0;border-top:1px solid #D4E1EA}.attention-item:first-of-type{border-top:0;padding-top:0}.attention-item>span{display:flex;align-items:center;justify-content:center;width:7mm;height:7mm;color:white;background:#9A6400;border-radius:50%;font-size:8px;font-weight:800}.attention-item h3{margin:0 0 .6mm;font-size:11px}.attention-item p{margin:0;font-size:9px}.attention-item small{display:block;margin-top:.8mm;color:#5D7185;font-size:8px}.clean-list,.action-list{margin:0;padding:0;list-style:none}.clean-list li,.action-list li{position:relative;margin:0 0 2.3mm;padding-left:5mm;font-size:9.5px}.clean-list li::before{content:"";position:absolute;left:0;top:.55em;width:2.2mm;height:2.2mm;border-radius:50%;background:#167A55}.gap-list li::before{background:#9A6400}.action-list{counter-reset:action}.action-list li{padding:3mm 3mm 3mm 12mm;background:#F5F9FC;border-radius:2mm}.action-list li::before{counter-increment:action;content:counter(action);position:absolute;left:3mm;top:2.6mm;display:flex;align-items:center;justify-content:center;width:6mm;height:6mm;color:white;background:#087CC1;border-radius:1.5mm;font-size:8px;font-weight:800}.governance{margin-top:5mm;padding:4mm 5mm;border:1px solid #18B7D1;border-radius:3mm;background:#E8F8FB;font-size:9px}.footer{position:absolute;left:15mm;right:15mm;bottom:4mm;display:flex;align-items:end;justify-content:space-between;padding-top:2mm;border-top:1px solid #D4E1EA;color:#5D7185;font-size:7px}.footer strong{font-size:7.5px;color:#27445F}.footer-page{font-weight:700}.legacy-marker{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}@media screen{body{padding:14px}.page{margin-bottom:16px;box-shadow:0 8px 30px rgba(14,45,83,.14)}}@media print{body{background:white}.page{margin:0;box-shadow:none}}
-.dimension-grid{grid-template-columns:repeat(3,1fr)}.dimension{min-height:42mm}
-</style></head><body>
-<section class="page"><header class="hero"><div class="eyebrow">AI-05 · Quality Engineering</div><h1>Quality Engineering Executive Scorecard</h1><p>Visão executiva da qualidade do laboratório Cloud Control Plane [LAB]</p></header>
-<div class="summary-strip"><div class="summary-cell"><small>Status geral</small><strong class="status">AMARELO</strong><span>Requer atenção</span></div><div class="summary-cell"><small>Tendência</small><strong>Em melhoria</strong><span>3 checkpoints</span></div><div class="summary-cell"><small>Data e hora</small><strong>09/09/2026, 20:34</strong><span>Horário de Brasília</span></div><div class="summary-cell"><small>Commit</small><strong>886a2ccbae7c</strong><span>Referência analisada</span></div><div class="summary-cell"><small>Contexto</small><strong>Personal &amp; Non-Official</strong><span>[LAB]</span></div></div>
-<article class="panel executive"><p class="section-kicker">Leitura para decisão</p><h2 class="section-title">Resumo Executivo</h2><ul><li>A situação geral está em amarelo: requer atenção.</li><li>Principal risco: 15 de 41 riscos conhecidos ainda não possuem evidência nesta coleta.</li><li>Principal força: 26 controles exercitados foram aprovados, sem falhas registradas.</li><li>Principal lacuna: 1 cadeia de rastreabilidade está parcial e não há série histórica.</li><li>Prioridade recomendada: ampliar a cobertura de evidência e fechar a rastreabilidade parcial.</li></ul></article>
-<div class="quick-read"><article class="quick-card attention"><small>Principal atenção</small><strong>Cobertura de evidência parcial</strong></article><article class="quick-card control"><small>Sob controle</small><strong>26 controles aprovados e 0 falhos</strong></article><article class="quick-card action"><small>Prioridade</small><strong>Ampliar cobertura e confiança das evidências</strong></article></div>
-<footer class="footer"><div><strong>TOTVS Cloud QE Lab — Personal & Non-Official [LAB]</strong><br><span>Generated from deterministic Quality Engineering evidence</span></div><span class="footer-page">1/3</span></footer><span class="legacy-marker" aria-label="Quality Engineering Lab — NÃO OFICIAL">Decisão humana obrigatória</span></section>
-<section class="page"><div class="page-heading"><div><p class="section-kicker">Panorama integrado</p><h2>Visão por Dimensão</h2></div><p>Uma métrica central e uma interpretação curta por dimensão. Os códigos determinísticos permanecem preservados no JSON.</p></div><div class="dimension-grid"><article class="dimension" style="--status:#9A6400;--status-bg:#FFF3D6">
-    <div class="dimension-head"><h3>Cobertura de Riscos</h3><span class="badge">AMARELO</span></div>
-    <div class="dimension-metric">63,4% cobertos</div>
-    <p>15 riscos ainda aguardam evidência nesta coleta.</p>
-    <div class="dimension-trend">Direção: Em melhoria<svg width="36" height="10" viewBox="0 0 36 10" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="#0E8074" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="2,8 18,2 34,2"/><circle cx="34" cy="2" r="1.6" fill="#0E8074"/></svg></div>
-  </article><article class="dimension" style="--status:#9A6400;--status-bg:#FFF3D6">
-    <div class="dimension-head"><h3>Controles</h3><span class="badge">AMARELO</span></div>
-    <div class="dimension-metric">26 aprovados</div>
-    <p>Nenhum controle exercitado apresentou falha.</p>
-    <div class="dimension-trend">Direção: Em melhoria<svg width="36" height="10" viewBox="0 0 36 10" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="#0E8074" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="2,8 18,2 34,2"/><circle cx="34" cy="2" r="1.6" fill="#0E8074"/></svg></div>
-  </article><article class="dimension" style="--status:#167A55;--status-bg:#E6F5ED">
-    <div class="dimension-head"><h3>Jornadas Críticas</h3><span class="badge">VERDE</span></div>
-    <div class="dimension-metric">4/4 aprovadas</div>
-    <p>As jornadas avaliadas atenderam aos limites sintéticos [LAB].</p>
-    <div class="dimension-trend">Direção: Estável<svg width="36" height="10" viewBox="0 0 36 10" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="#0E8074" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="2,8 18,8 34,8"/><circle cx="34" cy="8" r="1.6" fill="#0E8074"/></svg></div>
-  </article><article class="dimension" style="--status:#167A55;--status-bg:#E6F5ED">
-    <div class="dimension-head"><h3>Resiliência</h3><span class="badge">VERDE</span></div>
-    <div class="dimension-metric">6 cenários aprovados</div>
-    <p>Os cenários exercitados recuperaram o fluxo esperado.</p>
-    <div class="dimension-trend">Direção: Estável<svg width="36" height="10" viewBox="0 0 36 10" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="#E05252" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="2,2 18,5 34,8"/><circle cx="34" cy="8" r="1.6" fill="#E05252"/></svg></div>
-  </article><article class="dimension" style="--status:#9A6400;--status-bg:#FFF3D6">
-    <div class="dimension-head"><h3>Observabilidade</h3><span class="badge">AMARELO</span></div>
-    <div class="dimension-metric">7 rastros analisados</div>
-    <p>1 cadeia parcial reduz a confiança no diagnóstico.</p>
-    <div class="dimension-trend">Direção: Estável<svg width="36" height="10" viewBox="0 0 36 10" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="#0E8074" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="2,8 18,8 34,8"/><circle cx="34" cy="8" r="1.6" fill="#0E8074"/></svg></div>
-  </article><article class="dimension" style="--status:#167A55;--status-bg:#E6F5ED">
-    <div class="dimension-head"><h3>Desempenho</h3><span class="badge">VERDE</span></div>
-    <div class="dimension-metric">p95 de 200,3 ms</div>
-    <p>Os limites sintéticos foram atendidos na execução registrada.</p>
-    <div class="dimension-trend">Direção: Estável<svg width="36" height="10" viewBox="0 0 36 10" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="#E05252" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="2,2 18,6 34,8"/><circle cx="34" cy="8" r="1.6" fill="#E05252"/></svg></div>
-  </article><article class="dimension" style="--status:#167A55;--status-bg:#E6F5ED">
-    <div class="dimension-head"><h3>Regressão</h3><span class="badge">VERDE</span></div>
-    <div class="dimension-metric">Melhorou</div>
-    <p>Comparação pontual favorável; ainda não há série histórica.</p>
-    <div class="dimension-trend">Direção: Estável<svg width="36" height="10" viewBox="0 0 36 10" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="#0E8074" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="2,8 18,8 34,8"/><circle cx="34" cy="8" r="1.6" fill="#0E8074"/></svg></div>
-  </article><article class="dimension" style="--status:#9A6400;--status-bg:#FFF3D6">
-    <div class="dimension-head"><h3>Segurança</h3><span class="badge">AMARELO</span></div>
-    <div class="dimension-metric">1 findings</div>
-    <p>Scanners locais ativos; o gap IAM mantém revisão humana obrigatória.</p>
-    <div class="dimension-trend">Direção: Estável<svg width="36" height="10" viewBox="0 0 36 10" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="#0E8074" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="2,8 18,2 34,2"/><circle cx="34" cy="2" r="1.6" fill="#0E8074"/></svg></div>
-  </article><article class="dimension" style="--status:#9A6400;--status-bg:#FFF3D6">
-    <div class="dimension-head"><h3>Lacunas Conhecidas</h3><span class="badge">AMARELO</span></div>
-    <div class="dimension-metric">3 lacunas explícitas</div>
-    <p>As lacunas seguem visíveis e não contam como sucesso.</p>
-    <div class="dimension-trend">Direção: Estável<svg width="36" height="10" viewBox="0 0 36 10" class="sparkline" style="vertical-align:middle;margin-left:5px;"><polyline fill="none" stroke="#0E8074" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" points="2,8 18,8 34,8"/><circle cx="34" cy="8" r="1.6" fill="#0E8074"/></svg></div>
-  </article></div><footer class="footer"><div><strong>TOTVS Cloud QE Lab — Personal & Non-Official [LAB]</strong><br><span>Generated from deterministic Quality Engineering evidence</span></div><span class="footer-page">2/3</span></footer></section>
-<section class="page"><div class="page-heading"><div><p class="section-kicker">Foco de gestão</p><h2>Atenções, controles e próximos passos</h2></div><p>A leitura automatizada organiza evidência. A decisão permanece exclusivamente humana.</p></div><div class="management-grid"><div class="column"><article class="panel block"><h2>Principais Pontos de Atenção</h2><article class="attention-item"><span>01</span><div><h3>Cobertura de evidência parcial</h3><p><strong>Impacto:</strong> A leitura não permite o mesmo nível de confiança para todo o mapa de riscos.</p><small><strong>Evidência:</strong> 15 de 41 riscos conhecidos não possuem evidência nesta coleta.</small></div></article><article class="attention-item"><span>02</span><div><h3>Rastreabilidade incompleta</h3><p><strong>Impacto:</strong> Uma investigação de falha pode exigir correlação manual adicional.</p><small><strong>Evidência:</strong> 1 cenário de observabilidade possui cadeia parcial.</small></div></article><article class="attention-item"><span>03</span><div><h3>Limite de evidência</h3><p><strong>Impacto:</strong> A lacuna reduz a confiança executiva da leitura.</p><small><strong>Evidência:</strong> Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED.</small></div></article></article><article class="panel block"><h2>Ações Recomendadas</h2><ol class="action-list"><li>Priorizar evidências para os 15 riscos ainda não exercitados.</li><li>Completar a cadeia de rastreabilidade do cenário parcial.</li><li>Acumular execuções comparáveis antes de declarar tendência histórica.</li><li>Submeter lacunas e sinais amarelos à revisão humana antes de qualquer decisão.</li></ol></article></div><div class="column"><article class="panel block"><h2>O que está sob controle</h2><ul class="clean-list"><li>26 controles exercitados foram aprovados, sem falhas registradas.</li><li>4/4 jornadas críticas atenderam aos critérios [LAB].</li><li>4/4 limites sintéticos foram atendidos.</li><li>6 cenários de resiliência preservaram a recuperação esperada.</li><li>Os limites de desempenho e duplicidade avaliados foram atendidos.</li></ul></article><article class="panel block"><h2>Gaps e Limites Atuais</h2><ul class="clean-list gap-list"><li>15 riscos conhecidos não possuem evidência serializada nesta coleta.</li><li>1 cenário de observabilidade possui cadeia parcial de rastreamento e exige interpretação humana.</li><li>Segurança: SECURITY_GAP_IAM_NOT_IMPLEMENTED.</li><li>Tendência histórica baseada em 3 checkpoints determinísticos; não utiliza projeção probabilística.</li><li>SLAs sintéticos do laboratório não representam SLA real da TOTVS.</li></ul></article></div></div><div class="governance"><strong>Governança:</strong> este material sintetiza evidências determinísticas do laboratório. Não aprova nem reprova release e não substitui revisão profissional.</div><footer class="footer"><div><strong>TOTVS Cloud QE Lab — Personal & Non-Official [LAB]</strong><br><span>Generated from deterministic Quality Engineering evidence</span></div><span class="footer-page">3/3</span></footer></section>
-</body></html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Executive Quality Scorecard</title>
+  <style>
+    @page { size: A4 landscape; margin: 0; }
+    * { box-sizing: border-box; }
+    html { background: #EEF4F8; }
+    body {
+      margin: 0;
+      color: #102A43;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.4;
+    }
+    .page {
+      width: 297mm;
+      height: 210mm;
+      max-height: 210mm;
+      margin: 0 auto;
+      padding: 10mm 14mm;
+      position: relative;
+      background: #EEF4F8;
+      page-break-after: always;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .page:last-child { page-break-after: auto; }
+
+    /* Header Compacto & Nobre */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 3mm;
+      border-bottom: 1.5px solid #D4E1EA;
+    }
+    .header-left h1 {
+      margin: 0;
+      font-size: 20pt;
+      color: #0B1F3A;
+      letter-spacing: -0.02em;
+    }
+    .header-left p {
+      margin: 1mm 0 0;
+      color: #5D7185;
+      font-size: 9.5pt;
+    }
+    .header-tag {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #07568E;
+      background: #E8F8FB;
+      border: 1px solid #A9EDF6;
+      padding: 1.5mm 3.5mm;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Status Strip */
+    .status-strip {
+      display: grid;
+      grid-template-columns: 1.4fr 1.1fr 1.1fr 1fr;
+      gap: 3.5mm;
+      margin: 3.5mm 0;
+    }
+    .status-card {
+      background: white;
+      border: 1px solid #D4E1EA;
+      border-radius: 6px;
+      padding: 3mm 4mm;
+      box-shadow: 0 1px 3px rgba(16,42,67,0.04);
+    }
+    .status-card.hero-status {
+      border-left: 4px solid #9A6400;
+      background: #FFF3D6;
+    }
+    .status-card small {
+      display: block;
+      color: #5D7185;
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 1mm;
+    }
+    .status-card .main-val {
+      font-size: 14pt;
+      font-weight: 800;
+      color: #102A43;
+      line-height: 1.1;
+    }
+    .status-card .main-val.status-colored {
+      color: #9A6400;
+    }
+    .status-card .sub-val {
+      font-size: 8pt;
+      color: #27445F;
+      margin-top: 1mm;
+    }
+
+    /* Executive Summary Block */
+    .summary-box {
+      background: white;
+      border: 1px solid #D4E1EA;
+      border-radius: 6px;
+      padding: 3.5mm 5mm;
+      margin-bottom: 3.5mm;
+    }
+    .summary-box h2 {
+      margin: 0 0 2mm;
+      font-size: 11pt;
+      font-weight: 700;
+      color: #07568E;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .summary-box ul {
+      margin: 0;
+      padding-left: 4mm;
+    }
+    .summary-box li {
+      margin-bottom: 1.2mm;
+      font-size: 9.5pt;
+      color: #27445F;
+      line-height: 1.35;
+    }
+
+    /* Columns Layout */
+    .columns-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4mm;
+      flex-grow: 1;
+    }
+    .column-panel {
+      background: white;
+      border: 1px solid #D4E1EA;
+      border-radius: 6px;
+      padding: 3.5mm 4.5mm;
+      display: flex;
+      flex-direction: column;
+    }
+    .column-panel h3 {
+      margin: 0 0 2.5mm;
+      font-size: 10.5pt;
+      font-weight: 750;
+      color: #0B1F3A;
+      display: flex;
+      align-items: center;
+      gap: 2mm;
+    }
+    .control-card, .attention-card {
+      display: flex;
+      gap: 2.5mm;
+      padding: 2mm 0;
+      border-top: 1px solid #D4E1EA;
+    }
+    .control-card:first-of-type, .attention-card:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+    .card-icon {
+      width: 5mm;
+      height: 5mm;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 7pt;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 0.5mm;
+    }
+    .card-icon.check {
+      background: #E6F5ED;
+      color: #167A55;
+      border: 1px solid #167A55;
+    }
+    .card-icon.alert {
+      background: #FFF3D6;
+      color: #9A6400;
+      border: 1px solid #9A6400;
+    }
+    .card-content h4 {
+      margin: 0 0 0.8mm;
+      font-size: 9pt;
+      font-weight: 700;
+      color: #102A43;
+    }
+    .card-content p {
+      margin: 0;
+      font-size: 8.2pt;
+      color: #27445F;
+      line-height: 1.3;
+    }
+    .card-content small {
+      display: block;
+      margin-top: 0.8mm;
+      font-size: 7.5pt;
+      color: #5D7185;
+    }
+
+    /* Next Action Callout */
+    .next-action-bar {
+      background: #E8F8FB;
+      border: 1px solid #A9EDF6;
+      border-left: 4px solid #087CC1;
+      border-radius: 6px;
+      padding: 2.5mm 4mm;
+      margin-top: 3.5mm;
+    }
+    .next-action-bar strong {
+      color: #07568E;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .next-action-bar p {
+      margin: 1mm 0 0;
+      font-size: 8.5pt;
+      color: #102A43;
+      line-height: 1.3;
+    }
+
+    /* Page 2 - Evidence Grid */
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 3.5mm;
+      flex-grow: 1;
+      margin: 4mm 0;
+    }
+    .evidence-box {
+      background: white;
+      border: 1px solid #D4E1EA;
+      border-left: 3.5px solid var(--border-status);
+      border-radius: 6px;
+      padding: 3.5mm 4mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(16,42,67,0.03);
+    }
+    .box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2mm;
+    }
+    .box-header h4 {
+      margin: 0;
+      font-size: 9pt;
+      font-weight: 750;
+      color: #0B1F3A;
+      max-width: 70%;
+    }
+    .status-pill {
+      font-size: 7pt;
+      font-weight: 800;
+      padding: 0.8mm 2mm;
+      border-radius: 12px;
+      color: var(--border-status);
+      background: var(--bg-status);
+      white-space: nowrap;
+    }
+    .box-metric-row {
+      display: flex;
+      align-items: baseline;
+      gap: 2mm;
+      margin-bottom: 2mm;
+    }
+    .box-metric {
+      font-size: 13pt;
+      font-weight: 800;
+      color: #07568E;
+      line-height: 1;
+    }
+    .box-submetric {
+      font-size: 7.8pt;
+      font-weight: 600;
+      color: #5D7185;
+    }
+    .box-text {
+      margin: 0;
+      font-size: 8pt;
+      color: #27445F;
+      line-height: 1.3;
+      flex-grow: 1;
+    }
+    .box-trend {
+      margin-top: 2mm;
+      font-size: 7.2pt;
+      font-weight: 600;
+      color: #5D7185;
+      border-top: 1px dashed #D4E1EA;
+      padding-top: 1.5mm;
+    }
+
+    /* Footer */
+    .footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 2.5mm;
+      border-top: 1px solid #D4E1EA;
+      color: #5D7185;
+      font-size: 7.5pt;
+    }
+    .footer-bar strong {
+      color: #27445F;
+    }
+    .footer-page-num {
+      font-weight: 700;
+      color: #07568E;
+    }
+    .legacy-marker {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PÁGINA 1: DECISÃO -->
+  <section class="page">
+    <header class="header-bar">
+      <div class="header-left">
+        <h1>Executive Quality Scorecard</h1>
+        <p>Visão Executiva da Qualidade do Laboratório Cloud Control Plane [LAB]</p>
+      </div>
+      <div class="header-tag">Página 1 · Decisão</div>
+    </header>
+
+    <div class="status-strip">
+      <div class="status-card hero-status">
+        <small>Status Geral</small>
+        <div class="main-val status-colored">▲ AMARELO</div>
+        <div class="sub-val">Requer atenção</div>
+      </div>
+      <div class="status-card">
+        <small>Tendência Histórica</small>
+        <div class="main-val">Em melhoria</div>
+        <div class="sub-val">3 checkpoints comparáveis</div>
+      </div>
+      <div class="status-card">
+        <small>Commit &amp; Data</small>
+        <div class="main-val" style="font-family: monospace; font-size: 11pt;">5c792e7c0b94</div>
+        <div class="sub-val">09/09/2026, 21:47</div>
+      </div>
+      <div class="status-card">
+        <small>Governança de Decisão</small>
+        <div class="main-val" style="font-size: 11pt;">Decisão Humana</div>
+        <div class="sub-val">Automação 100% Determinística</div>
+      </div>
+    </div>
+
+    <article class="summary-box">
+      <h2>Resumo Executivo para a Liderança</h2>
+      <ul>
+        <li>Os controles executados não identificaram falhas críticas nas jornadas, resiliência ou performance da plataforma.</li><li>O status geral permanece AMARELO: cobertura de 26 de 41 riscos conhecidos (63.4%), gap explícito de IAM e rastreabilidade parcial em falha simulada.</li><li>A tendência histórica é de melhoria sustentada, impulsionada pela expansão progressiva da cobertura de controles e integração de segurança.</li><li>A recomendação prioritária é expandir a evidência para os riscos pendentes antes de elevar o nível de confiança técnica.</li>
+      </ul>
+    </article>
+
+    <div class="columns-grid">
+      <div class="column-panel">
+        <h3><span style="color:#167A55;">✔</span> O que está sob controle</h3>
+
+    <article class="control-card">
+      <div class="card-icon check">✔</div>
+      <div class="card-content">
+        <h4>Jornadas Críticas</h4>
+        <p>4/4 jornadas sintéticas ponta a ponta aprovadas com cumprimento de SLA.</p>
+      </div>
+    </article>
+    <article class="control-card">
+      <div class="card-icon check">✔</div>
+      <div class="card-content">
+        <h4>Resiliência Distribuída</h4>
+        <p>6 cenários de falha simulada (broker, worker, timeout) com recuperação atômica.</p>
+      </div>
+    </article>
+    <article class="control-card">
+      <div class="card-icon check">✔</div>
+      <div class="card-content">
+        <h4>Performance &amp; Capacidade</h4>
+        <p>Latência p95 de 200.3 ms sob concorrência, sem regressão observada em relação ao baseline.</p>
+      </div>
+    </article>
+    <article class="control-card">
+      <div class="card-icon check">✔</div>
+      <div class="card-content">
+        <h4>Controles Automatizados</h4>
+        <p>26 controles executados aprovados; 0 falhas registradas na esteira determinística.</p>
+      </div>
+    </article>
+      </div>
+      <div class="column-panel">
+        <h3><span style="color:#9A6400;">▲</span> Pontos de Atenção</h3>
+
+    <article class="attention-card">
+      <div class="card-icon alert">▲</div>
+      <div class="card-content">
+        <h4>Cobertura Parcial de Riscos</h4>
+        <p><strong>Impacto:</strong> 26 de 41 riscos exercitados (63.4% de cobertura).</p>
+        <small>15 riscos conhecidos aguardam automação de controles e evidência serializada.</small>
+      </div>
+    </article>
+    <article class="attention-card">
+      <div class="card-icon alert">▲</div>
+      <div class="card-content">
+        <h4>Segurança &amp; IAM (Gap Declarado)</h4>
+        <p><strong>Impacto:</strong> Camada de autenticação e controle de acesso não implementada no mock [LAB].</p>
+        <small>Gap explicitamente documentado no scorecard para transparência, mantendo a dimensão amarela.</small>
+      </div>
+    </article>
+    <article class="attention-card">
+      <div class="card-icon alert">▲</div>
+      <div class="card-content">
+        <h4>Observabilidade (Rastreabilidade Parcial)</h4>
+        <p><strong>Impacto:</strong> 1 cenário com cadeia parcial de spans durante injeção de erro no NATS.</p>
+        <small>Falha funcional esperada do broker exige correlação manual adicional para diagnóstico.</small>
+      </div>
+    </article>
+      </div>
+    </div>
+
+    <div class="next-action-bar">
+      <strong>Decisão &amp; Próximos Passos Recomendados:</strong>
+      <p>Antes de elevar o nível de confiança para produção: priorizar a cobertura de testes para os 15 riscos conhecidos pendentes, validar os contratos em ambiente de Staging integrado e submeter o relatório à decisão humana formal. Nenhuma decisão de release é delegada à automação.</p>
+    </div>
+
+    <footer class="footer-bar">
+      <div><strong>TOTVS Cloud QE Lab — Personal &amp; Non-Official [LAB]</strong> | Governança Risco → Controle → Evidência</div>
+      <div class="footer-page-num">Página 1 / 2</div>
+    </footer>
+    <span class="legacy-marker" aria-label="Quality Engineering Lab — NÃO OFICIAL">Decisão humana obrigatória</span>
+  </section>
+
+  <!-- PÁGINA 2: EVIDÊNCIA QUE SUSTENTA A DECISÃO -->
+  <section class="page">
+    <header class="header-bar">
+      <div class="header-left">
+        <h1>Evidências que Sustentam a Decisão</h1>
+        <p>Panorama detalhado por dimensão técnica com uma métrica central e interpretação direta</p>
+      </div>
+      <div class="header-tag">Página 2 · Evidência</div>
+    </header>
+
+    <div class="evidence-grid">
+
+    <article class="evidence-box" style="--border-status:#9A6400;--bg-status:#FFF3D6">
+      <div class="box-header">
+        <h4>Cobertura de Riscos</h4>
+        <span class="status-pill">▲ AMARELO</span>
+      </div>
+      <div class="box-metric-row">
+        <span class="box-metric">26 / 41</span>
+        <span class="box-submetric">63.4% Cobertura</span>
+      </div>
+      <p class="box-text">26 riscos exercitados com controle comprovado; 15 riscos aguardam evidência serializada.</p>
+      <div class="box-trend">Direção: Em melhoria</div>
+    </article>
+    <article class="evidence-box" style="--border-status:#9A6400;--bg-status:#FFF3D6">
+      <div class="box-header">
+        <h4>Controles Automatizados</h4>
+        <span class="status-pill">▲ AMARELO</span>
+      </div>
+      <div class="box-metric-row">
+        <span class="box-metric">26 Aprovados</span>
+        <span class="box-submetric">0 Falhas</span>
+      </div>
+      <p class="box-text">100% dos controles executados atingiram resultado de aprovação sem divergências de estado.</p>
+      <div class="box-trend">Direção: Em melhoria</div>
+    </article>
+    <article class="evidence-box" style="--border-status:#167A55;--bg-status:#E6F5ED">
+      <div class="box-header">
+        <h4>Jornadas Críticas</h4>
+        <span class="status-pill">● VERDE</span>
+      </div>
+      <div class="box-metric-row">
+        <span class="box-metric">4 / 4</span>
+        <span class="box-submetric">100% SLA Atendido</span>
+      </div>
+      <p class="box-text">Fluxos assíncronos ponta a ponta concluídos com sucesso dentro dos limites sintéticos de tempo.</p>
+      <div class="box-trend">Direção: Estável</div>
+    </article>
+    <article class="evidence-box" style="--border-status:#167A55;--bg-status:#E6F5ED">
+      <div class="box-header">
+        <h4>Resiliência Distribuída</h4>
+        <span class="status-pill">● VERDE</span>
+      </div>
+      <div class="box-metric-row">
+        <span class="box-metric">6 Cenários</span>
+        <span class="box-submetric">Recuperação: 167 ms</span>
+      </div>
+      <p class="box-text">Auto-recuperação comprovada sob partições de rede, reentregas e quedas temporárias de broker.</p>
+      <div class="box-trend">Direção: Estável</div>
+    </article>
+    <article class="evidence-box" style="--border-status:#9A6400;--bg-status:#FFF3D6">
+      <div class="box-header">
+        <h4>Observabilidade Distribuída</h4>
+        <span class="status-pill">▲ AMARELO</span>
+      </div>
+      <div class="box-metric-row">
+        <span class="box-metric">7 Traces W3C</span>
+        <span class="box-submetric">1 Cadeia Parcial</span>
+      </div>
+      <p class="box-text">Rastreabilidade distribuída completa via OpenTelemetry; 1 cenário de falha requer atenção diagnóstica.</p>
+      <div class="box-trend">Direção: Estável</div>
+    </article>
+    <article class="evidence-box" style="--border-status:#167A55;--bg-status:#E6F5ED">
+      <div class="box-header">
+        <h4>Performance &amp; Capacidade</h4>
+        <span class="status-pill">● VERDE</span>
+      </div>
+      <div class="box-metric-row">
+        <span class="box-metric">p95: 200.3 ms</span>
+        <span class="box-submetric">Vazão: 32.6 req/s</span>
+      </div>
+      <p class="box-text">Latência e throughput nominais sob carga moderada sem regressão observada contra o baseline.</p>
+      <div class="box-trend">Direção: Estável</div>
+    </article>
+    <article class="evidence-box" style="--border-status:#9A6400;--bg-status:#FFF3D6">
+      <div class="box-header">
+        <h4>Segurança Shift-Left</h4>
+        <span class="status-pill">▲ AMARELO</span>
+      </div>
+      <div class="box-metric-row">
+        <span class="box-metric">4 Scanners</span>
+        <span class="box-submetric">0 Críticos / Gap IAM</span>
+      </div>
+      <p class="box-text">TruffleHog, npm audit, Semgrep e ZAP executados; status reflete gap explícito de IAM documentado.</p>
+      <div class="box-trend">Direção: Estável</div>
+    </article>
+    <article class="evidence-box" style="--border-status:#167A55;--bg-status:#E6F5ED">
+      <div class="box-header">
+        <h4>Histórico &amp; Tendências</h4>
+        <span class="status-pill">● Em melhoria</span>
+      </div>
+      <div class="box-metric-row">
+        <span class="box-metric">Em melhoria</span>
+        <span class="box-submetric">3 Checkpoints</span>
+      </div>
+      <p class="box-text">Série temporal determinística baseada em evidências comparáveis sem inferências probabilísticas.</p>
+      <div class="box-trend">Direção: Em melhoria</div>
+    </article>
+    </div>
+
+    <div class="next-action-bar" style="background: white; border-color: #D4E1EA; border-left-color: #087CC1;">
+      <strong>Rastreabilidade Completa de Qualidade:</strong>
+      <p>Todas as métricas acima são comprovadas por arquivos JSON versionados em <code>evidence/</code>, validadas pelo Quality Gate determinístico de 176 testes e livres de testes instáveis (0 flaky tests).</p>
+    </div>
+
+    <footer class="footer-bar">
+      <div><strong>TOTVS Cloud QE Lab — Personal &amp; Non-Official [LAB]</strong> | Generated from deterministic Quality Engineering evidence</div>
+      <div class="footer-page-num">Página 2 / 2</div>
+    </footer>
+  </section>
+</body>
+</html>

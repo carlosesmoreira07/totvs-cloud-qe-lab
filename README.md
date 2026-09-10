@@ -3,9 +3,9 @@
 > **[LAB] Laboratório Avançado de Quality Engineering para Plataformas Cloud**  
 > *Projeto pessoal, público, experimental e **não oficial**. Não representa a arquitetura, os processos, os controles, os dados ou as decisões da TOTVS.*
 
-[![Quality Gate](https://img.shields.io/badge/Quality%20Gate-PASS-success?style=flat-square)](evidence/scorecard/scorecard.html)
+[![Quality Gate](https://img.shields.io/badge/Quality%20Gate-YELLOW%20(Governed)-yellow?style=flat-square)](evidence/scorecard/executive-scorecard.html)
 [![Scope Status](https://img.shields.io/badge/Scope-LAB%20SCOPE%20COMPLETE-blue?style=flat-square)](docs/00-charter.md)
-[![Total Tests](https://img.shields.io/badge/Total%20Tests-175%20Passed-brightgreen?style=flat-square)](evidence/scorecard/current.json)
+[![Total Tests](https://img.shields.io/badge/Total%20Tests-176%20Passed-brightgreen?style=flat-square)](evidence/scorecard/current.json)
 [![Flaky Tests](https://img.shields.io/badge/Flaky%20Tests-0%20(Deterministic)-success?style=flat-square)](evidence/history/trends.json)
 [![AI Governance](https://img.shields.io/badge/AI%20Layer-Advisory%20Only-orange?style=flat-square)](docs/ai-assisted-impact-analysis.md)
 
@@ -22,10 +22,10 @@ Risco de Negócio  ──>  Controle Técnico  ──>  Evidência Auditável  �
 ```
 
 ### Pilares Fundamentais:
-1. **Determinismo Absoluto**: 175 testes automatizados (129 unitários e baseados em propriedades, 17 de contrato/API/segurança e testes de integração em containers) com **0 testes flaky**.
+1. **Determinismo Absoluto**: 176 testes automatizados (130 unitários e baseados em propriedades via `node:test`/`fast-check`, 46 testes via Playwright cobrindo contrato, API, segurança, integração, resiliência, observabilidade e jornadas) com **0 testes flaky**.
 2. **Resiliência Assíncrona**: Garantias de consistência eventual, idempotência atômica e Transactional Outbox com NATS JetStream e PostgreSQL.
-3. **Shift-Left Security & Observabilidade**: SAST, Secret Scan, DAST (OWASP ZAP) e rastreabilidade distribuída completa com OpenTelemetry (W3C TraceContext).
-4. **Governança Executiva**: Scorecard diagramado em 3 páginas A4 landscape para diretoria e análise determinística de tendências históricas (LAB-11).
+3. **Shift-Left Security & Observabilidade**: SAST (Semgrep), Secret Scan (TruffleHog), Dependências (npm audit), DAST passivo (OWASP ZAP) e rastreabilidade distribuída completa com OpenTelemetry (W3C TraceContext) e Jaeger.
+4. **Governança Executiva**: Scorecard diagramado em 2 páginas A4 landscape para liderança e análise determinística de tendências históricas (LAB-11).
 5. **IA Consultiva Segura**: 7 módulos de inteligência assistiva (AI-01 a AI-07) com validação estrita via Zod, fallbacks seguros e **zero autoridade de release autônoma**.
 
 ---
@@ -37,8 +37,8 @@ O sistema sob teste é um Cloud Control Plane assíncrono para provisionamento e
 ```mermaid
 flowchart TD
     subgraph ClientLayer ["1. Camada de Entrada & Governança"]
-        CLI["Cliente / Frontend"] -->|POST /v1/instances<br>Idempotency-Key & Correlation-ID| API["Control Plane API (Fastify)"]
-        PRISM["Contrato OpenAPI 3.1 & Prism"] -.->|Validação de Schema| API
+        CLI["Cliente / Frontend"] -->|POST /v1/instances<br>Idempotency-Key & Correlation-ID| API["Control Plane API (node:http)"]
+        CONTRACT["Contrato OpenAPI 3.1 & Ajv"] -.->|Validação de Schema| API
     end
 
     subgraph DataLayer ["2. Persistência & Transactional Outbox"]
@@ -63,7 +63,7 @@ flowchart TD
     end
 
     subgraph QualityGovernance ["6. Qualidade, Histórico & IA Consultiva"]
-        GATE["Deterministic Quality Gate (175 Testes)"] --> SCORE["Executive Scorecard (3 Páginas A4)"]
+        GATE["Deterministic Quality Gate (176 Testes)"] --> SCORE["Executive Scorecard (2 Páginas A4)"]
         SCORE --> TRENDS["Historical Quality Trends (LAB-11)"]
         TRENDS --> AI["QE Intelligence Layer (AI-01..07 Advisory)"]
         AI --> HUMAN{{"Decisão Humana de Release"}}
@@ -78,17 +78,17 @@ O laboratório consolida 12 capacidades demonstradas com controles executáveis 
 
 | ID | Capacidade Técnica | Risco Mitigado | Controle Executável | Evidência Principal |
 | :--- | :--- | :--- | :--- | :--- |
-| **CAP-01** | [Governança de Contratos OpenAPI](docs/14-qe-capability-map.md#cap-01) | `RISK-API-001` (Breaking Changes) | `CTRL-CONTRACT-001` (Ajv + Prism) | `evidence/test-results/contract.json` |
+| **CAP-01** | [Governança de Contratos OpenAPI](docs/14-qe-capability-map.md#cap-01) | `RISK-API-001` (Breaking Changes) | `CTRL-CONTRACT-001` (Ajv + SwaggerParser) | `evidence/test-results/contract.json` |
 | **CAP-02** | [Idempotência & Concorrência](docs/14-qe-capability-map.md#cap-02) | `RISK-API-005` (Faturamento Duplicado) | `CTRL-IDEMPOTENCY-001` (Replay) | `evidence/test-results/api.json` |
 | **CAP-03** | [Transactional Outbox Pattern](docs/14-qe-capability-map.md#cap-03) | `RISK-OUTBOX-001` (Perda de Eventos) | `CTRL-OUTBOX-ATOMIC-001` (ACID) | `evidence/test-results/unit.json` |
 | **CAP-04** | [Testes de Propriedades (PBT)](docs/14-qe-capability-map.md#cap-04) | `RISK-SEC-005` (Malformed Payloads) | `CTRL-REQUEST-001` (`fast-check`) | `evidence/test-results/unit.json` |
 | **CAP-05** | [Observabilidade Distribuída](docs/14-qe-capability-map.md#cap-05) | `RISK-OBS-001` (Spans Quebrados) | `CTRL-OBS-TRACE-TREE-001` (OTel) | `evidence/observability/trace-summary.json` |
 | **CAP-06** | [Visibilidade de Erros em Filas](docs/14-qe-capability-map.md#cap-06) | `RISK-OBS-004` (Gargalo Silencioso) | `CTRL-OBS-NATS-ERROR-VISIBILITY-001` | `evidence/observability/trace-summary.json` |
-| **CAP-07** | [Resiliência a Caos & Partições](docs/14-qe-capability-map.md#cap-07) | `RISK-RES-001` (Queda de Broker) | `CTRL-RES-NATS-OUTAGE-001` (Toxiproxy) | `evidence/resilience/chaos-report.json` |
+| **CAP-07** | [Resiliência a Caos & Partições](docs/14-qe-capability-map.md#cap-07) | `RISK-RES-001` (Queda de Broker) | `CTRL-RES-NATS-OUTAGE-001` (Toxiproxy) | `evidence/resiliency/resilience-summary.json` |
 | **CAP-08** | [Jornadas Sintéticas E2E](docs/14-qe-capability-map.md#cap-08) | `RISK-JOURNEY-001` (Quebra de SLA) | `CTRL-JOURNEY-PROVISIONING-001` | `evidence/test-results/journey.json` |
 | **CAP-09** | [Baseline de Performance](docs/14-qe-capability-map.md#cap-09) | `RISK-PERF-001` (Regressão de Latência) | `CTRL-PERF-LATENCY-001` (k6) | `evidence/performance/baseline.json` |
-| **CAP-10** | [Segurança Shift-Left & DAST](docs/14-qe-capability-map.md#cap-10) | `RISK-SEC-001` (Vazamento de Chaves) | `CTRL-SEC-SECRET-001` (Gitleaks/ZAP) | `evidence/security/summary.json` |
-| **CAP-11** | [Scorecard Executivo A4](docs/14-qe-capability-map.md#cap-11) | N/A (Desalinhamento com Negócio) | `CTRL-SCORECARD-GATE-001` | `evidence/scorecard/scorecard.html` |
+| **CAP-10** | [Segurança Shift-Left & DAST](docs/14-qe-capability-map.md#cap-10) | `RISK-SEC-001` (Vazamento de Chaves) | `CTRL-SEC-SECRET-001` (TruffleHog/npm audit/Semgrep/ZAP) | `evidence/security/summary.json` |
+| **CAP-11** | [Scorecard Executivo A4](docs/14-qe-capability-map.md#cap-11) | N/A (Desalinhamento com Negócio) | `CTRL-SCORECARD-GATE-001` | `evidence/scorecard/executive-scorecard.html` |
 | **CAP-12** | [Histórico de Qualidade & IA](docs/14-qe-capability-map.md#cap-12) | N/A (Acúmulo de Dívida Técnica) | `CTRL-HISTORY-TREND-001` (LAB-11) | `evidence/history/trends.json` |
 
 ---
@@ -110,7 +110,7 @@ npm run verify
 
 ### Comandos de Teste Específicos:
 ```bash
-npm run test:unit            # 129 testes unitários e testes baseados em propriedades (PBT)
+npm run test:unit            # 130 testes unitários e testes baseados em propriedades (PBT)
 npm run test:api             # Testes comportamentais de API, idempotência e concorrência
 npm run test:contract        # Validação estrita de contratos OpenAPI 3.1
 npm run test:security        # Scanners SAST, Secret Scan, Dependências e DAST
@@ -140,7 +140,7 @@ Entrada (Diff Git / OpenAPI / Evidência JSON)
 Validação de Schema Pré-LLM (Zod)
   │
   ▼
-Execução LLM (Gemini API / OpenAI Substituível)
+Execução LLM (Adapter OpenAI / Provedor Substituível)
   │
   ▼
 Validação Estrita de Saída (Zod Schema Parsing)

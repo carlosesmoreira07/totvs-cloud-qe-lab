@@ -7,6 +7,7 @@ const duplicateErrors = new Counter('duplicate_errors');
 const apiLatencyTrend = new Trend('api_latency_custom', true);
 
 export const options = {
+  summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)'],
   thresholds: K6_API_THRESHOLDS,
   vus: Number(__ENV.VUS || 5),
   duration: __ENV.DURATION || '5s',

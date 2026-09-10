@@ -113,7 +113,7 @@ São proibidas conclusões como “aprovado pela IA”, “reprovado pela IA”,
 ## Limites conscientes
 
 - [LAB] SLAs são sintéticos e não representam SLA real da TOTVS.
-- [LAB] Não há série histórica, análise estatística longitudinal nem janela móvel.
+- [LAB] No escopo inicial do LAB-10, ainda não havia série histórica (introduzida subsequentemente no LAB-11).
 - [LAB] O LAB-10 cobre somente scanners locais e DAST passivo; não há IAM, DAST ativo, pentest, Kubernetes, Grafana corporativo ou auto-remediação.
 - [LAB] Não há RAG, embeddings, vector database ou persistência das respostas do modelo.
 - [VALIDAR] Critérios executivos, tolerâncias e cadência reais só podem ser discutidos após contexto autorizado de onboarding.
