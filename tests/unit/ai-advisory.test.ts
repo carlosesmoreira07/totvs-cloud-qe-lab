@@ -6,6 +6,7 @@ import {
   buildAdvisoryContext,
   formatAdvisorySummary,
   runAdvisoryAnalysis,
+  selectTokenBudget,
 } from '../../tools/ai/advisory-analysis.js';
 import { createOpenAiProvider, OpenAiProvider } from '../../tools/ai/openai-provider.js';
 import { UnavailableAiProvider, type AiProvider } from '../../tools/ai/provider.js';
@@ -17,22 +18,10 @@ const validAdvisory: AiAdvisory = {
   changeSummary: 'Fluxo de retry alterado em store.ts: timeout reduzido de 5s para 3s.',
   changeNature: 'BEHAVIOR',
   impact: 'MEDIUM',
-  impactedRisks: [{
-    subject: 'RISK-API-005',
-    rationale: 'O fluxo de retry foi alterado',
-    evidence: ['apps/control-plane-mock/src/store.ts'],
-  }],
-  impactedControls: [],
-  coverageGaps: [],
-  suspiciousTests: [],
-  securityConcerns: [],
-  recommendedChecks: [],
-  humanQuestions: [{
-    subject: 'Revisar conflito',
-    rationale: 'Confirmar a semântica para payload divergente',
-    evidence: ['specs/openapi/cloud-control-plane.yaml'],
-  }],
   confidence: 'HIGH',
+  attention: ['RISK-API-005: O fluxo de retry foi alterado em apps/control-plane-mock/src/store.ts'],
+  actions: ['npm run test:api'],
+  humanQuestion: 'Revisar conflito: Confirmar a semântica para payload divergente',
 };
 
 const changes: ImpactContext = {
@@ -170,9 +159,8 @@ test('formatAdvisorySummary: saída contém Resumo, Impacto, Confiança', () => 
   };
   const formatted = formatAdvisorySummary(outcome);
   assert.match(formatted, /\*\*Resumo:\*\*/);
-  assert.match(formatted, /\*\*Impacto:\*\* MEDIUM/);
-  assert.match(formatted, /\*\*Confiança:\*\* HIGH/);
-  assert.match(formatted, /AI advisory · decisão humana · Quality Gate não afetado/);
+  assert.match(formatted, /\*\*Impacto:\*\* MEDIUM · Confiança: HIGH/);
+  assert.match(formatted, /AI advisory · decisão humana/);
 });
 
 test('formatAdvisorySummary: NÃO inclui provedor, modelo nem prompt no output', () => {
@@ -193,13 +181,9 @@ test('formatAdvisorySummary: NÃO inclui provedor, modelo nem prompt no output',
 test('formatAdvisorySummary: seções vazias não aparecem no output', () => {
   const advisoryAllEmpty: AiAdvisory = {
     ...validAdvisory,
-    impactedRisks: [],
-    coverageGaps: [],
-    suspiciousTests: [],
-    recommendedChecks: [],
-    impactedControls: [],
-    securityConcerns: [],
-    humanQuestions: [],
+    attention: [],
+    actions: [],
+    humanQuestion: null,
   };
   const outcome = {
     status: 'AVAILABLE' as const,
@@ -208,29 +192,106 @@ test('formatAdvisorySummary: seções vazias não aparecem no output', () => {
     advisory: advisoryAllEmpty,
   };
   const formatted = formatAdvisorySummary(outcome);
+  assert.doesNotMatch(formatted, /\*\*Risco:\*\*/);
+  assert.doesNotMatch(formatted, /\*\*Ação:\*\*/);
+  assert.doesNotMatch(formatted, /\*\*Pergunta:\*\*/);
   assert.doesNotMatch(formatted, /Nenhum item/i);
   assert.doesNotMatch(formatted, /Nenhum apontamento/i);
   assert.doesNotMatch(formatted, /### /); // sem headers H3
 });
 
-test('formatAdvisorySummary: max 1 pergunta no output', () => {
-  const advisoryManyQuestions: AiAdvisory = {
+test('formatAdvisorySummary: pergunta é exibida quando preenchida e omitida quando nula', () => {
+  const withQuestion: AiAdvisory = {
     ...validAdvisory,
-    humanQuestions: [
-      { subject: 'Q1', rationale: 'r1', evidence: [] },
-      { subject: 'Q2', rationale: 'r2', evidence: [] },
-      { subject: 'Q3', rationale: 'r3', evidence: [] },
-    ],
+    humanQuestion: 'Confirmar a semântica para payload divergente',
   };
-  const outcome = {
+  const formattedWith = formatAdvisorySummary({
     status: 'AVAILABLE' as const,
     provider: 'openai',
     model: 'gpt-4o',
-    advisory: advisoryManyQuestions,
+    advisory: withQuestion,
+  });
+  assert.match(formattedWith, /\*\*Pergunta:\*\* Confirmar a semântica para payload divergente/);
+
+  const withoutQuestion: AiAdvisory = {
+    ...validAdvisory,
+    humanQuestion: null,
   };
-  const formatted = formatAdvisorySummary(outcome);
-  const questionCount = (formatted.match(/\*\*Pergunta:\*\*/g) ?? []).length;
-  assert.equal(questionCount, 1);
+  const formattedWithout = formatAdvisorySummary({
+    status: 'AVAILABLE' as const,
+    provider: 'openai',
+    model: 'gpt-4o',
+    advisory: withoutQuestion,
+  });
+  assert.doesNotMatch(formattedWithout, /\*\*Pergunta:\*\*/);
+});
+
+test('formatAdvisorySummary: mudança DOCUMENTATION exibe Ação e omite Risco', () => {
+  const docAdvisory: AiAdvisory = {
+    changeSummary: '`GET /health` teve apenas o texto de `summary` alterado.',
+    changeNature: 'DOCUMENTATION',
+    impact: 'LOW',
+    confidence: 'HIGH',
+    attention: ['mudança documental; nenhuma alteração funcional identificada.'],
+    actions: ['npm run validate:openapi'],
+    humanQuestion: null,
+  };
+  const formatted = formatAdvisorySummary({
+    status: 'AVAILABLE' as const,
+    provider: 'openai',
+    model: 'gpt-4o',
+    advisory: docAdvisory,
+  });
+  assert.match(formatted, /\*\*Resumo:\*\* `GET \/health` teve apenas o texto de `summary` alterado\./);
+  assert.match(formatted, /\*\*Impacto:\*\* LOW · Confiança: HIGH/);
+  assert.match(formatted, /\*\*Ação:\*\* npm run validate:openapi/);
+  assert.doesNotMatch(formatted, /\*\*Risco:\*\*/);
+  assert.doesNotMatch(formatted, /\*\*Pergunta:\*\*/);
+  assert.match(formatted, /AI advisory · decisão humana/);
+});
+
+test('formatAdvisorySummary: mudança com risco exibe Risco e Ação', () => {
+  const formatted = formatAdvisorySummary({
+    status: 'AVAILABLE' as const,
+    provider: 'openai',
+    model: 'gpt-4o',
+    advisory: validAdvisory,
+  });
+  assert.match(formatted, /\*\*Risco:\*\* RISK-API-005/);
+  assert.match(formatted, /\*\*Ação:\*\* npm run test:api/);
+  assert.match(formatted, /AI advisory · decisão humana/);
+});
+
+test('regressão: resposta DOCUMENTATION cabe no budget de tokens e passa pelo schema', () => {
+  const docAdvisory: AiAdvisory = {
+    changeSummary: '`GET /health` teve apenas o texto de `summary` alterado.',
+    changeNature: 'DOCUMENTATION',
+    impact: 'LOW',
+    confidence: 'HIGH',
+    attention: ['mudança documental; nenhuma alteração funcional identificada.'],
+    actions: ['npm run validate:openapi'],
+    humanQuestion: null,
+  };
+
+  // 1. Passa com sucesso no parse do schema Zod
+  const parsed = parseAiAdvisory(docAdvisory);
+  assert.deepEqual(parsed, docAdvisory);
+
+  // 2. Budget mínimo seguro para DOCUMENTATION é de 800 tokens (evita truncamento na LLM)
+  const docContext: typeof context = {
+    ...context,
+    changes: {
+      ...changes,
+      openApiChanged: true,
+      openApiChangeNature: 'DOCUMENTATION',
+    },
+  };
+  const budget = selectTokenBudget(docContext);
+  assert.equal(budget >= 700 && budget <= 900, true, `budget esperado entre 700-900, obteve ${budget}`);
+
+  // 3. Tamanho do JSON serializado é compacto (< 400 caracteres / ~100 tokens), deixando ampla margem de segurança no budget de 800
+  const jsonString = JSON.stringify(docAdvisory);
+  assert.equal(jsonString.length < 400, true, `JSON muito extenso: ${jsonString.length} chars`);
 });
 
 test('detectOpenApiChangeNature: DOCUMENTATION para diff só com summary/description', () => {
@@ -245,13 +306,25 @@ test('detectOpenApiChangeNature: DOCUMENTATION para diff só com summary/descrip
   assert.equal(detectOpenApiChangeNature(docOnlyDiff), 'DOCUMENTATION');
 });
 
+test('detectOpenApiChangeNature: DOCUMENTATION para diff cosmético de aspas', () => {
+  const quoteDiff = `--- a/specs/openapi/cloud-control-plane.yaml
++++ b/specs/openapi/cloud-control-plane.yaml
+@@ -10,2 +10,2 @@
+-  '200':
++  "200":
+-    $ref: '#/components/parameters/CorrelationId'
++    $ref: "#/components/parameters/CorrelationId"`;
+
+  assert.equal(detectOpenApiChangeNature(quoteDiff), 'DOCUMENTATION');
+});
+
 test('detectOpenApiChangeNature: SEMANTIC para diff com paths/schema', () => {
   const semanticDiff = `--- a/specs/openapi/cloud-control-plane.yaml
 +++ b/specs/openapi/cloud-control-plane.yaml
 @@ -20,5 +20,5 @@
 -        type: string
 +        type: integer
-   required: true`;
+    required: true`;
 
   assert.equal(detectOpenApiChangeNature(semanticDiff), 'SEMANTIC');
 });

@@ -148,7 +148,7 @@ function formatItems(title: string, items: AiFailureAdvisory['affectedRisks'], l
 
 export function formatFailureAdvisorySummary(
   outcome: FailureAdvisoryOutcome,
-  metrics?: ResiliencyMetricsSummary,
+  _metrics?: ResiliencyMetricsSummary,
 ): string {
   if (outcome.status === AI_FAILURE_ADVISORY_UNAVAILABLE) {
     return [
@@ -156,29 +156,37 @@ export function formatFailureAdvisorySummary(
       '',
       `**${AI_FAILURE_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
+      '`AI advisory · decisão humana`',
+      '',
     ].join('\n');
   }
 
   const { advisory } = outcome;
-  const metricsLine = metrics
-    ? `Cenários: ${metrics.totalScenarios} (${metrics.passed} ok / ${metrics.failed} falhos) | Recuperação: ${metrics.durationMs.min}–${metrics.durationMs.max}ms`
-    : null;
-
   const lines: string[] = [
     '## Failure Intelligence (AI-02)',
     '',
     `**Resumo:** ${advisory.failureSummary}`,
-    `**Recuperação:** ${advisory.recoveryAssessment} · **Confiança:** ${advisory.confidence}`,
-    ...(metricsLine ? ['', metricsLine] : []),
-    '',
-    ...formatItems('Atenção', [...advisory.affectedRisks, ...advisory.consistencyConcerns]),
-    ...formatItems('Ação', [...advisory.recommendedExperiments, ...advisory.coverageGaps]),
-    ...(advisory.humanQuestions.slice(0, 1).length > 0
-      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
-      : []),
-    '`AI advisory · decisão humana · Quality Gate não afetado`',
+    `**Impacto:** ${advisory.recoveryAssessment} · Confiança: ${advisory.confidence}`,
     '',
   ];
+
+  const risks = [...advisory.affectedRisks, ...advisory.consistencyConcerns];
+  if (risks.length > 0 && advisory.recoveryAssessment !== 'RECOVERED_CONSISTENT') {
+    lines.push(`**Risco:** ${risks[0]!.subject}: ${risks[0]!.rationale}`, '');
+  }
+
+  const actions = [...advisory.recommendedExperiments, ...advisory.coverageGaps].slice(0, 2);
+  if (actions.length === 1) {
+    lines.push(`**Ação:** ${actions[0]!.subject}: ${actions[0]!.rationale}`, '');
+  } else if (actions.length > 1) {
+    lines.push('**Ação:**', ...actions.map((item) => `- ${item.subject}: ${item.rationale}`), '');
+  }
+
+  if (advisory.humanQuestions.length > 0) {
+    lines.push(`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '');
+  }
+
+  lines.push('`AI advisory · decisão humana`', '');
   return lines.join('\n');
 }
 

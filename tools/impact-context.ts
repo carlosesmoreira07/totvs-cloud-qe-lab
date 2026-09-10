@@ -232,7 +232,18 @@ export function detectOpenApiChangeNature(diff: string | null): OpenApiChangeNat
     (line.startsWith('+') || line.startsWith('-')) && !line.startsWith('+++') && !line.startsWith('---'),
   );
   if (changedLines.length === 0) return 'UNKNOWN';
-  return changedLines.every((line) => OPENAPI_DOCONLY_LINE.test(line)) ? 'DOCUMENTATION' : 'SEMANTIC';
+  if (changedLines.every((line) => OPENAPI_DOCONLY_LINE.test(line))) return 'DOCUMENTATION';
+
+  // Se as linhas não-documentais diferirem apenas por aspas ou espaçamento cosmético
+  const nonDocLines = changedLines.filter((line) => !OPENAPI_DOCONLY_LINE.test(line));
+  const normalize = (l: string) => l.slice(1).replace(/['"\s]/g, '');
+  const removed = nonDocLines.filter((l) => l.startsWith('-')).map(normalize);
+  const added = nonDocLines.filter((l) => l.startsWith('+')).map(normalize);
+  if (removed.length > 0 && removed.length === added.length && removed.every((val, i) => val === added[i])) {
+    return 'DOCUMENTATION';
+  }
+
+  return 'SEMANTIC';
 }
 
 export function collectImpactContext(environment: NodeJS.ProcessEnv = process.env): ImpactContext {

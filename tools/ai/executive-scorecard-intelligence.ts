@@ -121,36 +121,44 @@ export function formatExecutiveScorecardAdvisory(outcome: ExecutiveScorecardAdvi
       '',
       `**${AI_EXECUTIVE_SCORECARD_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
+      '`AI advisory · decisão humana`',
+      '',
     ].join('\n');
   }
 
   const advisory = outcome.advisory;
-  const attentionItems = [
-    advisory.overallInterpretation,
-    ...advisory.regressions,
-    ...advisory.degradedJourneys,
-  ].slice(0, 3);
-
-  const actionItems = [
-    ...advisory.recommendedInvestigations,
-    ...advisory.coverageGaps,
-    ...advisory.recommendedTests,
-  ].slice(0, 3);
-
-  return [
+  const impact = advisory.overallInterpretation?.classification === 'OBSERVED' ? 'HIGH' : 'MEDIUM';
+  const lines: string[] = [
     '## Parecer Executivo (AI-05)',
     '',
     `**Resumo:** ${advisory.executiveSummary}`,
-    `**Confiança:** ${advisory.confidence}`,
+    `**Impacto:** ${impact} · Confiança: ${advisory.confidence}`,
     '',
-    ...findings('Atenção', attentionItems),
-    ...findings('Ação', actionItems),
-    ...(advisory.humanQuestions.slice(0, 1).length > 0
-      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
-      : []),
-    '`AI advisory · decisão humana · Quality Gate não afetado`',
-    '',
-  ].join('\n');
+  ];
+
+  const risks = [...advisory.regressions, ...advisory.degradedJourneys];
+  const primaryRisk = risks[0] ?? (advisory.overallInterpretation?.classification === 'OBSERVED' ? advisory.overallInterpretation : null);
+  if (primaryRisk) {
+    lines.push(`**Risco:** [${primaryRisk.classification}] ${primaryRisk.subject}: ${primaryRisk.rationale}`, '');
+  }
+
+  const actions = [
+    ...advisory.recommendedInvestigations,
+    ...advisory.coverageGaps,
+    ...advisory.recommendedTests,
+  ].slice(0, 2);
+  if (actions.length === 1) {
+    lines.push(`**Ação:** [${actions[0]!.classification}] ${actions[0]!.subject}: ${actions[0]!.rationale}`, '');
+  } else if (actions.length > 1) {
+    lines.push('**Ação:**', ...actions.map((item) => `- [${item.classification}] ${item.subject}: ${item.rationale}`), '');
+  }
+
+  if (advisory.humanQuestions.length > 0) {
+    lines.push(`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '');
+  }
+
+  lines.push('`AI advisory · decisão humana`', '');
+  return lines.join('\n');
 }
 
 

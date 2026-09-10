@@ -357,39 +357,42 @@ export function formatSecurityAdvisorySummary(
       '',
       `**${AI_SECURITY_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
+      '`AI advisory · decisão humana`',
+      '',
     ].join('\n');
   }
 
   const advisory = outcome.advisory;
-  const metricsLine = metrics
-    ? `Status: ${metrics.securityStatus} | Findings: ${metrics.totalFindings} (C=${metrics.severities.CRITICAL} H=${metrics.severities.HIGH} M=${metrics.severities.MEDIUM}) | Open: ${metrics.findingsByStatus.OPEN}`
-    : null;
-
-  const attentionItems = [
-    ...advisory.topSecurityPriorities,
-    ...advisory.technicalFindings,
-  ].slice(0, 3);
-
-  const actionItems = [
-    ...advisory.recommendedActions,
-    ...advisory.recommendedInvestigations,
-  ].slice(0, 3);
-
-  return [
+  const impact = metrics?.securityStatus ?? 'MEDIUM';
+  const lines: string[] = [
     '## Security Intelligence (AI-06)',
     '',
     `**Resumo:** ${advisory.executiveSummary}`,
-    `**Confiança:** ${advisory.confidence}`,
-    ...(metricsLine ? ['', metricsLine] : []),
+    `**Impacto:** ${impact} · Confiança: ${advisory.confidence}`,
     '',
-    ...formatItems('Atenção', attentionItems),
-    ...formatItems('Ação', actionItems),
-    ...(advisory.humanQuestions.slice(0, 1).length > 0
-      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
-      : []),
-    '`AI advisory · decisão humana · Quality Gate não afetado`',
-    '',
-  ].join('\n');
+  ];
+
+  const risks = [...advisory.topSecurityPriorities, ...advisory.technicalFindings];
+  if (risks.length > 0) {
+    lines.push(`**Risco:** [${risks[0]!.classification}] ${risks[0]!.subject}: ${risks[0]!.rationale}`, '');
+  }
+
+  const actions = [
+    ...advisory.recommendedActions,
+    ...advisory.recommendedInvestigations,
+  ].slice(0, 2);
+  if (actions.length === 1) {
+    lines.push(`**Ação:** [${actions[0]!.classification}] ${actions[0]!.subject}: ${actions[0]!.rationale}`, '');
+  } else if (actions.length > 1) {
+    lines.push('**Ação:**', ...actions.map((item) => `- [${item.classification}] ${item.subject}: ${item.rationale}`), '');
+  }
+
+  if (advisory.humanQuestions.length > 0) {
+    lines.push(`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '');
+  }
+
+  lines.push('`AI advisory · decisão humana`', '');
+  return lines.join('\n');
 }
 
 

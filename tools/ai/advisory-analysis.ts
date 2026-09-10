@@ -3,13 +3,13 @@ import { pathToFileURL } from 'node:url';
 import { ZodError } from 'zod';
 
 import { collectImpactContext, type ImpactContext } from '../impact-context.js';
-import { createOpenAiProvider, DEFAULT_QE_AI_TIMEOUT_MS } from './openai-provider.js';
+import { createOpenAiProvider, DEFAULT_QE_AI_TIMEOUT_MS, SYSTEM_INSTRUCTIONS } from './openai-provider.js';
 import {
   AiProviderUnavailableError,
   type AiAdvisoryUnavailableReason,
   type AiProvider,
 } from './provider.js';
-import { parseAiAdvisory, type AiAdvisory } from './schema.js';
+import { aiAdvisorySchema, parseAiAdvisory, type AiAdvisory } from './schema.js';
 
 export const AI_ADVISORY_UNAVAILABLE = 'AI_ADVISORY_UNAVAILABLE' as const;
 export const QE_AI_PROMPT_VERSION = 'qe-advisory-v2' as const;
@@ -161,14 +161,14 @@ export function buildAdvisoryContext(
   };
 }
 
-// Token budget baseado no tamanho e natureza da mudança
-function selectTokenBudget(context: AdvisoryContext): number {
+// Token budget baseado no tamanho e natureza da mudança (mínimo seguro para Structured Output)
+export function selectTokenBudget(context: AdvisoryContext): number {
   const { changes } = context;
-  if (changes.openApiChangeNature === 'DOCUMENTATION') return 350;
-  if (changes.candidateRisks.length === 0) return 350;
-  if (changes.changedFiles.length <= 2) return 450;
-  if (changes.changedFiles.length <= 5) return 600;
-  return 700;
+  if (changes.openApiChangeNature === 'DOCUMENTATION') return 800;
+  if (changes.candidateRisks.length === 0) return 800;
+  if (changes.changedFiles.length <= 2) return 800;
+  if (changes.changedFiles.length <= 5) return 1_000;
+  return 1_200;
 }
 
 function withTimeout<T>(operation: Promise<T>, timeoutMs: number): Promise<T> {
@@ -209,6 +209,9 @@ export async function runAdvisoryAnalysis(
     };
 
     const raw = await withTimeout(provider.analyze(filteredContext, {
+      schema: aiAdvisorySchema,
+      schemaName: 'qe_quality_advisory',
+      instructions: SYSTEM_INSTRUCTIONS,
       maxOutputTokens: selectTokenBudget(context),
     }), timeoutMs);
     return {
@@ -228,17 +231,6 @@ export async function runAdvisoryAnalysis(
   }
 }
 
-
-// Renderiza uma seção somente se tiver itens (sem "Nenhum item")
-function advisorySection(title: string, items: AiAdvisory['coverageGaps'], limit = 3): string[] {
-  if (items.length === 0) return [];
-  return [
-    `**${title}:**`,
-    ...items.slice(0, limit).map((item) => `- ${item.subject}: ${item.rationale}`),
-    '',
-  ];
-}
-
 export function formatAdvisorySummary(outcome: AdvisoryOutcome): string {
   if (outcome.status === AI_ADVISORY_UNAVAILABLE) {
     return [
@@ -246,38 +238,38 @@ export function formatAdvisorySummary(outcome: AdvisoryOutcome): string {
       '',
       `**${AI_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
+      '`AI advisory · decisão humana`',
+      '',
     ].join('\n');
   }
 
   const { advisory } = outcome;
-
-  // Agregar atenções (riscos + gaps + tests suspeitos) e ações (controles + checks + segurança)
-  const attentionItems = [
-    ...advisory.impactedRisks,
-    ...advisory.coverageGaps,
-    ...advisory.suspiciousTests,
-  ].slice(0, 3);
-
-  const actionItems = [
-    ...advisory.recommendedChecks,
-    ...advisory.impactedControls,
-    ...advisory.securityConcerns,
-  ].slice(0, 3);
-
-  const questionItems = advisory.humanQuestions.slice(0, 1);
-
   const lines: string[] = [
     '## QE Advisory',
     '',
     `**Resumo:** ${advisory.changeSummary}`,
-    `**Impacto:** ${advisory.impact} \u00b7 **Confiança:** ${advisory.confidence}`,
-    '',
-    ...advisorySection('Atenção', attentionItems),
-    ...advisorySection('Ação', actionItems),
-    ...(questionItems.length > 0 ? [`**Pergunta:** ${questionItems[0]!.subject} — ${questionItems[0]!.rationale}`, ''] : []),
-    '`AI advisory \u00b7 decisão humana \u00b7 Quality Gate não afetado`',
+    `**Impacto:** ${advisory.impact} · Confiança: ${advisory.confidence}`,
     '',
   ];
+
+  // Risco: 1 linha, SOMENTE se houver risco material (ignora se documental ou vazio)
+  if (advisory.attention.length > 0 && advisory.changeNature !== 'DOCUMENTATION') {
+    lines.push(`**Risco:** ${advisory.attention[0]}`, '');
+  }
+
+  // Ação: 1-2 ações, SOMENTE as prioritárias
+  if (advisory.actions.length === 1) {
+    lines.push(`**Ação:** ${advisory.actions[0]}`, '');
+  } else if (advisory.actions.length > 1) {
+    lines.push('**Ação:**', ...advisory.actions.slice(0, 2).map((item) => `- ${item}`), '');
+  }
+
+  // Pergunta: 1 linha, SOMENTE se indispensável
+  if (advisory.humanQuestion && advisory.humanQuestion.trim().length > 0) {
+    lines.push(`**Pergunta:** ${advisory.humanQuestion.trim()}`, '');
+  }
+
+  lines.push('`AI advisory · decisão humana`', '');
   return lines.join('\n');
 }
 

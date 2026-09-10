@@ -169,41 +169,46 @@ export function formatTelemetryAdvisorySummary(
       '',
       `**${AI_TELEMETRY_ADVISORY_UNAVAILABLE}** — Quality Gate não afetado. \`${outcome.reason}\``,
       '',
+      '`AI advisory · decisão humana`',
+      '',
     ].join('\n');
   }
 
   const { advisory } = outcome;
-  const metricsLine = correlation
-    ? `Traces: ${correlation.totalTraces} | Erros: ${correlation.errorTraces.length} | Missing spans: ${correlation.missingSpans.length}`
-    : null;
-
-  const attentionItems = [
-    ...advisory.probableDegradationPoints,
-    ...advisory.consistencyConcerns,
-    ...advisory.traceFindings,
-  ].slice(0, 3);
-
-  const actionItems = [
-    ...advisory.recommendedInvestigations,
-    ...advisory.instrumentationGaps,
-    ...advisory.recommendedTests,
-  ].slice(0, 3);
-
+  const impact = correlation && (correlation.errorTraces.length > 0 || correlation.missingSpans.length > 0) ? 'HIGH' : 'LOW';
   const lines: string[] = [
     '## Telemetry Intelligence (AI-03)',
     '',
     `**Resumo:** ${advisory.executiveSummary}`,
-    `**Confiança:** ${advisory.confidence}`,
-    ...(metricsLine ? ['', metricsLine] : []),
-    '',
-    ...formatItems('Atenção', attentionItems),
-    ...formatItems('Ação', actionItems),
-    ...(advisory.humanQuestions.slice(0, 1).length > 0
-      ? [`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '']
-      : []),
-    '`AI advisory · decisão humana · Quality Gate não afetado`',
+    `**Impacto:** ${impact} · Confiança: ${advisory.confidence}`,
     '',
   ];
+
+  const risks = [
+    ...advisory.probableDegradationPoints,
+    ...advisory.consistencyConcerns,
+    ...advisory.traceFindings,
+  ];
+  if (risks.length > 0) {
+    lines.push(`**Risco:** [${risks[0]!.classification}] ${risks[0]!.subject}: ${risks[0]!.rationale}`, '');
+  }
+
+  const actions = [
+    ...advisory.recommendedInvestigations,
+    ...advisory.instrumentationGaps,
+    ...advisory.recommendedTests,
+  ].slice(0, 2);
+  if (actions.length === 1) {
+    lines.push(`**Ação:** [${actions[0]!.classification}] ${actions[0]!.subject}: ${actions[0]!.rationale}`, '');
+  } else if (actions.length > 1) {
+    lines.push('**Ação:**', ...actions.map((item) => `- [${item.classification}] ${item.subject}: ${item.rationale}`), '');
+  }
+
+  if (advisory.humanQuestions.length > 0) {
+    lines.push(`**Pergunta:** ${advisory.humanQuestions[0]!.subject} — ${advisory.humanQuestions[0]!.rationale}`, '');
+  }
+
+  lines.push('`AI advisory · decisão humana`', '');
   return lines.join('\n');
 }
 
